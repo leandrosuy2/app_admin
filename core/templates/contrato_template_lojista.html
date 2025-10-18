@@ -1,0 +1,246 @@
+{% load static humanize l10n %}
+{% block content %}
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Contrato de Prestação de Serviços de Cobrança</title>
+
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet" />
+
+<style>
+  :root{ --ink:#1f2937; --muted:#6b7280; --border:#e5e7eb; --card:#fff; --bg:#f4f6f9; --accent:#1e3a8a; }
+  body{ background:var(--bg); color:var(--ink); font-family:system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif; font-size:10pt; }
+  .shell{ max-width:980px; margin:24px auto; padding:0 12px; }
+  .card-doc{ background:var(--card); border-radius:12px; box-shadow:0 10px 30px rgba(0,0,0,.12); padding:26px 22px; }
+  .head-bar{ display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:8px; }
+  .brand { display:flex; align-items:center; gap:12px; }
+  .brand img{ height:56px; width:auto; }
+  .brand h1{ font-size:14pt; margin:0; text-transform:uppercase; letter-spacing:.4px; color:var(--accent); font-weight:700; }
+  .tools{ display:flex; gap:8px; }
+  .hr{ height:1px; background:var(--border); margin:10px 0 18px; }
+  .contract-body p{ text-align:justify; margin-bottom:10px; }
+  .contract-body h6{ font-weight:700; margin-top:14px; margin-bottom:6px; }
+  .table{ width:100%; border-collapse:collapse; margin:10px 0; }
+  .table th,.table td{ border:1px solid var(--border); padding:6px; vertical-align:top; }
+  .table th{ background:#f8fafc; font-weight:700; }
+  .date-line{ text-align:right; margin-top:12px; }
+  @page{ size:A4; margin:18mm 14mm; }
+  @media print{
+    body{ background:#fff; color:#000; }
+    .shell{ margin:0; max-width:none; padding:0; }
+    .card-doc{ box-shadow:none; border-radius:0; padding:0; }
+    .tools{ display:none !important; }
+    .table th,.table td{ border:1px solid #000 !important; }
+    .brand img{ height:50px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="shell">
+  <div class="head-bar d-print-none">
+    <div class="brand">
+      <img src="/media/logos/logo_empresa.jpeg" alt="Logo">
+      <h1>NEGOCIAR COBRANÇAS E NEGÓCIOS LTDA</h1>
+    </div>
+    <div class="tools">
+      <button class="btn btn-primary" onclick="window.print()"><i class="fa fa-print me-1"></i> Imprimir</button>
+      {% if empresa.id %}
+      <a class="btn btn-outline-secondary" href="{% url 'contrato_cobranca_pdf' empresa.id %}" target="_blank">
+        <i class="fa fa-file-pdf me-1"></i> Baixar PDF
+      </a>
+      {% endif %}
+    </div>
+  </div>
+
+  <div class="card-doc">
+    <!-- Cabeçalho institucional -->
+    <div class="mb-2">
+      <div class="d-flex align-items-center gap-3">
+        <img src="/media/logos/logo_empresa.jpeg" alt="Logo" style="height:40px">
+        <div>
+          <div style="font-weight:700; font-size:13pt;">NEGOCIAR COBRANÇAS E NEGÓCIOS LTDA</div>
+          <div><b>CNPJ:</b> 12.855.602/0001-00</div>
+          <div><b>AVENIDA:</b> SERGIO HENNS, Nº 460 – AEROPORTO VELHO</div>
+          <div><b>CIDADE/UF:</b> SANTARÉM – PA &nbsp; <b>CEP:</b> 68.020-000</div>
+        </div>
+      </div>
+    </div>
+    <div class="hr"></div>
+
+    <div class="contract-body">
+      <h6>FICHA CADASTRAL — SISTEMA DE COBRANÇA</h6>
+
+      <!-- DADOS BANCÁRIOS -->
+      <h6 class="mt-3">Dados Bancários para Depósito</h6>
+      <table class="table">
+        <thead>
+          <tr><th>BANCO</th><th>AGÊNCIA</th><th>CONTA</th><th>CHAVE PIX</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>{{ empresa.banco_nome|default:"—" }}</td>
+            <td>{{ empresa.agencia|default:"—" }}</td>
+            <td>{{ empresa.conta|default:"—" }}</td>
+            <td>
+              {# valor principal da chave PIX, com compatibilidade legado e sem parênteses no if #}
+              {% if empresa.chave_pix %}
+                {{ empresa.chave_pix }}
+              {% elif empresa.banco %}
+                {{ empresa.banco }}
+              {% elif empresa.tipo_pix == "agencia_conta" %}
+                {% if empresa.agencia or empresa.conta %}
+                  Agência: {{ empresa.agencia|default:"—" }}{% if empresa.conta %} • Conta: {{ empresa.conta }}{% endif %}
+                {% else %}
+                  —
+                {% endif %}
+              {% else %}
+                —
+              {% endif %}
+
+              {# linha auxiliar com tipo e favorecido, quando houver #}
+              {% if empresa.tipo_pix or empresa.nome_favorecido_pix %}
+                <div class="text-muted" style="font-size:9pt">
+                  {% if empresa.tipo_pix %}Tipo: {{ empresa.tipo_pix }}{% endif %}
+                  {% if empresa.nome_favorecido_pix %}
+                    {% if empresa.tipo_pix %} — {% endif %}
+                    Fav.: {{ empresa.nome_favorecido_pix }}
+                  {% endif %}
+                </div>
+              {% endif %}
+            </td>
+          </tr>
+        </tbody>
+      </table>
+
+      <!-- TAXAS / IMPLANTAÇÃO -->
+      <h6>Taxas e Condições Contratuais</h6>
+      <p><b>Implantação:</b> R$ {{ empresa.valor_adesao|localize }}</p>
+
+      <!-- TABELA DE REMUNERAÇÃO -->
+    <h6>Tabela de Remuneração sobre Recebíveis</h6>
+<table class="table">
+  <thead>
+    <tr>
+      <th>Período de atraso (dias)</th>
+      <th>Remuneração sobre valores recebidos</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% if use_dynamic_table %}
+      {% for r in remuneracoes %}
+        <tr>
+          <td>
+            {% if r.ate_dias %}
+              De {{ r.de_dias }} a {{ r.ate_dias }} dias
+            {% else %}
+              A partir de {{ r.de_dias }} dias
+            {% endif %}
+          </td>
+          <td>
+            {{ r.percentual|floatformat:2 }}%
+          </td>
+        </tr>
+      {% endfor %}
+    {% else %}
+      <tr><td>De 30 a 90 dias</td><td>9% (nove por cento)</td></tr>
+      <tr><td>De 91 a 180 dias</td><td>15% (quinze por cento)</td></tr>
+      <tr><td>De 181 a 720 dias</td><td>21% (vinte e um por cento)</td></tr>
+      <tr><td>De 721 a 1825 dias</td><td>30% (trinta por cento)</td></tr>
+      <tr><td>Acima de 1826 dias</td><td>40% (quarenta por cento)</td></tr>
+    {% endif %}
+  </tbody>
+</table>
+
+      <!-- CONDIÇÕES DE NEGOCIAÇÃO -->
+      <h6>Condições de Negociação junto aos Clientes Devedores</h6>
+      <table class="table">
+        <tbody>
+          <tr>
+            <th style="width:40%">Quantidade de parcelas</th>
+            <td>{{ empresa.qtd_parcelas|default:"—" }}</td>
+          </tr>
+          <tr>
+            <th>Total de descontos (à vista)</th>
+            <td>
+              {% if empresa.desconto_total_avista %}{{ empresa.desconto_total_avista|floatformat:2 }}%{% else %}—{% endif %}
+            </td>
+          </tr>
+          <tr>
+            <th>Total de descontos (a prazo)</th>
+            <td>
+              {% if empresa.desconto_total_aprazo %}{{ empresa.desconto_total_aprazo|floatformat:2 }}%{% else %}—{% endif %}
+            </td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="hr"></div>
+
+      <h6 class="mt-2">CONTRATO PARTICULAR DE PRESTAÇÃO DE SERVIÇOS DE COBRANÇA</h6>
+
+      <h6>Partes do Contrato</h6>
+      <p>
+        Pelo presente instrumento particular, de um lado <b>{{ empresa.razao_social|default:"—" }}</b>, pessoa jurídica de direito privado,
+        inscrita no CNPJ: <b>{{ empresa.cnpj|default:"—" }}</b>, tendo como nome fantasia <b>{{ empresa.nome_fantasia|default:"—" }}</b>,
+        com sede na <b>{{ empresa.endereco|default:"—" }}</b>, nº <b>{{ empresa.numero|default:"—" }}</b>,
+        <b>{{ empresa.bairro|default:"—" }}</b>, <b>{{ empresa.cidade|default:"—" }}-{{ empresa.uf|default:"—" }}</b>,
+        CEP <b>{{ empresa.cep|default:"—" }}</b>, e-mail <b>{{ empresa.email|default:"—" }}</b>, telefone <b>{{ empresa.telefone|default:"—" }}</b>,
+        aqui representada por <b>{{ empresa.nome_contato|default:"—" }}</b>, CPF <b>{{ empresa.cpf_contato|default:"—" }}</b>,
+        doravante denominada <b>CONTRATANTE</b>; e, de outro lado, <b>NEGOCIAR COBRANÇAS E NEGÓCIOS LTDA</b>, CNPJ <b>12.855.602/0001-00</b>,
+        com sede na AV. SERGIO HENNS, nº 460 – Aeroporto Velho – Santarém/PA – CEP 68.020-000, doravante denominada <b>CONTRATADA</b>.
+      </p>
+
+      <h6>Do Objeto do Contrato</h6>
+      <p><b>Cláusula 1ª –</b> Prestação de serviços de cobrança de créditos, via extrajudicial e judicial, oriundos de operações legítimas de compra e venda e/ou prestação de serviços (“recebíveis”).</p>
+
+      <h6>Da Cobrança</h6>
+      <p><b>Cláusula 2ª –</b> Cobrança, preferencialmente, pela via extrajudicial; na ausência de êxito, poderá ser iniciada a via judicial, com autorização prévia da CONTRATANTE.</p>
+      <p><b>Cláusula 3ª –</b> A CONTRATANTE deverá cadastrar no sistema da CONTRATADA os títulos/similares com todas as informações requeridas.</p>
+      <p><b>Cláusula 4ª –</b> Permanência mínima dos títulos no sistema: <b>360</b> dias. Exclusões antes disso configuram baixa/liquidação e geram honorários conforme tabela do preâmbulo. A CONTRATADA não recebe valores; apenas intermedeia negociações com pagamento direto à CONTRATANTE (PIX/CNPJ, cartão, boleto, depósito ou link da CONTRATANTE). Obrigatoriedade de lançar, no mínimo, <b>50</b> documentos em <b>90</b> dias, sob pena de cancelamento até manifestação da CONTRATANTE.</p>
+      <p><b>Cláusula 5ª –</b> A CONTRATADA poderá intermediar acordos, parcelar, recalcular e aplicar descontos dentro dos parâmetros do preâmbulo. Não recebe valores de acordos.</p>
+      <p><b>Cláusula 6ª –</b> Após o cadastro, são devidos honorários sobre o adimplemento, ainda que o pagamento seja direto à CONTRATANTE.</p>
+      <p><b>Cláusula 7ª –</b> Autorizada a cobrança de juros/multa e honorários conforme tabela vigente no preâmbulo.</p>
+      <p><b>Cláusula 8ª –</b> Em cobrança judicial, despesas/custas serão da CONTRATANTE, com comunicação prévia.</p>
+
+      <h6>Obrigações da Contratante</h6>
+      <p><b>Cláusula 9ª –</b> Responde pela veracidade das informações. Autoriza parcelamentos em até <b>{{ empresa.qtd_parcelas|default:"—" }}</b> parcelas, com desconto a prazo de <b>{% if empresa.desconto_total_aprazo %}{{ empresa.desconto_total_aprazo|floatformat:2 }}%{% else %}—{% endif %}</b> e, à vista, de <b>{% if empresa.desconto_total_avista %}{{ empresa.desconto_total_avista|floatformat:2 }}%{% else %}—{% endif %}</b>. Danos por dados incorretos são de sua responsabilidade.</p>
+      <p><b>Cláusula 10ª –</b> Fornecer toda a documentação necessária.</p>
+
+      <h6>Obrigações da Contratada</h6>
+      <p><b>Cláusula 11ª –</b> Prestar os serviços nos termos deste contrato.</p>
+      <p><b>Cláusula 12ª –</b> Guardar e utilizar adequadamente a documentação recebida.</p>
+      <p><b>Cláusula 13ª –</b> Manter equipe capacitada para cobranças extra e judiciais.</p>
+
+      <h6>Remuneração</h6>
+      <p><b>Cláusula 14ª –</b> Honorários conforme quadro remuneratório, devidos na data do recebimento do crédito/parcela.</p>
+      <p><b>§ 1º –</b> Inadimplemento de honorários/mensalidade: multa <b>6,72%</b> + juros <b>2,00% a.m.</b></p>
+      <p><b>Cláusula 15ª –</b> Em atraso, a CONTRATADA poderá bloquear serviços após 2 dias úteis e incluir em cadastros de proteção ao crédito, além de protesto após 30 dias.</p>
+
+      <h6>Sistema de Cobrança</h6>
+      <p><b>Cláusula 16ª –</b> Cobrança de valor único de implantação conforme preâmbulo (sem renovação/anuidade). Valor indicado: <b>R$ {{ empresa.valor_adesao|localize }}</b>.</p>
+      <p><b>Cláusula 17ª –</b> Acompanhamento pelo site <b>www.negociarcobrancas.com.br</b> com credenciais fornecidas.</p>
+
+      <h6>Prazo</h6>
+      <p><b>Cláusula 18ª –</b> Validade de <b>12 (doze) meses</b> a partir da assinatura.</p>
+      <p><b>Cláusula 19ª –</b> Ao término, ausência de manifestação escrita em 10 dias renova por prazo indeterminado.</p>
+
+      <h6>Rescisão</h6>
+      <p><b>Cláusula 20ª –</b> Rescisão por qualquer parte mediante comunicação escrita com 30 dias.</p>
+
+      <h6>Foro</h6>
+      <p><b>Cláusula 21ª –</b> Foro eleito: <b>Santarém – PA</b>.</p>
+
+      <p class="date-line"><b>{{ empresa.cidade|default:"—" }}-{{ empresa.uf|default:"—" }}, {{ empresa.data_formatada|default:"___/___/____" }}.</b></p>
+
+      <p class="text-muted" style="font-size:9pt">AV. SERGIO HENNS, Nº 460 – Aeroporto Velho – Santarém/PA – CEP 68.020-000</p>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>
+{% endblock %}

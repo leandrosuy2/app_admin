@@ -1,0 +1,166 @@
+{% extends "base.html" %}
+{% load humanize %}
+
+{% block content %}
+<div class="container mt-4">
+
+  <h1 class="mb-3">Honorários</h1>
+
+  <!-- Filtros -->
+  <form class="row g-2 align-items-end mb-3" method="get">
+    <div class="col-12 col-sm-4 col-lg-3">
+      <label class="form-label mb-1">Buscar (devedor/credor/título)</label>
+      <input type="text" name="q" value="{{ q }}" class="form-control" placeholder="ex.: ANDREZA">
+    </div>
+    <div class="col-6 col-sm-4 col-lg-2">
+      <label class="form-label mb-1">Baixa de</label>
+      <input type="date" name="dt_ini" value="{{ dt_ini }}" class="form-control">
+    </div>
+    <div class="col-6 col-sm-4 col-lg-2">
+      <label class="form-label mb-1">Baixa até</label>
+      <input type="date" name="dt_fim" value="{{ dt_fim }}" class="form-control">
+    </div>
+    <div class="col-6 col-sm-3 col-lg-2">
+      <label class="form-label mb-1">% Honorários</label>
+      <input type="number" step="0.01" min="0" max="1" name="pct"
+             value="{{ pct_honorarios }}" class="form-control" />
+      <div class="form-text">ex.: 0.40 = 40%</div>
+    </div>
+    <div class="col-6 col-sm-3 col-lg-2">
+      <label class="form-label mb-1">Itens por página</label>
+      <input type="number" name="per_page" value="{{ per_page|default:25 }}" min="5" max="200" class="form-control">
+    </div>
+    <div class="col-12 col-lg-1 d-grid">
+      <button class="btn btn-primary">Filtrar</button>
+    </div>
+  </form>
+
+  <!-- Cards de totais -->
+  <div class="row g-3 mb-3">
+    <div class="col-12 col-sm-4">
+      <div class="card h-100">
+        <div class="card-body">
+          <div class="text-muted small">Total pago</div>
+          <div class="h4 mb-0">R$ {{ total_pago|floatformat:2 }}</div>
+        </div>
+      </div>
+    </div>
+    <div class="col-12 col-sm-4">
+      <div class="card h-100">
+        <div class="card-body">
+          <div class="text-muted small">Honorários ({{ pct_honorarios|floatformat:2|mul:100|floatformat:0 }}%)</div>
+          <div class="h4 mb-0">R$ {{ total_honorarios|floatformat:2 }}</div>
+        </div>
+      </div>
+    </div>
+    <div class="col-12 col-sm-4">
+      <div class="card h-100">
+        <div class="card-body">
+          <div class="text-muted small">Líquido</div>
+          <div class="h4 mb-0">R$ {{ total_liquido|floatformat:2 }}</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tabela (responsiva) -->
+  <div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+      <strong>Parcelas quitadas</strong>
+      <span class="text-muted small">{{ linhas_total }} registro(s)</span>
+    </div>
+    <div class="table-responsive">
+      <table class="table table-sm table-striped align-middle mb-0">
+        <thead class="table-dark">
+          <tr>
+            <th>Credor</th>
+            <th>Devedor</th>
+            <th>Acordo</th>
+            <th>Parcela</th>
+            <th>k/n</th>
+            <th>Vencimento</th>
+            <th>Pagamento</th>
+            <th class="text-end">Valor pago</th>
+            <th class="text-end">Honorários</th>
+            <th class="text-end">Líquido</th>
+            <th>Forma</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% if page_obj.object_list %}
+            {% for r in page_obj.object_list %}
+              <tr>
+                <td class="text-nowrap">{{ r.credor }}</td>
+                <td class="text-nowrap">{{ r.devedor }}</td>
+                <td class="text-nowrap">{{ r.acordo_id }}</td>
+                <td class="text-nowrap">{{ r.parcela_id }}</td>
+                <td class="text-nowrap">{{ r.parcelas }}</td>
+                <td class="text-nowrap">
+                  {% if r.vencimento %}{{ r.vencimento|date:"d/m/Y" }}{% else %}-{% endif %}
+                </td>
+                <td class="text-nowrap">
+                  {% if r.pagto %}{{ r.pagto|date:"d/m/Y" }}{% else %}-{% endif %}
+                </td>
+                <td class="text-end">R$ {{ r.valor_pago|floatformat:2 }}</td>
+                <td class="text-end">R$ {{ r.honorarios|floatformat:2 }}</td>
+                <td class="text-end">R$ {{ r.valor_liq|floatformat:2 }}</td>
+                <td class="text-nowrap">{{ r.forma_pagamento }}</td>
+              </tr>
+            {% endfor %}
+          {% else %}
+            <tr>
+              <td colspan="11" class="text-center text-muted py-4">
+                Nenhuma parcela encontrada para os filtros informados.
+              </td>
+            </tr>
+          {% endif %}
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Paginação -->
+    <div class="card-footer">
+      {% if page_obj.paginator.num_pages > 1 %}
+      <nav>
+        <ul class="pagination mb-0 flex-wrap">
+          {% with qparam="&q="|add:q|urlencode|default_if_none:'' %}
+          {% with diniparam="&dt_ini="|add:dt_ini|default_if_none:'' %}
+          {% with dfimparam="&dt_fim="|add:dt_fim|default_if_none:'' %}
+          {% with pparam="&per_page="|add:per_page %}
+          {% if page_obj.has_previous %}
+            <li class="page-item">
+              <a class="page-link" href="?page=1{{ qparam }}{{ diniparam }}{{ dfimparam }}{{ pparam }}">«</a>
+            </li>
+            <li class="page-item">
+              <a class="page-link" href="?page={{ page_obj.previous_page_number }}{{ qparam }}{{ diniparam }}{{ dfimparam }}{{ pparam }}">‹</a>
+            </li>
+          {% else %}
+            <li class="page-item disabled"><span class="page-link">«</span></li>
+            <li class="page-item disabled"><span class="page-link">‹</span></li>
+          {% endif %}
+
+          <li class="page-item disabled">
+            <span class="page-link">
+              Página {{ page_obj.number }} de {{ page_obj.paginator.num_pages }}
+            </span>
+          </li>
+
+          {% if page_obj.has_next %}
+            <li class="page-item">
+              <a class="page-link" href="?page={{ page_obj.next_page_number }}{{ qparam }}{{ diniparam }}{{ dfimparam }}{{ pparam }}">›</a>
+            </li>
+            <li class="page-item">
+              <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}{{ qparam }}{{ diniparam }}{{ dfimparam }}{{ pparam }}">»</a>
+            </li>
+          {% else %}
+            <li class="page-item disabled"><span class="page-link">›</span></li>
+            <li class="page-item disabled"><span class="page-link">»</span></li>
+          {% endif %}
+          {% endwith %}{% endwith %}{% endwith %}{% endwith %}
+        </ul>
+      </nav>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %}

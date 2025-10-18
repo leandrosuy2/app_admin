@@ -1,0 +1,48 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-5">
+    <h1 class="text-center">Acordos da Empresa #{{ empresa_id }}</h1>
+
+    {% if acordos %}
+        <table class="table table-bordered table-striped text-center table-sm">
+            <thead class="table-dark">
+                <tr>
+                    <th>ID</th>
+                    <th>Devedor</th>
+                    <th>Empresa</th>
+                    <th>Título</th>
+                    <th>Entrada</th>
+                    <th>Valor Total</th>
+                    <th>Parcelas</th>
+                    <th>Valor por Parcela</th>
+                    <th>Contato</th>
+                    <th>Vencimento Primeira Parcela</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for acordo in acordos %}
+                <tr>
+                    <td>{{ acordo.id }}</td>                    
+                    <td>{{ acordo.empresa_nome_fantasia }}</td>
+					<td>{{ acordo.devedor_nome }}</td>
+                    <td>{{ acordo.titulo_id }}</td>
+                    <td>R$ {{ acordo.entrada|floatformat:2 }}</td>
+                    <td>R$ {{ acordo.valor_total_negociacao|floatformat:2 }}</td>
+                    <td>{{ acordo.qtde_prc }}</td>
+                    <td>R$ {{ acordo.valor_por_parcela|floatformat:2 }}</td>
+                    <td>{{ acordo.contato }}</td>
+                    <td>{{ acordo.venc_primeira_parcela|date:"d/m/Y" }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% else %}
+        <p class="text-muted text-center">Nenhum acordo encontrado para esta empresa.</p>
+    {% endif %}
+
+    <div class="mt-4 text-center">
+        <a href="{% url 'acordos_listar' %}" class="btn btn-secondary">Voltar à Lista de Acordos</a>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Confirmar Exclusão</title>
+</head>
+<body>
+    <h1>Tem certeza de que deseja excluir esta empresa?</h1>
+    <form method="post">
+        {% csrf_token %}
+        <button type="submit">Sim</button>
+        <a href="{% url 'empresas:listar_empresas' %}">Cancelar</a>
+    </form>
+</body>
+</html>

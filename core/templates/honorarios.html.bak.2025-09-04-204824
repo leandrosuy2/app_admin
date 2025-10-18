@@ -1,0 +1,166 @@
+{% extends 'base.html' %}
+{% load humanize %}
+{% block content %}
+<div class="container mt-5">
+  <h2 class="mb-4 text-center">Honorários</h2>
+
+  <!-- Filtros -->
+  <div class="card mb-4 shadow-sm">
+    <div class="card-body">
+      <form method="get" class="row g-3">
+        <div class="col-md-3">
+          <label for="data_inicio" class="form-label">Data Início</label>
+          <input type="date" class="form-control" id="data_inicio" name="data_inicio" value="{{ data_inicio }}">
+        </div>
+        <div class="col-md-3">
+          <label for="data_fim" class="form-label">Data Fim</label>
+          <input type="date" class="form-control" id="data_fim" name="data_fim" value="{{ data_fim }}">
+        </div>
+
+        {% if request.user.is_staff or request.user.is_superuser %}
+          <div class="col-md-3">
+            <label for="operador" class="form-label">Operador</label>
+            <select class="form-control" id="operador" name="operador">
+              <option value="">Todos</option>
+              {% for op in operadores %}
+                <option value="{{ op }}" {% if op == operador %}selected{% endif %}>{{ op }}</option>
+              {% endfor %}
+            </select>
+          </div>
+        {% else %}
+          <div class="col-md-3">
+            <label class="form-label d-block">Operador</label>
+            <span class="badge bg-secondary">{{ operador }}</span>
+            <input type="hidden" name="operador" value="{{ operador }}">
+          </div>
+        {% endif %}
+
+        <div class="col-md-3">
+          <label for="empresa" class="form-label">Empresa</label>
+          <select class="form-control" id="empresa" name="empresa">
+            <option value="">Todas</option>
+            {% for emp in empresas %}
+              <option value="{{ emp }}" {% if emp == empresa %}selected{% endif %}>{{ emp }}</option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <div class="col-md-3">
+          <label for="devedor" class="form-label">Devedor</label>
+          <input type="text" class="form-control" id="devedor" name="devedor" value="{{ devedor }}" placeholder="Nome do devedor">
+        </div>
+        <div class="col-md-3">
+          <label for="cpf_cnpj" class="form-label">CPF/CNPJ</label>
+          <input type="text" class="form-control" id="cpf_cnpj" name="cpf_cnpj" value="{{ cpf_cnpj }}" placeholder="CPF ou CNPJ">
+        </div>
+
+        <div class="col-md-3 d-flex align-items-end">
+          <button type="submit" class="btn btn-primary w-100">Filtrar</button>
+        </div>
+        <div class="col-md-3 d-flex align-items-end">
+          <button type="submit" class="btn btn-success w-100" name="exportar_excel" value="1">Exportar Excel</button>
+        </div>
+      </form>
+
+      {% if trava_operador %}
+        <div class="mt-2 small text-muted">
+          * Exibindo apenas registros do operador <strong>{{ operador }}</strong>.
+        </div>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- Resumo com Cards -->
+  <div class="row mb-5 gx-4 gy-3">
+    <div class="col-md-4">
+      <div class="card text-white bg-primary shadow-lg border-0">
+        <div class="card-body text-center">
+          <h6 class="card-title fw-semibold">Valor Total Quitado</h6>
+          <h2 class="display-6 fw-bold">R$ {{ soma_total|floatformat:2|intcomma }}</h2>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="card text-white bg-success shadow-lg border-0">
+        <div class="card-body text-center">
+          <h6 class="card-title fw-semibold">Comissão Total</h6>
+          <h2 class="display-6 fw-bold">R$ {{ comissao_total|floatformat:2|intcomma }}</h2>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="card text-white bg-warning shadow-lg border-0">
+        <div class="card-body text-center">
+          <h6 class="card-title fw-semibold">Honorários Operador Total (25%)</h6>
+          <h2 class="display-6 fw-bold">R$ {{ honorario_total|floatformat:2|intcomma }}</h2>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tabela de Honorários -->
+  <div class="table-responsive rounded shadow-sm">
+    <table class="table table-bordered align-middle">
+      <thead class="table-light text-center">
+        <tr>
+          <th>ID</th>
+          <th>Nome Fantasia</th>
+          <th>Devedor</th>
+          <th>Valor Recebido</th>
+          <th>Data Baixa</th>
+          <th>Data Vencimento</th>
+          <th>Dias Atraso</th>
+          <th>Comissão</th>
+          <th>Honorário Operador (25%)</th>
+          <th>Operador</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for honorario in page_obj %}
+          <tr>
+            <td>{{ honorario.id }}</td>
+            <td>{{ honorario.empresa }}</td>
+            <td>{{ honorario.nome }}</td>
+            <td class="text-end">R$ {{ honorario.valor_recebido|floatformat:2|intcomma }}</td>
+            <td>{{ honorario.data_baixa }}</td>
+            <td>{{ honorario.data_vencimento }}</td>
+            <td class="text-center">{{ honorario.dias_atraso }}</td>
+            <td class="text-end">R$ {{ honorario.comissao|floatformat:2|intcomma }}</td>
+            <td class="text-end">R$ {{ honorario.honorario_operador|floatformat:2|intcomma }}</td>
+            <td>{{ honorario.operador }}</td>
+          </tr>
+        {% empty %}
+          <tr>
+            <td colspan="10" class="text-center text-muted">Nenhum registro encontrado.</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Paginação -->
+  <nav class="mt-4 d-flex justify-content-center">
+    <ul class="pagination">
+      {% if page_obj.has_previous %}
+        <li class="page-item">
+          <a class="page-link"
+             href="?page={{ page_obj.previous_page_number }}&data_inicio={{ data_inicio }}&data_fim={{ data_fim }}&operador={{ operador }}&empresa={{ empresa }}&devedor={{ devedor }}&cpf_cnpj={{ cpf_cnpj }}">
+            <i class="bi bi-chevron-left"></i> Anterior
+          </a>
+        </li>
+      {% endif %}
+      <li class="page-item disabled">
+        <span class="page-link">Página {{ page_obj.number }} de {{ page_obj.paginator.num_pages }}</span>
+      </li>
+      {% if page_obj.has_next %}
+        <li class="page-item">
+          <a class="page-link"
+             href="?page={{ page_obj.next_page_number }}&data_inicio={{ data_inicio }}&data_fim={{ data_fim }}&operador={{ operador }}&empresa={{ empresa }}&devedor={{ devedor }}&cpf_cnpj={{ cpf_cnpj }}">
+            Próximo <i class="bi bi-chevron-right"></i>
+          </a>
+        </li>
+      {% endif %}
+    </ul>
+  </nav>
+</div>
+{% endblock %}

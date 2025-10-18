@@ -1,0 +1,14 @@
+criar campo nas parcelas
+
+anexar recibo e comprovante de pagamento
+
+em empresas
+campo logo
+
+quando imprimir o recibo da empresa ficar com 
+a logo
+
+envio de e-mail quando o cliente pagar uma quitação, parcela e entrada
+enviar apenas quando o comprovante de pagamento for anexado(do cliente para o lojista), 
+o e-mail vai ser enviado para o lojista e uma copia para o e-mail controladoria@***
+

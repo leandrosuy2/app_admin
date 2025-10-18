@@ -1,0 +1,166 @@
+from django.urls import path, include
+from . import views
+from .views import listar_devedores, listar_titulos_por_devedor, adicionar_devedor, editar_devedor, excluir_devedor, realizar_acordo, listar_acordos, pagar_parcela, detalhar_parcela, listar_empresas, adicionar_empresa, editar_empresa, excluir_empresa, consultar_cnpj_view, adicionar_usuario, listar_usuarios, editar_usuario, excluir_usuario, listar_grupos, editar_grupo, atualizar_permissao, gerar_contrato, anexar_contrato, baixar_contrato_view, gerar_contrato_lojista, gerar_ficha_lojista, buscar_dados_api_cliente, editar_titulo, alterar_status_empresa, emails_envio_criar, emails_envio_editar, emails_envio_listar, email_template_listar, email_template_editar, email_template_criar, buscar_devedores, baixar_boleto, boletos_listar_emitidos, alterar_operador, excluir_titulo_devedor, honorarios, ranking_operadores
+from django.contrib.auth import views as auth_views
+from django.contrib.auth.views import LogoutView
+from django.conf.urls import handler403, static
+from django.conf import settings
+from django.conf.urls.static import static
+from django.contrib import admin
+import base64
+from core import views
+
+
+ 
+handler403 = 'core.views.permission_denied_view'
+
+
+
+urlpatterns = [
+    path('', views.home_redirect, name='home'),  # Rota para redirecionar para o dashboard
+    path('dashboard/', views.dashboard, name='dashboard'),
+    path('devedores/listar/', listar_devedores, name='devedores_listar'),
+    path('acordos/parcela/<int:parcela_id>/editar/',  views.parcela_editar,  name='editar_parcela'),
+    path('acordos/parcela/<int:parcela_id>/excluir/', views.parcela_excluir, name='excluir_parcela'),
+    path("devedores/<int:devedor_id>/refazer/", views.refazer_devedor, name="refazer_devedor"),
+    path("boletos/emitidos/", views.boletos_listar_emitidos, name="boletos_listar_emitidos"),
+    path("pix/detalhes/<str:ident>/", views.pix_detalhes, name="pix_detalhes"),
+    path("pix/qr/<str:txid>/", views.pix_qr_page, name="pix_qr_page"),
+    path('agendamentos/cadastrar/', views.agendamentos_cadastrar, name='agendamentos_cadastrar'),       
+    path('devedores/', views.listar_devedores, name='listar_devedores'),
+    path('empresas/<int:id>/status/', views.alterar_status_empresa, name='alterar_status_empresa'),
+    path('devedores/adicionar/', views.adicionar_devedor, name='adicionar_devedor'),
+    path('devedores/<int:id>/editar/', editar_devedor, name='editar_devedor'),
+    path('devedores/<int:id>/excluir/', excluir_devedor, name='excluir_devedor'),
+    path('devedores/<int:id>/excluir/', views.excluir_devedor, name='excluir_devedor'),
+    path('devedores/excluir-em-massa/', views.excluir_devedores_em_massa, name='excluir_devedores_em_massa'),
+    path('devedores/excluir-todos/', views.excluir_devedores_todos, name='excluir_devedores_todos'),
+    path('devedores/<int:devedor_id>/titulos/', listar_titulos_por_devedor, name='listar_titulos_por_devedor'),
+    path('devedores/<int:devedor_id>/titulos/', views.listar_titulos_por_devedor, name='titulos_listar_por_devedor'),
+    path('titulos/', views.titulos_listar, name='titulos_listar'),
+    path('titulos/adicionar/', views.adicionar_titulo, name='adicionar_titulo'),
+    path('titulos/<int:id>/editar/', views.editar_titulo, name='editar_titulo'),
+    path('titulos/<int:id>/excluir/', views.excluir_titulo, name='excluir_titulo'),
+    path("empresas/<int:id>/contrato/", views.contrato_cobranca, name="contrato_cobranca"),
+    path("empresas/<int:id>/contrato/pdf/", views.contrato_cobranca_pdf, name="contrato_cobranca_pdf"),
+    path('login/', views.login_view, name='login'),
+    path('logout/', LogoutView.as_view(), name='logout'),
+    path('titulos/<int:titulo_id>/acordo/', views.realizar_acordo, name='realizar_acordo'),    
+    path('acordos/listar/', views.listar_acordos, name='acordos_listar'),
+    path('parcelamentos/', views.listar_parcelamentos, name='listar_parcelamentos'),
+    path('parcelamentos/pagar/<int:parcela_id>/', pagar_parcela, name='pagar_parcela'), 
+    path('empresas/', views.listar_empresas, name='listar_empresas'),
+    path('titulos/<int:titulo_id>/baixar/', views.realizar_baixa, name='realizar_baixa'),
+    path('devedores/<int:devedor_id>/adicionar-titulo/', views.adicionar_titulo_pg_devedor, name='adicionar_titulo_pg_devedor'),
+    path('agendamentos/', views.listar_agendamentos, name='listar_agendamentos'),
+    path('agendamentos/criar/', views.criar_agendamento, name='criar_agendamento'),
+    path('agendamentos/<int:agendamento_id>/editar/', views.editar_agendamento, name='editar_agendamento'),
+    path('agendamentos/<int:agendamento_id>/excluir/', views.excluir_agendamento, name='excluir_agendamento'),
+    path('agendamentos/finalizar/<int:agendamento_id>/', views.finalizar_agendamento, name='finalizar_agendamento'),
+    path('parcelamentos/<int:parcelamento_id>/', detalhar_parcela, name='detalhar_parcela'),
+    path('detalhes-devedor/<int:titulo_id>/', views.detalhes_devedor, name='detalhes_devedor'),
+    path('usuarios/lojista/', views.usuarios_lojista_listar, name='usuarios_lojista_listar'),
+    path('usuarios/lojista/<int:lojista_id>/excluir/', views.excluir_lojista, name='excluir_lojista'),
+    path('usuarios/lojista/<int:lojista_id>/excluir.json', views.excluir_lojista_api, name='excluir_lojista_api'),
+    path('usuarios/lojista/excluir-em-massa/', views.excluir_lojistas_em_massa, name='excluir_lojistas_em_massa'),
+    path('editar-telefones/<int:devedor_id>/', views.editar_telefones, name='editar_telefones'),
+    path('lista-titulos/', views.lista_titulos, name='lista_titulos'),
+    path('empresas/', listar_empresas, name='listar_empresas'),
+    path('empresas/adicionar/', adicionar_empresa, name='adicionar_empresa'),
+    path('empresas/<int:id>/editar/', editar_empresa, name='editar_empresa'),
+    path('empresas/<int:id>/excluir/', excluir_empresa, name='excluir_empresa'),
+    path('empresas/consultar_cnpj/', consultar_cnpj_view, name='consultar_cnpj'),
+    path('usuarios/', listar_usuarios, name='listar_usuarios'),
+    path('usuarios/adicionar/', adicionar_usuario, name='adicionar_usuario'),
+    path('usuarios/<int:user_id>/editar/', editar_usuario, name='editar_usuario'),
+    path('usuarios/<int:user_id>/excluir/', excluir_usuario, name='excluir_usuario'),
+     path('grupos/', listar_grupos, name='listar_grupos'),  # Para listar os grupos
+    path('grupos/<int:grupo_id>/editar/', editar_grupo, name='editar_grupo'),  # Para editar um grupo
+    path('grupos/atualizar-permissao/', atualizar_permissao, name='atualizar_permissao'),
+    path('titulos/<int:titulo_id>/gerar_pdf/', views.gerar_pdf, name='gerar_pdf'),
+     path("baixar_modelo_devedor/", views.baixar_modelo_devedor, name="baixar_modelo_devedor"),
+    path("importar_devedor/", views.importar_devedor, name="importar_devedor"),
+    path('gerar-recibo/<int:titulo_id>/', views.gerar_recibo, name='gerar_recibo'),
+    path("titulos/<int:titulo_id>/recibo/", views.gerar_recibo, name="gerar_recibo"),
+    path('acordos/<int:titulo_id>/gerar_contrato/', views.gerar_contrato, name='gerar_contrato'),
+    path('adicionar-follow-up/<int:devedor_id>/', views.adicionar_follow_up, name='adicionar_follow_up'),
+    path('listar-follow-ups/<int:devedor_id>/', views.listar_follow_ups, name='listar_follow_ups'),
+    path('logs/', views.listar_logs, name='listar_logs'),    
+    path('parcelamento/<int:parcela_id>/anexar-comprovante/', views.anexar_comprovante, name='anexar_comprovante'),
+    path('baixar_comprovante/<int:titulo_id>/', views.baixar_comprovante, name='baixar_comprovante'),
+    path('mensagens/', views.listar_mensagens, name='listar_mensagens'),    
+    path('mensagens/adicionar/', views.adicionar_mensagem, name='adicionar_mensagem'),
+    path('mensagens/editar/<int:pk>/', views.editar_mensagem, name='editar_mensagem'),
+    path('mensagens/excluir/<int:pk>/', views.excluir_mensagem, name='excluir_mensagem'),
+    path('tabelas/', views.tabelas_listar, name='tabelas_listar'),  # Lista de tabelas
+    path('tabelas/adicionar/', views.tabela_adicionar, name='tabela_adicionar'),  # Formulário para adicionar tabela
+    path('tabelas/editar/<int:tabela_id>/', views.tabela_editar, name='tabela_editar'),  # Formulário para editar tabela
+    path('tabelas/excluir/<int:tabela_id>/', views.tabela_excluir, name='tabela_excluir'),  # Excluir tabela
+
+    # Rotas para gerenciamento de itens da lista
+    path('tabelas/<int:tabela_id>/itens/', views.lista_gerenciar, name='lista_gerenciar'),  # Gerenciamento de itens da lista
+    path('tabelas/<int:tabela_id>/itens/adicionar/', views.lista_adicionar, name='lista_adicionar'),  # Adicionar item à lista
+   
+    path('tabelas/<int:tabela_id>/itens/editar/<int:item_id>/', views.lista_editar, name='lista_editar'),
+
+    path('tabelas/<int:tabela_id>/itens/excluir/<int:item_id>/', views.lista_excluir, name='lista_excluir'),  # Excluir item da lista
+     path('finalizar-titulo/<int:titulo_id>/', views.finalizar_titulo, name='finalizar_titulo'),
+     path('quitar-parcela/<int:titulo_id>/', views.quitar_parcela, name='quitar_parcela'),
+     path('titulos/quitados/', views.quitados_listar, name='quitados_listar'),
+     
+     #Anexar e baixar contrato
+     path('anexar-contrato/<int:titulo_id>/', views.anexar_contrato, name='anexar_contrato'),
+     
+    path('baixar-contrato/<int:titulo_id>/', views.baixar_contrato_view, name='baixar_contrato'),
+    
+    #Usuários lojista
+    path('usuarios/lojista/', views.usuarios_lojista_listar, name='usuarios_lojista_listar'),
+    path('usuarios/lojista/criar/', views.usuarios_lojista_criar, name='usuarios_lojista_criar'),
+    path('usuarios/lojista/<int:user_id>/editar/', views.usuarios_lojista_editar, name='usuarios_lojista_editar'),
+    
+    #Gerar contrato lojista, tela  lista empresas/
+    path('empresas/<int:id>/gerar_contrato_lojista/', gerar_contrato_lojista, name='gerar_contrato_lojista'),
+    
+    #Gerar ficha lojista, tela  lista empresas/
+    path('empresas/<int:id>/gerar_ficha_lojista/', views.gerar_ficha_lojista, name='gerar_ficha_lojista'),
+    
+    path('devedores/<int:devedor_id>/busca_dados_api_cliente/', buscar_dados_api_cliente, name='buscar_dados_api_cliente'),
+    
+    path('salvar_dados_api_cadastro/', views.salvar_dados_api_cadastro, name='salvar_dados_api_cadastro'),
+     path('api/empresas/buscar/', views.api_buscar_empresas, name='api_buscar_empresas'),
+     path('titulos/<int:id>/editar/', views.editar_titulo, name='editar_titulo'),
+      path('empresa/alterar_status/<int:id>/', alterar_status_empresa, name='alterar_status_empresa'),
+      path('emails/criar/', emails_envio_criar, name='emails_envio_criar'),
+    path('emails/editar/<int:id>/', emails_envio_editar, name='emails_envio_editar'),
+    path('emails/', emails_envio_listar, name='emails_envio_listar'),
+     path('email_templates/', email_template_listar, name='email_template_listar'),
+    path('email_templates/editar/<int:id>/', email_template_editar, name='email_template_editar'),
+    path('email_templates/criar/', email_template_criar, name='email_template_criar'),
+    path('agendamentos/buscar_devedores/', buscar_devedores, name='buscar_devedores'),
+    path('consult-api/', views.consult_api, name='consult_api'),  
+
+    #Boletos
+    path('emitir-boletos/', views.emitir_boletos_view, name='emitir_boletos'),
+
+    path('boletos-emitidos/', boletos_listar_emitidos, name='boletos_listar_emitidos'),
+    path('alterar-operador/<int:titulo_id>/', alterar_operador, name='alterar_operador'),
+    path('excluir_titulo_devedor/<int:titulo_id>/', views.excluir_titulo_devedor, name='excluir_titulo_devedor'),
+    path('usuarios/lojista/<int:usuario_id>/excluir/', views.usuarios_lojista_excluir, name='usuarios_lojista_excluir'),
+    path("baixar-boleto/<str:codigo_solicitacao>/", baixar_boleto, name="baixar_boleto"),
+    path('titulos/honorarios/', views.honorarios, name='honorarios'),
+    path('ranking-operadores/', views.ranking_operadores, name='ranking_operadores'),
+
+    
+    
+
+
+
+
+
+]
+
+
+
+if settings.DEBUG:
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+   

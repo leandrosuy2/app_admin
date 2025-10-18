@@ -1,0 +1,119 @@
+{% load custom_filters %}
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<title>Recibo de Pagamento</title>
+<style>
+  *{box-sizing:border-box}
+  body{font-family:Arial,Helvetica,sans-serif; font-size:12px; color:#222; margin:0}
+
+  /* A4; recibo ocupa exatamente a metade superior (148mm) e começa no topo */
+  @page { size: A4 portrait; margin: 0; }
+  @media print { .no-print{display:none!important} }
+
+  .actions.no-print{display:flex; gap:8px; justify-content:flex-end; padding:10px 12px}
+  .btn{border:1px solid #000; padding:6px 10px; background:#fff; cursor:pointer; font-size:12px}
+  .btn:hover{filter:brightness(0.95)}
+
+  .sheet{height:148mm;}
+  .wrap{padding: 10mm 12mm 8mm 12mm;}
+
+  .header{display:flex; align-items:flex-start; justify-content:space-between; gap:16px; margin-bottom:8px}
+  .logo img{height:66px; object-fit:contain; display:block}
+  .empresa{text-align:left; line-height:1.3}
+  .empresa .nome{font-weight:700; font-size:16px}
+  hr{border:none; border-top:1px solid #000; margin:6px 0 10px}
+  h2{font-size:13px; text-align:center; margin:0 0 10px; letter-spacing:.3px;}
+  .box{border:1px solid #000; padding:6px; margin-bottom:8px;}
+  .row{display:flex; gap:8px}
+  .row .col{flex:1}
+  table{width:100%; border-collapse:collapse; margin-top:6px; font-size:12px}
+  th,td{border:1px solid #000; padding:6px; text-align:left}
+  th{text-align:center; font-weight:700}
+  .label{font-weight:700}
+  .mt{margin-top:10px}
+  .mb{margin-bottom:8px}
+</style>
+</head>
+<body>
+
+  <!-- Apenas imprimir -->
+  <div class="actions no-print">
+    <button class="btn" onclick="window.print()">Imprimir</button>
+  </div>
+
+  <div class="sheet">
+    <div class="wrap">
+
+      <!-- Cabeçalho: usa a MESMA lógica do Editar Empresa -->
+      <div class="header">
+  <div class="logo">
+    {% if logo_url %}
+      <img src="{{ logo_url }}" alt="Logo da Empresa">
+    {% endif %}
+  </div>
+  <div class="empresa">
+
+    <div class="nome">
+      {% if empresa.razao_social %}{{ empresa.razao_social|upper }}
+      {% elif empresa.nome_fantasia %}{{ empresa.nome_fantasia|upper }}{% endif %}
+    </div>
+    {% if empresa.cnpj %}<div>CNPJ: {{ empresa.cnpj }}</div>{% endif %}
+    {% if empresa.endereco or empresa.numero %}
+      <div>{{ empresa.endereco }}{% if empresa.numero %}, {{ empresa.numero }}{% endif %}</div>
+    {% endif %}
+    {% if empresa.bairro %}<div>{{ empresa.bairro }}</div>{% endif %}
+    <div>
+      {% if empresa.cidade %}{{ empresa.cidade }}{% endif %}
+      {% if empresa.uf %} {{ empresa.uf }}{% endif %}
+      {% if empresa.cep %} {{ empresa.cep }}{% endif %} BR
+    </div>
+    {% if empresa.email %}<div>{{ empresa.email }}</div>{% endif %}
+  </div>
+</div>
+
+      <hr>
+
+      <h2>RECIBO DE PAGAMENTO DE PARCELA DE ACORDO</h2>
+
+      <div class="box">
+        <div class="row">
+          <div class="col"><span class="label">Devedor:</span> {{ devedor.nome }}</div>
+          <div class="col" style="max-width:320px"><span class="label">CPF:</span> {{ devedor.cpf_cnpj }}</div>
+        </div>
+      </div>
+
+      <table>
+        <thead>
+          <tr>
+            <th style="width:22%">#</th>
+            <th style="width:18%">Vencimento</th>
+            <th style="width:14%">Parcela</th>
+            <th style="width:22%">Valor pago</th>
+            <th style="width:24%">Data pagto.</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td style="text-align:center">{{ numero_titulo }}</td>
+            <td style="text-align:center">{% if parcela.data_vencimento %}{{ parcela.data_vencimento|date:"d/m/Y" }}{% endif %}</td>
+            <td style="text-align:center">{% if parcela.numero and parcela.qtde_total %}{{ parcela.numero }}/{{ parcela.qtde_total }}{% else %}Entrada{% endif %}</td>
+            <td style="text-align:center">R$ {{ parcela.valor_pago|floatformat:2 }}</td>
+            <td style="text-align:center">{% if parcela.data_pagamento %}{{ parcela.data_pagamento|date:"d/m/Y" }}{% endif %}</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="box mt">
+        <div class="mb"><span class="label">Descrição:</span> {% if parcela.numero and parcela.qtde_total %}Parcela do acordo.{% else %}Entrada do acordo.{% endif %}</div>
+        <div class="mb"><span class="label">Observações:</span> Acordo #{{ observacao_acordo }}.</div>
+        <div class="mb"><span class="label">Consultor:</span> {{ consultor|default:"" }}.</div>
+        <div><span class="label">Autenticação:</span> {{ autenticacao_token }}{% if data_autenticacao %} gerada em {{ data_autenticacao|date:"d/m/Y" }}{% endif %}.</div>
+      </div>
+
+    </div>
+  </div>
+
+</body>
+</html>

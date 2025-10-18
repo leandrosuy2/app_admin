@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="refresh" content="5;url={{ redirect_url }}">
+    <title>Redirecionamento</title>
+    <script type="text/javascript">
+        window.onload = function() {
+            alert("{{ message }}");
+            window.location.href = "{{ redirect_url }}";
+        }
+    </script>
+</head>
+<body>
+    <p>Redirecionando...</p>
+</body>
+</html>

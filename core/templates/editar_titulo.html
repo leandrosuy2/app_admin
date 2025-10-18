@@ -1,0 +1,45 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container mt-5">
+    <h2>Editar Título</h2>
+    <form method="post">
+        {% csrf_token %}
+        
+        <div class="mb-3">
+            <label for="valor" class="form-label">Valor</label>
+            <input type="text" class="form-control valor-input" id="valor{{ titulo.id }}" name="valor" value="{{ titulo.valor }}" required>
+        </div>
+        
+        <div class="mb-3">
+            <label for="dataVencimento" class="form-label">Data de Vencimento</label>
+            <input type="date" name="dataVencimento" id="dataVencimento" class="form-control" value="{{ titulo.dataVencimento|date:'Y-m-d' }}" required>
+        </div>
+
+        <div class="mb-3">
+            <label for="dataBaixa" class="form-label">Data de Baixa</label>
+            <input type="date" name="dataBaixa" id="dataBaixa" class="form-control" value="{{ titulo.data_baixa|date:'Y-m-d' }}">
+        </div>
+
+        <div class="mb-3">
+            <label for="valorRecebido" class="form-label">Valor Recebido</label>
+            <input type="text" class="form-control valor-input" id="valorRecebido{{ titulo.id }}" name="valorRecebido" value="{{ titulo.valorRecebido }}">
+        </div>
+
+        <button type="submit" class="btn btn-success">Salvar</button>
+        <a href="{% url 'detalhes_devedor' titulo.id %}" class="btn btn-secondary">Cancelar</a>
+    </form>
+</div>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        // Seleciona todos os campos de valor e ajusta a formatação automática
+        document.querySelectorAll('.valor-input').forEach(function (input) {
+            input.addEventListener('input', function (e) {
+                // Substitui vírgula por ponto automaticamente
+                this.value = this.value.replace(',', '.');
+            });
+        });
+    });
+</script>
+
+{% endblock %}

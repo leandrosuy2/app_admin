@@ -1,0 +1,397 @@
+{% extends 'base.html' %}
+{% block content %}
+
+<style>
+  .card { border-radius: 1rem; }
+  .required::after { content:" *"; color:#dc3545; }
+  .section-title { font-weight: 700; font-size: 1.1rem; margin-bottom: .75rem; }
+  .helper { font-size:.9rem; color:#6c757d; }
+  .kw-badge { cursor:pointer; user-select:none; }
+
+  /* Ajusta Select2 para altura/linha do Bootstrap 5 e evita sobreposição */
+  .select2-container--bootstrap-5 .select2-selection--single{
+    min-height: calc(2.5rem + 2px);
+    padding: .375rem .75rem;
+  }
+  .select2-container--bootstrap-5 .select2-selection__rendered{
+    line-height: 1.6;
+  }
+</style>
+
+<div class="container mt-5">
+  <h1 class="text-center mb-2">Adicionar Devedor e Título</h1>
+  <p class="text-center text-muted mb-4">Cadastre o devedor e, abaixo, já informe os dados do título.</p>
+
+  {% if errors %}
+    <div class="alert alert-danger">
+      <strong>Corrija os campos:</strong>
+      <ul class="mb-0">
+      {% for k,v in errors.items %}
+        <li>{{ v }}</li>
+      {% endfor %}
+      </ul>
+    </div>
+  {% endif %}
+
+  <form method="POST" class="row g-3 needs-validation" novalidate onsubmit="return validarFormularioFinal();">
+    {% csrf_token %}
+
+    <!-- ===================== SESSÃO 1 — DADOS DO DEVEDOR ===================== -->
+    <div class="col-12">
+      <!-- Vinculação -->
+      <div class="card shadow-sm mb-3">
+        <div class="card-body">
+          <div class="section-title">Vinculação</div>
+          <div class="row g-3">
+            <!-- Empresa (com busca) -->
+            <div class="col-md-6">
+              <label for="empresa_id" class="form-label required">Empresa</label>
+              <select name="empresa_id" id="empresa_id" class="form-select" required>
+                <option value="">Selecione...</option>
+                {% for empresa in empresas %}
+                  <option value="{{ empresa.id }}"
+                    {% if initial.empresa_id == empresa.id|stringformat:"s" %}selected{% endif %}>
+                    {{ empresa.id }} - {{ empresa.razao_social }}
+                  </option>
+                {% endfor %}
+              </select>
+              <div class="helper mt-1">Digite para pesquisar pela razão social.</div>
+            </div>
+
+            <!-- Tipo de Pessoa -->
+            <div class="col-md-6">
+              <label for="tipo_pessoa" class="form-label required">Tipo de Pessoa</label>
+              <select name="tipo_pessoa" id="tipo_pessoa" class="form-select" required onchange="togglePessoaFields()">
+                <option value="F" {% if initial.tipo_pessoa == 'F' %}selected{% endif %}>Física</option>
+                <option value="J" {% if initial.tipo_pessoa == 'J' %}selected{% endif %}>Jurídica</option>
+              </select>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Identificação -->
+      <div class="card shadow-sm mb-3">
+        <div class="card-body">
+          <div class="section-title">Identificação</div>
+          <div class="row g-3">
+            <!-- PF -->
+            <div class="col-md-6 pessoa-fisica">
+              <label for="nome" class="form-label required">Nome</label>
+              <input type="text" name="nome" id="nome" class="form-control" value="{{ initial.nome|default_if_none:'' }}">
+            </div>
+            <div class="col-md-6 pessoa-fisica">
+              <label for="cpf" class="form-label required">CPF</label>
+              <input type="text" name="cpf" id="cpf" class="form-control" maxlength="14"
+                     oninput="formatarCPF(this)" onblur="validarCPF()" value="{{ initial.cpf|default_if_none:'' }}">
+              <small id="cpfError" class="text-danger" style="display:none;">CPF inválido</small>
+            </div>
+            <div class="col-md-6 pessoa-fisica">
+              <label for="nome_mae" class="form-label">Nome da Mãe</label>
+              <input type="text" name="nome_mae" id="nome_mae" class="form-control" value="{{ initial.nome_mae|default_if_none:'' }}">
+            </div>
+            <div class="col-md-6 pessoa-fisica">
+              <label for="rg" class="form-label">RG</label>
+              <input type="text" name="rg" id="rg" class="form-control" value="{{ initial.rg|default_if_none:'' }}">
+            </div>
+
+            <!-- PJ -->
+            <div class="col-md-6 pessoa-juridica" style="display:none;">
+              <label for="razao_social" class="form-label required">Razão Social</label>
+              <input type="text" name="razao_social" id="razao_social" class="form-control" value="{{ initial.razao_social|default_if_none:'' }}">
+            </div>
+            <div class="col-md-6 pessoa-juridica" style="display:none;">
+              <label for="cnpj" class="form-label required">CNPJ</label>
+              <input type="text" name="cnpj" id="cnpj" class="form-control" maxlength="18"
+                     oninput="formatarCNPJ(this)" onblur="validarCNPJ()" value="{{ initial.cnpj|default_if_none:'' }}">
+              <small id="cnpjError" class="text-danger" style="display:none;">CNPJ inválido</small>
+            </div>
+            <div class="col-md-6 pessoa-juridica" style="display:none;">
+              <label for="nome_fantasia" class="form-label">Nome Fantasia</label>
+              <input type="text" name="nome_fantasia" id="nome_fantasia" class="form-control" value="{{ initial.nome_fantasia|default_if_none:'' }}">
+            </div>
+            <div class="col-md-6 pessoa-juridica" style="display:none;">
+              <label for="nome_socio" class="form-label">Nome Sócio</label>
+              <input type="text" name="nome_socio" id="nome_socio" class="form-control" value="{{ initial.nome_socio|default_if_none:'' }}">
+            </div>
+            <div class="col-md-6 pessoa-juridica" style="display:none;">
+              <label for="cpf_socio" class="form-label">CPF Sócio</label>
+              <input type="text" name="cpf_socio" id="cpf_socio" class="form-control" maxlength="14"
+                     oninput="formatarCPF(this)" onblur="validarCPFSocio()" value="{{ initial.cpf_socio|default_if_none:'' }}">
+              <small id="cpfSocioError" class="text-danger" style="display:none;">CPF do sócio inválido</small>
+            </div>
+            <div class="col-md-6 pessoa-juridica" style="display:none;">
+              <label for="rg_socio" class="form-label">RG Sócio</label>
+              <input type="text" name="rg_socio" id="rg_socio" class="form-control" value="{{ initial.rg_socio|default_if_none:'' }}">
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Endereço -->
+      <div class="card shadow-sm mb-3">
+        <div class="card-body">
+          <div class="section-title">Endereço</div>
+          <div class="row g-3">
+            <div class="col-md-4">
+              <label for="cep" class="form-label">CEP</label>
+              <input type="text" name="cep" id="cep" class="form-control" onblur="buscarEndereco()" value="{{ initial.cep|default_if_none:'' }}">
+            </div>
+            <div class="col-md-8">
+              <label for="endereco" class="form-label">Endereço</label>
+              <input type="text" name="endereco" id="endereco" class="form-control" value="{{ initial.endereco|default_if_none:'' }}">
+            </div>
+            <div class="col-md-4">
+              <label for="bairro" class="form-label">Bairro</label>
+              <input type="text" name="bairro" id="bairro" class="form-control" value="{{ initial.bairro|default_if_none:'' }}">
+            </div>
+            <div class="col-md-2">
+              <label for="uf" class="form-label">UF</label>
+              <input type="text" name="uf" id="uf" class="form-control" value="{{ initial.uf|default_if_none:'' }}">
+            </div>
+            <div class="col-md-6">
+              <label for="cidade" class="form-label">Cidade</label>
+              <input type="text" name="cidade" id="cidade" class="form-control" value="{{ initial.cidade|default_if_none:'' }}">
+            </div>
+            <div class="col-12">
+              <label for="observacao" class="form-label">Observação</label>
+              <textarea name="observacao" id="observacao" class="form-control" rows="2">{{ initial.observacao|default_if_none:'' }}</textarea>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Telefones / E-mails -->
+      <div class="card shadow-sm">
+        <div class="card-body">
+          <div class="section-title">Telefones / E-mails (opcionais)</div>
+          <div class="row g-3">
+            <div class="col-md-6"><label class="form-label" for="telefone">Telefone</label><input type="text" id="telefone" name="telefone" class="form-control" value="{{ initial.telefone|default_if_none:'' }}"></div>
+            <div class="col-md-6"><label class="form-label" for="telefone1">Telefone 1</label><input type="text" id="telefone1" name="telefone1" class="form-control" value="{{ initial.telefone1|default_if_none:'' }}"></div>
+            <div class="col-md-6"><label class="form-label" for="telefone2">Telefone 2</label><input type="text" id="telefone2" name="telefone2" class="form-control" value="{{ initial.telefone2|default_if_none:'' }}"></div>
+            <div class="col-md-6"><label class="form-label" for="telefone3">Telefone 3</label><input type="text" id="telefone3" name="telefone3" class="form-control" value="{{ initial.telefone3|default_if_none:'' }}"></div>
+            <div class="col-md-6"><label class="form-label" for="telefone4">Telefone 4</label><input type="text" id="telefone4" name="telefone4" class="form-control" value="{{ initial.telefone4|default_if_none:'' }}"></div>
+            <div class="col-md-6"><label class="form-label" for="telefone5">Telefone 5</label><input type="text" id="telefone5" name="telefone5" class="form-control" value="{{ initial.telefone5|default_if_none:'' }}"></div>
+            <div class="col-md-6"><label class="form-label" for="telefone6">Telefone 6</label><input type="text" id="telefone6" name="telefone6" class="form-control" value="{{ initial.telefone6|default_if_none:'' }}"></div>
+            <div class="col-md-6"><label class="form-label" for="telefone7">Telefone 7</label><input type="text" id="telefone7" name="telefone7" class="form-control" value="{{ initial.telefone7|default_if_none:'' }}"></div>
+            <div class="col-md-6"><label class="form-label" for="telefone8">Telefone 8</label><input type="text" id="telefone8" name="telefone8" class="form-control" value="{{ initial.telefone8|default_if_none:'' }}"></div>
+            <div class="col-md-6"><label class="form-label" for="telefone9">Telefone 9</label><input type="text" id="telefone9" name="telefone9" class="form-control" value="{{ initial.telefone9|default_if_none:'' }}"></div>
+            <div class="col-md-6"><label class="form-label" for="telefone10">Telefone 10</label><input type="text" id="telefone10" name="telefone10" class="form-control" value="{{ initial.telefone10|default_if_none:'' }}"></div>
+            <div class="col-md-6"><label class="form-label" for="email1">E-mail 1</label><input type="email" id="email1" name="email1" class="form-control" value="{{ initial.email1|default_if_none:'' }}"></div>
+            <div class="col-md-6"><label class="form-label" for="email2">E-mail 2</label><input type="email" id="email2" name="email2" class="form-control" value="{{ initial.email2|default_if_none:'' }}"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===================== SESSÃO 2 — DADOS DO TÍTULO ===================== -->
+    <div class="col-12">
+      <div class="card shadow-sm mt-4">
+        <div class="card-body">
+          <div class="section-title">Dados do Título</div>
+          <div class="row g-3">
+            <div class="col-md-6">
+              <label for="num_titulo" class="form-label required">Número do Título</label>
+              <input type="text" name="num_titulo" id="num_titulo" class="form-control" required value="{{ initial.num_titulo|default_if_none:'' }}">
+              <div class="helper">Ex.: FAT-12345/2025</div>
+            </div>
+            <div class="col-md-6">
+              <label for="tipo_doc_id" class="form-label required">Tipo de Documento</label>
+              <select name="tipo_doc_id" id="tipo_doc_id" class="form-select" required>
+                <option value="">Selecione...</option>
+                {% for tipo in tipos_docs %}
+                  <option value="{{ tipo.id }}" {% if initial.tipo_doc_id == tipo.id|stringformat:"s" %}selected{% endif %}>{{ tipo.name }}</option>
+                {% endfor %}
+              </select>
+            </div>
+            <div class="col-md-6">
+              <label for="data_emissao" class="form-label required">Data de Emissão</label>
+              <input type="date" name="data_emissao" id="data_emissao" class="form-control" required value="{{ initial.data_emissao|default_if_none:'' }}">
+              <div class="helper">Preenche com a data de hoje, se vazio.</div>
+            </div>
+            <div class="col-md-6">
+              <label for="data_vencimento" class="form-label required">Data de Vencimento</label>
+              <div class="input-group">
+                <input type="date" name="data_vencimento" id="data_vencimento" class="form-control" required value="{{ initial.data_vencimento|default_if_none:'' }}">
+                <span class="input-group-text bg-white">
+                  <span class="badge text-bg-light kw-badge me-1" onclick="atalhoVenc(7)">+7d</span>
+                  <span class="badge text-bg-light kw-badge me-1" onclick="atalhoVenc(15)">+15d</span>
+                  <span class="badge text-bg-light kw-badge" onclick="atalhoVenc(30)">+30d</span>
+                </span>
+              </div>
+              <div class="helper">Não permite data anterior à emissão.</div>
+            </div>
+            <div class="col-md-6">
+              <label for="valor" class="form-label required">Valor</label>
+              <input type="text" name="valor" id="valor" class="form-control" required value="{{ initial.valor|default_if_none:'' }}">
+              <div class="helper">Use vírgula como separador decimal. Ex.: 1.234,56</div>
+            </div>
+            <input type="hidden" name="status_baixa" id="status_baixa" value="0">
+          </div>
+
+          <div class="text-end mt-3">
+            <button id="btnSalvar" type="submit" class="btn btn-success px-4">Salvar devedor + título</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </form>
+</div>
+
+<!-- ====== Select2 (busca no select) ====== -->
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/select2-bootstrap-5-theme@1.6.2/dist/select2-bootstrap-5-theme.min.css" rel="stylesheet">
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+<script>
+  $(function(){
+    $('#empresa_id').select2({
+      theme: 'bootstrap-5',
+      width: '100%',
+      placeholder: 'Selecione...',
+      allowClear: false // evita o "x" em campo required e a sobreposição
+    });
+  });
+</script>
+
+<!-- ====== Scripts auxiliares ====== -->
+<script>
+  function todayISO(){
+    const d=new Date(), m=String(d.getMonth()+1).padStart(2,'0'), day=String(d.getDate()).padStart(2,'0');
+    return `${d.getFullYear()}-${m}-${day}`;
+  }
+  function setMinVenc(){
+    const em=document.getElementById('data_emissao');
+    const ve=document.getElementById('data_vencimento');
+    ve.min = em.value || todayISO();
+    if (ve.value && ve.value < ve.min) ve.value = ve.min;
+  }
+  function atalhoVenc(days){
+    const ve=document.getElementById('data_vencimento');
+    const base=new Date(document.getElementById('data_emissao').value || todayISO());
+    base.setDate(base.getDate()+days);
+    const m=String(base.getMonth()+1).padStart(2,'0'), d=String(base.getDate()).padStart(2,'0');
+    ve.value = `${base.getFullYear()}-${m}-${d}`;
+  }
+</script>
+
+<script>
+  // ViaCEP
+  function buscarEndereco() {
+    const cep = document.getElementById('cep').value.replace(/\D/g, '');
+    if (cep.length === 8) {
+      fetch(`https://viacep.com.br/ws/${cep}/json/`)
+        .then(r => r.json())
+        .then(data => {
+          if (!data.erro) {
+            document.getElementById('endereco').value = data.logradouro || '';
+            document.getElementById('bairro').value   = data.bairro || '';
+            document.getElementById('uf').value       = data.uf || '';
+            document.getElementById('cidade').value   = data.localidade || '';
+          } else { alert('CEP não encontrado.'); }
+        })
+        .catch(() => alert('Erro ao buscar o CEP. Tente novamente.'));
+    } else if (cep.length && cep.length !== 8) {
+      alert('CEP inválido. Certifique-se de que tenha 8 dígitos.');
+    }
+  }
+</script>
+
+<script>
+  // PF/PJ + validações
+  function togglePessoaFields() {
+    const tipo = document.getElementById('tipo_pessoa').value;
+    const pf = document.querySelectorAll('.pessoa-fisica');
+    const pj = document.querySelectorAll('.pessoa-juridica');
+
+    if (tipo === 'F') {
+      pf.forEach(el=>el.style.display='block'); pj.forEach(el=>el.style.display='none');
+      document.getElementById('nome').required = true;
+      document.getElementById('cpf').required  = true;
+      document.getElementById('razao_social').required = false;
+      document.getElementById('cnpj').required = false;
+    } else {
+      pf.forEach(el=>el.style.display='none'); pj.forEach(el=>el.style.display='block');
+      document.getElementById('nome').required = false;
+      document.getElementById('cpf').required  = false;
+      document.getElementById('razao_social').required = true;
+      document.getElementById('cnpj').required = true;
+    }
+  }
+
+  function validarCPF(){
+    const el=document.getElementById('cpf'), err=document.getElementById('cpfError'), dig=el.value.replace(/\D/g,'');
+    if(!dig.length){ err.style.display='none'; return true; }
+    const ok = (dig.length===11 && calculaCPF(dig));
+    err.style.display = ok ? 'none' : 'block';
+    return ok;
+  }
+  function validarCNPJ(){
+    const el=document.getElementById('cnpj'), err=document.getElementById('cnpjError'), dig=el.value.replace(/\D/g,'');
+    if(!dig.length){ err.style.display='none'; return true; }
+    const ok = (dig.length===14 && calculaCNPJ(dig));
+    err.style.display = ok ? 'none' : 'block';
+    return ok;
+  }
+  function validarCPFSocio(){
+    const el=document.getElementById('cpf_socio'); if(!el) return true;
+    const err=document.getElementById('cpfSocioError'), dig=el.value.replace(/\D/g,'');
+    if(!dig.length){ err.style.display='none'; return true; }
+    const ok = (dig.length===11 && calculaCPF(dig));
+    err.style.display = ok ? 'none' : 'block';
+    return ok;
+  }
+
+  function validarFormularioFinal() {
+    const em=document.getElementById('data_emissao').value;
+    const ve=document.getElementById('data_vencimento').value;
+    if (em && ve && ve < em) { alert('A data de vencimento não pode ser anterior à emissão.'); return false; }
+    const btn=document.getElementById('btnSalvar'); if(btn){ btn.disabled=true; btn.textContent='Salvando...'; }
+    return true;
+  }
+
+  function calculaCPF(cpf){
+    let soma=0, resto; if(/^(\d)\1+$/.test(cpf)) return false;
+    for(let i=1;i<=9;i++) soma += parseInt(cpf[i-1])*(11-i);
+    resto=(soma*10)%11; if(resto===10||resto===11) resto=0;
+    if(resto!==parseInt(cpf[9])) return false;
+    soma=0; for(let i=1;i<=10;i++) soma += parseInt(cpf[i-1])*(12-i);
+    resto=(soma*10)%11; if(resto===10||resto===11) resto=0;
+    return resto===parseInt(cpf[10]);
+  }
+  function calculaCNPJ(cnpj){
+    let t=cnpj.length-2, n=cnpj.substring(0,t), d=cnpj.substring(t), s=0, p=t-7;
+    for(let i=t;i>=1;i--){ s+=n.charAt(t-i)*p--; if(p<2) p=9; }
+    let r=s%11<2?0:11-(s%11);
+    if(r!==parseInt(d.charAt(0))) return false;
+    t++; n=cnpj.substring(0,t); s=0; p=t-7;
+    for(let i=t;i>=1;i--){ s+=n.charAt(t-i)*p--; if(p<2) p=9; }
+    r=s%11<2?0:11-(s%11);
+    return r===parseInt(d.charAt(1));
+  }
+  function formatarCPF(campo){ let v=campo.value.replace(/\D/g,''); if(v.length>11) v=v.substring(0,11); campo.value = v.replace(/(\d{3})(\d{3})(\d{3})(\d{0,2})/, "$1.$2.$3-$4"); }
+  function formatarCNPJ(campo){ let v=campo.value.replace(/\D/g,''); if(v.length>14) v=v.substring(0,14); campo.value = v.replace(/(\d{2})(\d{3})(\d{3})(\d{4})(\d{0,2})/, "$1.$2.$3/$4-$5"); }
+
+  document.addEventListener('DOMContentLoaded', function(){
+    togglePessoaFields();
+
+    // Valor PT-BR
+    const v = document.getElementById('valor');
+    if (v) {
+      v.addEventListener('input', function (e) {
+        let value = e.target.value.replace(/\D/g, '');
+        value = value.replace(/^0+/, '');
+        e.target.value = value ? (parseFloat(value / 100).toLocaleString('pt-BR', { minimumFractionDigits: 2 })) : '';
+      });
+      v.addEventListener('blur', function(e){ if (!e.target.value) e.target.value = '0,00'; });
+    }
+
+    // Datas
+    const em=document.getElementById('data_emissao');
+    if (em && !em.value) em.value = todayISO();
+    setMinVenc();
+    document.getElementById('data_emissao').addEventListener('change', setMinVenc);
+  });
+</script>
+
+{% endblock %}

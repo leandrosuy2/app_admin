@@ -1,0 +1,20 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-5">
+    <h3 class="text-center mb-4">Adicionar Tabela</h3>
+    <form method="post" action="{% url 'tabela_adicionar' %}">
+        {% csrf_token %}
+        <div class="row g-3">
+            <div class="col-md-12">
+                <label for="nome" class="form-label">Nome da Tabela</label>
+                <input type="text" id="nome" name="nome" class="form-control" required>
+            </div>
+            
+            <div class="col-12 text-center mt-4">
+                <button type="submit" class="btn btn-success btn-lg">Adicionar</button>
+            </div>
+        </div>
+    </form>
+</div>
+{% endblock %}

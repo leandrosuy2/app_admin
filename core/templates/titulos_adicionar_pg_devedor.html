@@ -1,0 +1,83 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-5">
+    <h1 class="text-center mb-4">Adicionar Título para {{ devedor.nome }}</h1>
+    <form method="POST" class="row g-3">
+        {% csrf_token %}
+		
+		<!-- Número do Título -->
+        <div class="col-md-6">
+            <label for="num_titulo" class="form-label">Número do Título</label>
+            <input type="text" name="num_titulo" id="num_titulo" class="form-control" required>
+        </div>
+		
+		<!-- Data de Emissão -->
+        <div class="col-md-6">
+            <label for="data_emissao" class="form-label">Data de Emissão</label>
+            <input type="date" name="data_emissao" id="data_emissao" class="form-control" required>
+        </div>
+        
+		<!-- Data de Vencimento -->
+        <div class="col-md-6">
+            <label for="data_vencimento" class="form-label">Data de Vencimento</label>
+            <input type="date" name="data_vencimento" id="data_vencimento" class="form-control" required>
+        </div>
+        
+		
+		 <!-- Tipo de Documento -->
+        <div class="col-md-6">
+            <label for="tipo_doc_id" class="form-label">Tipo de Documento</label>
+            <select name="tipo_doc_id" id="tipo_doc_id" class="form-control" required>
+                <option value="" disabled selected>Selecione o tipo de documento</option>
+                {% for tipo in tipos_docs %}
+                <option value="{{ tipo.id }}">{{ tipo.name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+		
+        <!-- Valor -->
+		<div class="col-md-6">
+			<label for="valor" class="form-label">Valor</label>
+			<input type="text" name="valor" id="valor" class="form-control" required>
+		</div>
+
+		<script>
+			// Formatar o campo de valor
+			document.getElementById('valor').addEventListener('input', function (e) {
+				let value = e.target.value.replace(/\D/g, ''); // Remove caracteres não numéricos
+				value = value.replace(/^0+/, ''); // Remove zeros à esquerda
+				if (value) {
+					e.target.value = parseFloat(value / 100).toLocaleString('pt-BR', { minimumFractionDigits: 2 });
+				} else {
+					e.target.value = '';
+				}
+			});
+		</script>
+		
+		
+        <!-- Seleção de Empresa -->
+		
+        <div class="col-md-6">
+			<label for="empresa_id" class="form-label">Empresa</label>
+			<select name="empresa_id" id="empresa_id" class="form-control" disabled>
+				<option value="{{ devedor.empresa.id }}" selected>{{ devedor.empresa.razao_social }}</option>
+			</select>
+			<input type="hidden" name="empresa_id" value="{{ devedor.empresa.id }}">
+		</div>
+        
+        
+        <!-- Status -->
+        			
+		<input type="hidden" name="status_baixa" id="status_baixa" class="form-control" required value="0">	
+        
+
+       
+        
+        <!-- Botão de salvar -->
+        <div class="col-12 text-center">
+            <button type="submit" class="btn btn-primary">Salvar</button>
+        </div>
+    </form>
+</div>
+{% endblock %}

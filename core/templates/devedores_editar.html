@@ -1,0 +1,672 @@
+{% extends 'base.html' %}
+{% load custom_filters %}
+{% block content %}
+<div class="container mt-5">
+
+    <h1 class="text-center mb-4">Editar Devedor</h1>
+    <form method="POST" id="editarDevedorForm" class="row g-3">
+
+        {% csrf_token %}
+
+         <!-- ID -->
+        
+            <input type="hidden" name="id" id="id" class="form-control" value="{{ devedor_data.id|default:'' }}" readonly>
+     
+
+        <!-- Tipo de Pessoa -->
+        <div class="col-md-6">
+            <label for="tipo_pessoa" class="form-label">Tipo de Pessoa</label>
+            <select name="tipo_pessoa" id="tipo_pessoa" class="form-control" required>
+                <option value="F" {% if devedor.tipo_pessoa == 'F' %}selected{% endif %}>Física</option>
+                <option value="J" {% if devedor.tipo_pessoa == 'J' %}selected{% endif %}>Jurídica</option>
+            </select>
+        </div>
+
+        <!-- CPF -->
+        <div class="col-md-6">
+            <label for="cpf" class="form-label">CPF</label>
+            <input type="text" name="cpf" id="cpf" class="form-control" value="{{ devedor_data.cpf|default:'' }}">
+        </div>
+
+        <!-- CNPJ -->
+        <div class="col-md-6">
+            <label for="cnpj" class="form-label">CNPJ</label>
+            <input type="text" name="cnpj" id="cnpj" class="form-control" value="{{ devedor_data.cnpj|default:'' }}">
+        </div>
+
+        <!-- Nome -->
+        <div class="col-md-6">
+            <label for="nome" class="form-label">Nome</label>
+            <input type="text" name="nome" id="nome" class="form-control" value="{{ devedor_data.nome|default:'' }}">
+        </div>
+
+        <!-- Nome da Mãe -->
+        <div class="col-md-6">
+            <label for="nome_mae" class="form-label">Nome da Mãe</label>
+            <input type="text" name="nome_mae" id="nome_mae" class="form-control" value="{{ devedor_data.nome_mae|default:'' }}">
+        </div>
+
+        <!-- RG -->
+        <div class="col-md-6">
+            <label for="rg" class="form-label">RG</label>
+            <input type="text" name="rg" id="rg" class="form-control" value="{{ devedor_data.rg|default:'' }}">
+        </div>
+
+        <!-- Razão Social -->
+        <div class="col-md-6">
+            <label for="razao_social" class="form-label">Razão Social</label>
+            <input type="text" name="razao_social" id="razao_social" class="form-control" value="{{ devedor_data.razao_social|default:'' }}">
+        </div>
+
+        <!-- Nome Fantasia -->
+        <div class="col-md-6">
+            <label for="nome_fantasia" class="form-label">Nome Fantasia</label>
+            <input type="text" name="nome_fantasia" id="nome_fantasia" class="form-control" value="{{ devedor_data.nome_fantasia|default:'' }}">
+        </div>
+
+        <!-- Nome do Sócio -->
+        <div class="col-md-6">
+            <label for="nome_socio" class="form-label">Nome do Sócio</label>
+            <input type="text" name="nome_socio" id="nome_socio" class="form-control" value="{{ devedor_data.nome_socio|default:'' }}">
+        </div>
+
+        <!-- CPF do Sócio -->
+        <div class="col-md-6">
+            <label for="cpf_socio" class="form-label">CPF do Sócio</label>
+            <input type="text" name="cpf_socio" id="cpf_socio" class="form-control" value="{{ devedor_data.cpf_socio|default:'' }}">
+        </div>
+
+        <!-- RG do Sócio -->
+        <div class="col-md-6">
+            <label for="rg_socio" class="form-label">RG do Sócio</label>
+            <input type="text" name="rg_socio" id="rg_socio" class="form-control" value="{{ devedor_data.rg_socio|default:'' }}">
+        </div>
+
+    
+<!-- Telefones -->
+
+
+
+<div class="row">
+<div class="card">
+        <div class="card-header">
+            <strong>Legenda</strong>
+        </div>
+        <div class="card-body">
+            <ul class="list-unstyled">
+                <li class="d-flex align-items-center mb-2">
+                    <i class="fas fa-check-circle text-success me-2"></i>
+                    <span>✔ Telefone válido (cor verde)</span>
+                </li>
+                <li class="d-flex align-items-center mb-2">
+                    <i class="fas fa-times-circle text-danger me-2"></i>
+                    <span>✖ Telefone inválido (cor vermelha)</span>
+                </li>
+                <li class="d-flex align-items-center mb-2">
+                    <i class="fas fa-question-circle text-secondary me-2"></i>
+                    <span>? Telefone não verificado (cor cinza)</span>
+                </li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- Telefone 1 -->
+    <div class="col-md-6">
+        <label for="telefone1" class="form-label">Telefone 1</label>
+        <div class="d-flex align-items-center">
+            <input type="text" name="telefone1" id="telefone1" class="form-control me-2 
+                {% if devedor_data.telefone1_valido == 'SIM' %}status-valid{% elif devedor_data.telefone1_valido == 'NÃO' %}status-invalid{% else %}status-unknown{% endif %}" 
+                value="{{ devedor_data.telefone1|default:'' }}">
+
+            <input type="hidden" name="telefone1_valido" id="telefone1_valido" value="{{ devedor_data.telefone1_valido|default:'NAO VERIFICADO' }}">
+
+            <div class="btn-group">
+                <button type="button" class="btn btn-success btn-sm 
+                    {% if devedor_data.telefone1_valido == 'SIM' %}active{% endif %}" 
+                    onclick="updateValidationStatus('telefone1', 'SIM')">
+                    <i class="fas fa-check-circle"></i>
+                </button>
+                <button type="button" class="btn btn-danger btn-sm 
+                    {% if devedor_data.telefone1_valido == 'NÃO' %}active{% endif %}" 
+                    onclick="updateValidationStatus('telefone1', 'NÃO')">
+                    <i class="fas fa-times-circle"></i>
+                </button>
+                <button type="button" class="btn btn-secondary btn-sm 
+                    {% if devedor_data.telefone1_valido == 'NAO VERIFICADO' %}active{% endif %}" 
+                    onclick="updateValidationStatus('telefone1', 'NAO VERIFICADO')">
+                    <i class="fas fa-question-circle"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Telefone 2 -->
+    <div class="col-md-6">
+        <label for="telefone2" class="form-label">Telefone 2</label>
+        <div class="d-flex align-items-center">
+            <input type="text" name="telefone2" id="telefone2" class="form-control me-2 
+                {% if devedor_data.telefone2_valido == 'SIM' %}status-valid{% elif devedor_data.telefone2_valido == 'NÃO' %}status-invalid{% else %}status-unknown{% endif %}" 
+                value="{{ devedor_data.telefone2|default:'' }}">
+
+            <input type="hidden" name="telefone2_valido" id="telefone2_valido" value="{{ devedor_data.telefone2_valido|default:'NAO VERIFICADO' }}">
+
+            <div class="btn-group">
+                <button type="button" class="btn btn-success btn-sm 
+                    {% if devedor_data.telefone2_valido == 'SIM' %}active{% endif %}" 
+                    onclick="updateValidationStatus('telefone2', 'SIM')">
+                    <i class="fas fa-check-circle"></i>
+                </button>
+                <button type="button" class="btn btn-danger btn-sm 
+                    {% if devedor_data.telefone2_valido == 'NÃO' %}active{% endif %}" 
+                    onclick="updateValidationStatus('telefone2', 'NÃO')">
+                    <i class="fas fa-times-circle"></i>
+                </button>
+                <button type="button" class="btn btn-secondary btn-sm 
+                    {% if devedor_data.telefone2_valido == 'NAO VERIFICADO' %}active{% endif %}" 
+                    onclick="updateValidationStatus('telefone2', 'NAO VERIFICADO')">
+                    <i class="fas fa-question-circle"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Telefone 3 -->
+    <div class="col-md-6">
+        <label for="telefone3" class="form-label">Telefone 3</label>
+        <div class="d-flex align-items-center">
+            <input type="text" name="telefone3" id="telefone3" class="form-control me-2 
+                {% if devedor_data.telefone3_valido == 'SIM' %}status-valid{% elif devedor_data.telefone3_valido == 'NÃO' %}status-invalid{% else %}status-unknown{% endif %}" 
+                value="{{ devedor_data.telefone3|default:'' }}">
+
+            <input type="hidden" name="telefone3_valido" id="telefone3_valido" value="{{ devedor_data.telefone3_valido|default:'NAO VERIFICADO' }}">
+
+            <div class="btn-group">
+                <button type="button" class="btn btn-success btn-sm 
+                    {% if devedor_data.telefone3_valido == 'SIM' %}active{% endif %}" 
+                    onclick="updateValidationStatus('telefone3', 'SIM')">
+                    <i class="fas fa-check-circle"></i>
+                </button>
+                <button type="button" class="btn btn-danger btn-sm 
+                    {% if devedor_data.telefone3_valido == 'NÃO' %}active{% endif %}" 
+                    onclick="updateValidationStatus('telefone3', 'NÃO')">
+                    <i class="fas fa-times-circle"></i>
+                </button>
+                <button type="button" class="btn btn-secondary btn-sm 
+                    {% if devedor_data.telefone3_valido == 'NAO VERIFICADO' %}active{% endif %}" 
+                    onclick="updateValidationStatus('telefone3', 'NAO VERIFICADO')">
+                    <i class="fas fa-question-circle"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Telefone 4 -->
+    <div class="col-md-6">
+        <label for="telefone4" class="form-label">Telefone 4</label>
+        <div class="d-flex align-items-center">
+            <input type="text" name="telefone4" id="telefone4" class="form-control me-2 
+                {% if devedor_data.telefone4_valido == 'SIM' %}status-valid{% elif devedor_data.telefone4_valido == 'NÃO' %}status-invalid{% else %}status-unknown{% endif %}" 
+                value="{{ devedor_data.telefone4|default:'' }}">
+
+            <input type="hidden" name="telefone4_valido" id="telefone4_valido" value="{{ devedor_data.telefone4_valido|default:'NAO VERIFICADO' }}">
+
+            <div class="btn-group">
+                <button type="button" class="btn btn-success btn-sm 
+                    {% if devedor_data.telefone4_valido == 'SIM' %}active{% endif %}" 
+                    onclick="updateValidationStatus('telefone4', 'SIM')">
+                    <i class="fas fa-check-circle"></i>
+                </button>
+                <button type="button" class="btn btn-danger btn-sm 
+                    {% if devedor_data.telefone4_valido == 'NÃO' %}active{% endif %}" 
+                    onclick="updateValidationStatus('telefone4', 'NÃO')">
+                    <i class="fas fa-times-circle"></i>
+                </button>
+                <button type="button" class="btn btn-secondary btn-sm 
+                    {% if devedor_data.telefone4_valido == 'NAO VERIFICADO' %}active{% endif %}" 
+                    onclick="updateValidationStatus('telefone4', 'NAO VERIFICADO')">
+                    <i class="fas fa-question-circle"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Telefone 5 -->
+    <div class="col-md-6">
+        <label for="telefone5" class="form-label">Telefone 5</label>
+        <div class="d-flex align-items-center">
+            <input type="text" name="telefone5" id="telefone5" class="form-control me-2 
+                {% if devedor_data.telefone5_valido == 'SIM' %}status-valid{% elif devedor_data.telefone5_valido == 'NÃO' %}status-invalid{% else %}status-unknown{% endif %}" 
+                value="{{ devedor_data.telefone5|default:'' }}">
+
+            <input type="hidden" name="telefone5_valido" id="telefone5_valido" value="{{ devedor_data.telefone5_valido|default:'NAO VERIFICADO' }}">
+
+            <div class="btn-group">
+                <button type="button" class="btn btn-success btn-sm 
+                    {% if devedor_data.telefone5_valido == 'SIM' %}active{% endif %}" 
+                    onclick="updateValidationStatus('telefone5', 'SIM')">
+                    <i class="fas fa-check-circle"></i>
+                </button>
+                <button type="button" class="btn btn-danger btn-sm 
+                    {% if devedor_data.telefone5_valido == 'NÃO' %}active{% endif %}" 
+                    onclick="updateValidationStatus('telefone5', 'NÃO')">
+                    <i class="fas fa-times-circle"></i>
+                </button>
+                <button type="button" class="btn btn-secondary btn-sm 
+                    {% if devedor_data.telefone5_valido == 'NAO VERIFICADO' %}active{% endif %}" 
+                    onclick="updateValidationStatus('telefone5', 'NAO VERIFICADO')">
+                    <i class="fas fa-question-circle"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Telefone 6 -->
+    <div class="col-md-6">
+        <label for="telefone6" class="form-label">Telefone 6</label>
+        <div class="d-flex align-items-center">
+            <input type="text" name="telefone6" id="telefone6" class="form-control me-2 
+                {% if devedor_data.telefone6_valido == 'SIM' %}status-valid{% elif devedor_data.telefone6_valido == 'NÃO' %}status-invalid{% else %}status-unknown{% endif %}" 
+                value="{{ devedor_data.telefone6|default:'' }}">
+
+            <input type="hidden" name="telefone6_valido" id="telefone6_valido" value="{{ devedor_data.telefone6_valido|default:'NAO VERIFICADO' }}">
+
+            <div class="btn-group">
+                <button type="button" class="btn btn-success btn-sm 
+                    {% if devedor_data.telefone6_valido == 'SIM' %}active{% endif %}" 
+                    onclick="updateValidationStatus('telefone6', 'SIM')">
+                    <i class="fas fa-check-circle"></i>
+                </button>
+                <button type="button" class="btn btn-danger btn-sm 
+                    {% if devedor_data.telefone6_valido == 'NÃO' %}active{% endif %}" 
+                    onclick="updateValidationStatus('telefone6', 'NÃO')">
+                    <i class="fas fa-times-circle"></i>
+                </button>
+                <button type="button" class="btn btn-secondary btn-sm 
+                    {% if devedor_data.telefone6_valido == 'NAO VERIFICADO' %}active{% endif %}" 
+                    onclick="updateValidationStatus('telefone6', 'NAO VERIFICADO')">
+                    <i class="fas fa-question-circle"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Telefone 7 -->
+    <div class="col-md-6">
+        <label for="telefone7" class="form-label">Telefone 7</label>
+        <div class="d-flex align-items-center">
+            <input type="text" name="telefone7" id="telefone7" class="form-control me-2 
+                {% if devedor_data.telefone7_valido == 'SIM' %}status-valid{% elif devedor_data.telefone7_valido == 'NÃO' %}status-invalid{% else %}status-unknown{% endif %}" 
+                value="{{ devedor_data.telefone7|default:'' }}">
+
+            <input type="hidden" name="telefone7_valido" id="telefone7_valido" value="{{ devedor_data.telefone7_valido|default:'NAO VERIFICADO' }}">
+
+            <div class="btn-group">
+                <button type="button" class="btn btn-success btn-sm 
+                    {% if devedor_data.telefone7_valido == 'SIM' %}active{% endif %}" 
+                    onclick="updateValidationStatus('telefone7', 'SIM')">
+                    <i class="fas fa-check-circle"></i>
+                </button>
+                <button type="button" class="btn btn-danger btn-sm 
+                    {% if devedor_data.telefone7_valido == 'NÃO' %}active{% endif %}" 
+                    onclick="updateValidationStatus('telefone7', 'NÃO')">
+                    <i class="fas fa-times-circle"></i>
+                </button>
+                <button type="button" class="btn btn-secondary btn-sm 
+                    {% if devedor_data.telefone7_valido == 'NAO VERIFICADO' %}active{% endif %}" 
+                    onclick="updateValidationStatus('telefone7', 'NAO VERIFICADO')">
+                    <i class="fas fa-question-circle"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Telefone 8 -->
+    <div class="col-md-6">
+        <label for="telefone8" class="form-label">Telefone 8</label>
+        <div class="d-flex align-items-center">
+            <input type="text" name="telefone8" id="telefone8" class="form-control me-2 
+                {% if devedor_data.telefone8_valido == 'SIM' %}status-valid{% elif devedor_data.telefone8_valido == 'NÃO' %}status-invalid{% else %}status-unknown{% endif %}" 
+                value="{{ devedor_data.telefone8|default:'' }}">
+
+            <input type="hidden" name="telefone8_valido" id="telefone8_valido" value="{{ devedor_data.telefone8_valido|default:'NAO VERIFICADO' }}">
+
+            <div class="btn-group">
+                <button type="button" class="btn btn-success btn-sm 
+                    {% if devedor_data.telefone8_valido == 'SIM' %}active{% endif %}" 
+                    onclick="updateValidationStatus('telefone8', 'SIM')">
+                    <i class="fas fa-check-circle"></i>
+                </button>
+                <button type="button" class="btn btn-danger btn-sm 
+                    {% if devedor_data.telefone8_valido == 'NÃO' %}active{% endif %}" 
+                    onclick="updateValidationStatus('telefone8', 'NÃO')">
+                    <i class="fas fa-times-circle"></i>
+                </button>
+                <button type="button" class="btn btn-secondary btn-sm 
+                    {% if devedor_data.telefone8_valido == 'NAO VERIFICADO' %}active{% endif %}" 
+                    onclick="updateValidationStatus('telefone8', 'NAO VERIFICADO')">
+                    <i class="fas fa-question-circle"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Telefone 9 -->
+    <div class="col-md-6">
+        <label for="telefone9" class="form-label">Telefone 9</label>
+        <div class="d-flex align-items-center">
+            <input type="text" name="telefone9" id="telefone9" class="form-control me-2 
+                {% if devedor_data.telefone9_valido == 'SIM' %}status-valid{% elif devedor_data.telefone9_valido == 'NÃO' %}status-invalid{% else %}status-unknown{% endif %}" 
+                value="{{ devedor_data.telefone9|default:'' }}">
+
+            <input type="hidden" name="telefone9_valido" id="telefone9_valido" value="{{ devedor_data.telefone9_valido|default:'NAO VERIFICADO' }}">
+
+            <div class="btn-group">
+                <button type="button" class="btn btn-success btn-sm 
+                    {% if devedor_data.telefone9_valido == 'SIM' %}active{% endif %}" 
+                    onclick="updateValidationStatus('telefone9', 'SIM')">
+                    <i class="fas fa-check-circle"></i>
+                </button>
+                <button type="button" class="btn btn-danger btn-sm 
+                    {% if devedor_data.telefone9_valido == 'NÃO' %}active{% endif %}" 
+                    onclick="updateValidationStatus('telefone9', 'NÃO')">
+                    <i class="fas fa-times-circle"></i>
+                </button>
+                <button type="button" class="btn btn-secondary btn-sm 
+                    {% if devedor_data.telefone9_valido == 'NAO VERIFICADO' %}active{% endif %}" 
+                    onclick="updateValidationStatus('telefone9', 'NAO VERIFICADO')">
+                    <i class="fas fa-question-circle"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+
+ 
+ <!-- Telefone 10 -->
+     <div class="col-md-6">
+        <label for="telefone10" class="form-label">Telefone 10</label>
+        <div class="d-flex align-items-center">
+            <input type="text" name="telefone10" id="telefone10" class="form-control me-2 
+                {% if devedor_data.telefone10_valido == 'SIM' %}status-valid{% elif devedor_data.telefone10_valido == 'NÃO' %}status-invalid{% else %}status-unknown{% endif %}" 
+                value="{{ devedor_data.telefone10|default:'' }}">
+
+            <input type="hidden" name="telefone10_valido" id="telefone10_valido" value="{{ devedor_data.telefone10_valido|default:'NAO VERIFICADO' }}">
+
+            <div class="btn-group">
+                <button type="button" class="btn btn-success btn-sm 
+                    {% if devedor_data.telefone10_valido == 'SIM' %}active{% endif %}" 
+                    onclick="updateValidationStatus('telefone10', 'SIM')">
+                    <i class="fas fa-check-circle"></i>
+                </button>
+                <button type="button" class="btn btn-danger btn-sm 
+                    {% if devedor_data.telefone10_valido == 'NÃO' %}active{% endif %}" 
+                    onclick="updateValidationStatus('telefone10', 'NÃO')">
+                    <i class="fas fa-times-circle"></i>
+                </button>
+                <button type="button" class="btn btn-secondary btn-sm 
+                    {% if devedor_data.telefone10_valido == 'NAO VERIFICADO' %}active{% endif %}" 
+                    onclick="updateValidationStatus('telefone10', 'NAO VERIFICADO')">
+                    <i class="fas fa-question-circle"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+
+<!-- Estilo Suave -->
+<style>
+    /* Cores suaves para os campos de input */
+    .status-valid {
+        border-color: #ADFF2F !important; /* Verde Suave */
+        background-color: #ADFF2F !important;
+    }
+
+    .status-invalid {
+        border-color: 	#FF0000 !important; /* Vermelho Suave */
+        background-color: #fff5f5 !important;
+    }
+
+    .status-unknown {
+        border-color: 	#A9A9A9 !important; /* Cinza Suave */
+        background-color: 	#A9A9A9 !important;
+    }
+
+    .btn-group .btn {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 40px; /* Tamanho consistente */
+    }
+</style>
+
+<!-- JavaScript -->
+<script>
+    function updateValidationStatus(fieldId, status) {
+        const inputField = document.getElementById(fieldId);
+        const hiddenField = document.getElementById(fieldId + '_valido');
+
+        // Atualizar classes visuais
+        inputField.classList.remove('status-valid', 'status-invalid', 'status-unknown');
+        if (status === 'SIM') {
+            inputField.classList.add('status-valid');
+        } else if (status === 'NÃO') {
+            inputField.classList.add('status-invalid');
+        } else {
+            inputField.classList.add('status-unknown');
+        }
+
+        // Atualizar valor do campo hidden
+        if (hiddenField) {
+            hiddenField.value = status;
+        }
+    }
+</script>
+
+
+
+        <!-- Observação -->
+        <div class="col-md-12">
+            <label for="observacao" class="form-label">Observação</label>
+            <textarea name="observacao" id="observacao" class="form-control">{{ devedor_data.observacao|default:'' }}</textarea>
+        </div>
+
+        <!-- CEP -->
+        <div class="col-md-6">
+            <label for="cep" class="form-label">CEP</label>
+            <input type="text" name="cep" id="cep" class="form-control" value="{{ devedor_data.cep|default:'' }}">
+        </div>
+
+        <!-- Endereço -->
+        <div class="col-md-6">
+            <label for="endereco" class="form-label">Endereço</label>
+            <input type="text" name="endereco" id="endereco" class="form-control" value="{{ devedor_data.endereco|default:'' }}">
+        </div>
+
+        <!-- Bairro -->
+        <div class="col-md-6">
+            <label for="bairro" class="form-label">Bairro</label>
+            <input type="text" name="bairro" id="bairro" class="form-control" value="{{ devedor_data.bairro|default:'' }}">
+        </div>
+
+        <!-- UF -->
+        <div class="col-md-6">
+            <label for="uf" class="form-label">UF</label>
+            <input type="text" name="uf" id="uf" class="form-control" value="{{ devedor_data.uf|default:'' }}">
+        </div>
+
+        <!-- Cidade -->
+        <div class="col-md-6">
+            <label for="cidade" class="form-label">Cidade</label>
+            <input type="text" name="cidade" id="cidade" class="form-control" value="{{ devedor_data.cidade|default:'' }}">
+        </div>
+
+        <!-- Email 1 -->
+        <div class="col-md-6">
+            <label for="email1" class="form-label">Email 1</label>
+            <input type="email" name="email1" id="email1" class="form-control" value="{{ devedor_data.email1|default:'' }}">
+        </div>
+
+        <!-- Email 2 -->
+        <div class="col-md-6">
+            <label for="email2" class="form-label">Email 2</label>
+            <input type="email" name="email2" id="email2" class="form-control" value="{{ devedor_data.email2|default:'' }}">
+        </div>
+
+        <!-- Email 3 -->
+        <div class="col-md-6">
+            <label for="email3" class="form-label">Email 3</label>
+            <input type="email" name="email3" id="email3" class="form-control" value="{{ devedor_data.email3|default:'' }}">
+        </div>
+
+        <!-- Empresa -->
+        <div class="col-md-6">
+            <label for="empresa_id" class="form-label">Empresa</label>
+            <select name="empresa_id" id="empresa_id" class="form-control">
+                {% for empresa in empresas %}
+                <option value="{{ empresa.id }}" {% if empresa.id == devedor.empresa_id %}selected{% endif %}>
+                    {{ empresa.razao_social }}
+                </option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <!-- Botão de Salvar -->
+        <div class="col-12 text-center">
+            <button type="submit" class="btn btn-primary">Salvar</button>
+        </div>
+    </form>
+</div>
+<!-- Modal para Exibir Alterações -->
+<div class="modal fade" id="changesModal" tabindex="-1" aria-labelledby="changesModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="changesModalLabel">Alterações Salvas</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>As seguintes alterações foram realizadas:</p>
+                <ul id="changesList"></ul>
+            </div>
+            <div class="modal-footer">
+                <a href="{% url 'listar_devedores' %}" class="btn btn-secondary">Ir para lista de devedores</a>
+                <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Voltar para edição</button>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const form = document.querySelector('#editarDevedorForm'); // Certifique-se de que o ID está correto
+
+    form.addEventListener('submit', function (e) {
+        e.preventDefault(); // Impede o envio tradicional do formulário
+
+        const formData = new FormData(form);
+
+        fetch("{% url 'editar_devedor' devedor.id %}", {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-CSRFToken': '{{ csrf_token }}'
+            }
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Erro ao processar a solicitação.');
+            }
+            return response.json();
+        })
+        .then(data => {
+            if (data.success) {
+                // Atualiza o conteúdo do modal com as mudanças
+                const changesList = document.getElementById('changesList');
+                changesList.innerHTML = data.changes.length > 0 
+                    ? data.changes.map(change => `<li>${change}</li>`).join('')
+                    : '<li>Nenhuma alteração realizada.</li>';
+
+                // Exibe o modal com as informações
+                const modal = new bootstrap.Modal(document.getElementById('changesModal'));
+                modal.show();
+            } else {
+                alert('Erro ao salvar as alterações.');
+            }
+        })
+        .catch(error => {
+            console.error('Erro:', error);
+            alert('Erro ao salvar as alterações. Tente novamente mais tarde.');
+        });
+    });
+});
+</script>
+
+
+
+<script>
+document.getElementById('buscarDados').addEventListener('click', function() {
+    let cpfCnpjInput = document.getElementById('cpf').value.trim();
+    
+    // Se CPF estiver vazio, tenta pegar o CNPJ
+    if (!cpfCnpjInput) {
+        cpfCnpjInput = document.getElementById('cnpj').value.trim();
+    }
+
+    if (!cpfCnpjInput) {
+        alert("Por favor, preencha o CPF ou CNPJ antes de buscar os dados.");
+        return;
+    }
+
+    // Remove caracteres especiais (como pontos e traços)
+    let cpfCnpj = cpfCnpjInput.replace(/\D/g, '');
+
+    fetch(`/devedores/1/busca_dados_api_cliente/?cpf=${cpfCnpj}`, {  // Substituir 1 pelo ID real do devedor
+        method: 'GET',
+        headers: {
+            'X-CSRFToken': '{{ csrf_token }}'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        alert(data.message);
+        if (data.success) {
+            location.reload(); // Recarrega a página para atualizar os dados
+        }
+    })
+    .catch(error => {
+        console.error('Erro:', error);
+        alert('Erro ao buscar dados.');
+    });
+});
+</script>
+
+
+<script>
+document.getElementById('salvarDadosApi').addEventListener('click', function() {
+    let cpfCnpjInput = this.getAttribute('data-cpfcnpj').trim(); // Captura CPF ou CNPJ do botão
+
+    if (!cpfCnpjInput) {
+        alert("Por favor, preencha o CPF ou CNPJ antes de salvar os dados.");
+        return;
+    }
+
+    let formData = new FormData();
+    formData.append('cpfcnpj', cpfCnpjInput);
+    formData.append('csrfmiddlewaretoken', '{{ csrf_token }}');
+
+    fetch("{% url 'salvar_dados_api_cadastro' %}", {
+        method: 'POST',
+        body: formData,
+    })
+    .then(response => response.json())
+    .then(data => {
+        alert(data.message);
+        if (data.success) {
+            location.reload(); // Atualiza os dados na página
+        }
+    })
+    .catch(error => {
+        console.error('Erro:', error);
+        alert('Erro ao salvar dados da API.');
+    });
+});
+</script>
+
+{% endblock %}

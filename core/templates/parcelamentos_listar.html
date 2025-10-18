@@ -1,0 +1,202 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-5">
+    <h3 class="text-center mb-3" style="font-size: 18px;"><b>Listagem de Parcelamentos</b></h3>
+
+    <!-- Formulário de pesquisa -->
+    <form method="get" action="{% url 'listar_parcelamentos' %}" class="mb-3 d-flex gap-2" style="font-size: 12px;">
+        <input type="text" name="q" value="{{ query }}" class="form-control form-control-sm" placeholder="Pesquisar por parcela, devedor, empresa, título, contato, etc.">
+        <button type="submit" class="btn btn-sm btn-primary" style="font-size: 12px; padding: 4px 8px;">Pesquisar</button>
+    </form>
+
+    <!-- Tabela de Parcelamentos -->
+    <table class="table table-striped table-bordered text-center table-sm" style="font-size: 0.9rem;">
+        <thead class="table-dark">
+            <tr>
+                <th style="padding: 5px;">Parcela</th>
+                <th style="padding: 5px;">Devedor</th>
+				<th style="padding: 5px;">CPF / CNPJ</th>
+                <th style="padding: 5px;">Valor</th>
+                <th style="padding: 5px;">Vencimento Parcela</th>
+                <th style="padding: 5px;">Status</th>
+				<th style="padding: 5px;">Comprovante</th>
+                <th style="padding: 5px;">Emissão</th>
+               <!-- <th style="padding: 5px;">Contato</th> -->
+                <th style="padding: 5px;">Título</th>
+                <th style="padding: 5px;">Empresa</th>
+				<th style="padding: 5px;">Forma Pagto</th>
+                <th style="padding: 5px;">Ações</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% if page_obj.object_list %}
+                {% for parcelamento in page_obj %}
+                <tr style="{% if parcelamento.status == 'Quitado' %}background-color: #98fb98;{% endif %}">
+                    <td><b>{{ parcelamento.parcela_numero }}</b></td>
+                    <td class="text-start"><b>{{ parcelamento.devedor_nome }}</b></td>
+                    <td class="text-start">
+                        <b>
+                            {% if parcelamento.cpf %}
+                                {{ parcelamento.cpf }}
+                            {% elif parcelamento.cnpj %}
+                                {{ parcelamento.cnpj }}
+                            {% else %}
+                                Não informado
+                            {% endif %}
+                        </b>
+                    </td>
+                    <td><b>R$ {{ parcelamento.valor|floatformat:2 }}</b></td>
+                    <td><b>{{ parcelamento.data_vencimento|date:"d/m/Y" }}</b></td>
+                    <td><b>{{ parcelamento.status }}</b></td>
+                    <td><b>{{ parcelamento.created_at|date:"d/m/Y" }}</b></td>
+                    <!-- <td><b>{{ parcelamento.contato }}</b></td> -->
+                    <td><b>{{ parcelamento.titulo_id }}</b></td>
+                    <td><b>{{ parcelamento.empresa_nome_fantasia }}</b></td>
+                    <td><b>{{ parcelamento.agendamento_forma_pagamento }}</b></td>
+                    <td>
+    {% if parcelamento.status == "Quitado" %}
+        <a href="{% url 'gerar_recibo' parcelamento.id %}" class="btn btn-sm btn-secondary" target="_blank">
+            Recibo
+        </a>
+		 
+
+        {% if parcelamento.comprovante %}
+            <!-- Link para baixar o comprovante -->
+            <a href="{% url 'baixar_comprovante' parcelamento.id %}" class="btn btn-sm btn-success" target="_blank">Baixar Comprovante</a>
+        {% else %}
+            <a href="{% url 'baixar_comprovante' parcelamento.id %}" class="btn btn-sm btn-success" target="_blank">Baixar Comprovante</a>
+        {% endif %}
+
+        {% if not parcelamento.comprovante %}
+            <button class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#modalAnexarComprovante{{ parcelamento.id }}">
+                Anexar Comprovante
+            </button>
+        {% endif %}
+    {% else %}
+        <button class="btn btn-sm btn-success" data-bs-toggle="modal" data-bs-target="#modalBaixarParcelamento{{ parcelamento.id }}">
+            Baixar
+        </button>
+    {% endif %}
+</td>
+
+
+
+
+
+
+
+
+
+                </tr>
+
+                <!-- Modal para Baixar -->
+                <div class="modal fade" id="modalBaixarParcelamento{{ parcelamento.id }}" tabindex="-1" aria-labelledby="modalLabelBaixarParcelamento{{ parcelamento.id }}" aria-hidden="true">
+                    <div class="modal-dialog">
+                        <div class="modal-content">
+                            <div class="modal-header" style="background-color: #39ff14;">
+                                <h5 class="modal-title fw-bold text-dark" id="modalLabelBaixarParcelamento{{ parcelamento.id }}">
+                                    Baixar Parcela {{ parcelamento.parcela_numero }}  
+                                </h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                            </div>
+                            <div class="modal-body">
+                                <form method="post" action="{% url 'pagar_parcela' parcelamento.id %}">
+                                    {% csrf_token %}
+                                    <div class="mb-3">
+                                        <label for="valorPago{{ parcelamento.id }}" class="form-label">Valor Pago</label>
+                                        <input type="number" step="0.01" class="form-control" 
+                                               id="valorPago{{ parcelamento.id }}" 
+                                               name="valor_pago" 
+                                               min="{{ parcelamento.valor }}" 
+                                               required>
+                                        <small class="text-muted">
+                                           <b> Valor mínimo permitido: R$ {{ parcelamento.valor|floatformat:2 }} </b>
+                                        </small>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="dataBaixa{{ parcelamento.id }}" class="form-label">Data de Baixa</label>
+                                        <input type="date" class="form-control" id="dataBaixa{{ parcelamento.id }}" name="data_baixa" required>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="formaPagamento{{ parcelamento.id }}" class="form-label">Forma de Pagamento</label>
+                                        <select class="form-select" id="formaPagamento{{ parcelamento.id }}" name="forma_pagamento" required>
+                                            <option value="">Selecione</option>
+                                            <option value="PIX">Pix</option>
+                                            <option value="BOLETO">Boleto</option>
+                                            <option value="DINHEIRO">Dinheiro</option>
+                                            <option value="CARTAO_CREDITO">Cartão de Crédito</option>
+                                            <option value="CARTAO_DEBITO">Cartão de Débito</option>
+                                            <option value="CHEQUE">Cheque</option>
+                                            <option value="PAGAMENTO_LOJA">Pagamento na Loja</option>
+                                        </select>
+                                    </div>
+                                    <button type="submit" class="btn btn-primary">Confirmar Pagamento</button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Modal para anexar ou alterar o comprovante -->
+                <div class="modal fade" id="modalAnexarComprovante{{ parcelamento.id }}" tabindex="-1" aria-labelledby="modalLabelAnexarComprovante{{ parcelamento.id }}" aria-hidden="true">
+                    <div class="modal-dialog">
+                        <div class="modal-content">
+                            <div class="modal-header" style="background-color: #39ff14;">
+                                <h5 class="modal-title fw-bold text-dark" id="modalLabelAnexarComprovante{{ parcelamento.id }}">
+                                    {% if parcelamento.comprovante %} Alterar {% else %} Anexar {% endif %} Comprovante para a Parcela {{ parcelamento.parcela_numero }}
+                                </h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                            </div>
+                            <div class="modal-body">
+                                <form method="POST" action="{% url 'anexar_comprovante' parcelamento.id %}" enctype="multipart/form-data">
+                                    {% csrf_token %}
+                                    <div class="mb-3">
+                                        <label for="comprovante" class="form-label">Selecione o Comprovante</label>
+                                        <input type="file" class="form-control" id="comprovante" name="comprovante" {% if parcelamento.comprovante %} required {% endif %}>
+                                    </div>
+                                    <button type="submit" class="btn btn-primary">
+                                        {% if parcelamento.comprovante %} Alterar {% else %} Anexar {% endif %} Comprovante
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            {% else %}
+            <tr>
+                <td colspan="10" class="text-center">Nenhum parcelamento encontrado.</td>
+            </tr>
+            {% endif %}
+        </tbody>
+    </table>
+
+    <!-- Paginação -->
+    <div class="d-flex justify-content-between align-items-center mt-2" style="font-size: 12px;">
+        <div>
+            {% if page_obj.has_previous %}
+                <a href="?page=1" class="btn btn-sm btn-primary" style="font-size: 10px; padding: 2px 6px;">
+                    <i class="fas fa-angle-double-left"></i> Primeira
+                </a>
+                <a href="?page={{ page_obj.previous_page_number }}" class="btn btn-sm btn-secondary" style="font-size: 10px; padding: 2px 6px;">
+                    <i class="fas fa-angle-left"></i> Anterior
+                </a>
+            {% endif %}
+        </div>
+        <div>
+            <span>Página {{ page_obj.number }} de {{ page_obj.paginator.num_pages }}</span>
+        </div>
+        <div>
+            {% if page_obj.has_next %}
+                <a href="?page={{ page_obj.next_page_number }}" class="btn btn-sm btn-secondary" style="font-size: 10px; padding: 2px 6px;">
+                    Próxima <i class="fas fa-angle-right"></i>
+                </a>
+                <a href="?page={{ page_obj.paginator.num_pages }}" class="btn btn-sm btn-primary" style="font-size: 10px; padding: 2px 6px;">
+                    Última <i class="fas fa-angle-double-right"></i>
+                </a>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

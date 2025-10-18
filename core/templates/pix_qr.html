@@ -1,0 +1,206 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="format-detection" content="telephone=no">
+  <title>Pagamento via PIX</title>
+
+  <!-- Bootstrap (sem SRI para evitar bloqueios) -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+
+  <style>
+    :root { --card-max: 620px; }
+    body { background:#f6f7fb; }
+    .card-qr{ max-width:var(--card-max); margin:24px auto; }
+    .qr-box{
+      display:flex; align-items:center; justify-content:center;
+      background:#fff; border:1px solid #e5e7eb; border-radius:16px;
+      padding:16px; min-height:300px;
+    }
+    #qr img, #qr canvas, #qr-img { width:280px; height:280px; }
+    .code-box textarea{
+      height:140px; resize:vertical;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    }
+    .muted{ color:#6b7280; }
+  </style>
+
+  <!-- Favicon simples para evitar 404 -->
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='64' height='64'%3E%3Crect width='100%25' height='100%25' fill='%23f6f7fb'/%3E%3Ctext x='50%25' y='55%25' text-anchor='middle' font-size='42'%3E%F0%9F%93%B7%3C/text%3E%3C/svg%3E">
+</head>
+<body>
+  <div class="container">
+    <div class="card shadow-sm card-qr">
+      <div class="card-body">
+        <div class="d-flex align-items-start justify-content-between gap-3 mb-2">
+          <div>
+            <h1 class="h5 mb-1">Pague via PIX</h1>
+            {% if txid %}<div class="muted small">TXID: {{ txid }}</div>{% endif %}
+          </div>
+          <div id="crc-pill" class="badge bg-secondary align-self-start">Verificando…</div>
+        </div>
+
+        {% if erro %}
+          <div class="alert alert-danger">{{ erro }}</div>
+        {% else %}
+          <div class="row g-3 mb-2">
+            {% if valor %}
+              <div class="col-auto"><strong>Valor:</strong> R$ {{ valor }}</div>
+            {% endif %}
+            {% if descricao %}
+              <div class="col-12"><strong>Descrição:</strong> {{ descricao }}</div>
+            {% endif %}
+          </div>
+
+          <!-- Área do QR -->
+          <div class="qr-box mb-3">
+            {% if qr_png_b64 %}
+              <img id="qr-img" alt="QR Code PIX" src="data:image/png;base64,{{ qr_png_b64 }}" style="image-rendering: crisp-edges;">
+            {% else %}
+              <div id="qr" aria-label="QR Code PIX" role="img"></div>
+            {% endif %}
+          </div>
+
+          <!-- PIX Copia-e-Cola -->
+          <div class="code-box">
+            <label class="form-label">PIX Copia-e-Cola</label>
+            <div class="input-group">
+              <textarea id="pix-brcode" class="form-control" readonly></textarea>
+              <button class="btn btn-outline-secondary" type="button" id="btn-copy">Copiar</button>
+              <button class="btn btn-outline-primary" type="button" id="btn-dl" title="Baixar imagem do QR">Baixar PNG</button>
+            </div>
+            <div class="form-text">Se o QR não abrir no app, copie o código acima e cole no seu banco.</div>
+          </div>
+
+          <!-- Dados brutos para o JS (sem trims) -->
+          <div id="pix-data"
+               data-brcode="{{ brcode|escapejs }}"
+               data-has-server-img="{% if qr_png_b64 %}1{% else %}0{% endif %}"
+               hidden></div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+<style>
+  /* ... seu CSS existente ... */
+  #crc-pill{ display:none !important; }
+</style>
+
+  <!-- Lib local do QRCode -->
+  <script src="{% static 'js/qrcode.min.js' %}"></script>
+
+<script>
+(function(){
+  var dataEl = document.getElementById('pix-data');
+  if(!dataEl) return;
+
+  // 1) saneia o payload removendo apenas espaços/CR/LF (não mexe em URL, pontos etc.)
+  var rawBrcode = dataEl.getAttribute('data-brcode') || '';
+  var brcode    = rawBrcode.replace(/\s+/g, '').trim();   // <- usa SEM espaços
+  var hasServerImg = dataEl.getAttribute('data-has-server-img') === '1';
+
+  // textarea: melhor já mostrar a versão limpa (apps esperam tudo numa linha)
+  var ta = document.getElementById('pix-brcode');
+  if (ta) ta.value = brcode;
+
+  // badge helper
+  var pill = document.getElementById('crc-pill');
+  function setPill(state, msg){
+    if(!pill) return;
+    pill.textContent = msg;
+    pill.className = 'badge ' + (state==='ok' ? 'bg-success'
+                           : state==='warn' ? 'bg-warning text-dark' : 'bg-danger');
+  }
+
+  // 2) CRC EMV corretamente, mas tolerante a espaços finais
+  function emvCrcValid(payload){
+    try{
+      var s = (payload || '').replace(/\s+/g, '').trim();
+      var idx = s.lastIndexOf('6304');
+      if (idx < 0 || s.length < idx + 8) return false;      // precisa ter 6304 + 4 hex
+      var crcGiven = s.substr(idx + 4, 4).toUpperCase();
+
+      // calcula sobre tudo até "6304" + "0000"
+      var toCheck = s.substring(0, idx + 4) + '0000';
+
+      var crc = 0xFFFF;
+      for (var i = 0; i < toCheck.length; i++) {
+        crc ^= (toCheck.charCodeAt(i) << 8);
+        for (var b = 0; b < 8; b++) {
+          crc = (crc & 0x8000) ? ((crc << 1) ^ 0x1021) : (crc << 1);
+          crc &= 0xFFFF;
+        }
+      }
+      var crcHex = ('0000' + crc.toString(16).toUpperCase()).slice(-4);
+      return crcHex === crcGiven;
+    }catch(e){
+      return false;
+    }
+  }
+
+  if (brcode) {
+    var valid = emvCrcValid(brcode);
+    setPill(valid ? 'ok' : 'danger', valid ? 'Payload válido' : 'Payload inválido');
+
+    // 3) Gera o QR no navegador apenas se não veio imagem do servidor
+    if (!hasServerImg) {
+      try {
+        var qrDiv = document.getElementById('qr');
+        if (qrDiv) {
+          if (qrDiv.replaceChildren) qrDiv.replaceChildren(); else qrDiv.innerHTML = '';
+          new QRCode(qrDiv, {
+            text: brcode,
+            width: 280,
+            height: 280,
+            correctLevel: QRCode.CorrectLevel.M
+          });
+        }
+      } catch(e) {
+        setPill('warn', 'QR não pôde ser gerado no navegador');
+      }
+    }
+  } else {
+    setPill('danger', 'Sem payload Pix');
+  }
+
+  // copiar
+  var btnCopy = document.getElementById('btn-copy');
+  if (btnCopy && ta) {
+    btnCopy.addEventListener('click', async function(){
+      try{
+        ta.select(); ta.setSelectionRange(0, ta.value.length);
+        await navigator.clipboard.writeText(ta.value);
+        btnCopy.textContent = 'Copiado!'; setTimeout(()=>btnCopy.textContent='Copiar',1400);
+      }catch(e){ alert('Não foi possível copiar automaticamente.'); }
+    });
+  }
+
+  // baixar PNG (mesmo código que você já tinha)
+  var btnDl = document.getElementById('btn-dl');
+  if (btnDl) {
+    btnDl.addEventListener('click', function(){
+      try{
+        var img = document.getElementById('qr-img');
+        if (img && img.src.startsWith('data:image/png')) {
+          var a = document.createElement('a'); a.href = img.src; a.download = 'pix-qr.png';
+          document.body.appendChild(a); a.click(); a.remove(); return;
+        }
+        var qrDiv = document.getElementById('qr');
+        if (qrDiv) {
+          var canvas = qrDiv.querySelector('canvas');
+          if (canvas) {
+            var a = document.createElement('a'); a.href = canvas.toDataURL('image/png'); a.download = 'pix-qr.png';
+            document.body.appendChild(a); a.click(); a.remove(); return;
+          }
+        }
+        alert('QR ainda não está disponível para download.');
+      }catch(e){ alert('Não foi possível baixar a imagem do QR.'); }
+    });
+  }
+})();
+</script>
+
+</body>
+</html>

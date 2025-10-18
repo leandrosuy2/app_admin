@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gerenciador de Mensagens do WhatsApp</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; background-color: #f9f9f9; }
+        h2 { color: #333; text-align: center; }
+        .status-summary { text-align: center; margin: 20px 0; font-size: 18px; font-weight: bold; }
+        .status-summary span { margin: 0 10px; padding: 5px 10px; border-radius: 5px; }
+        .connected { background-color: #4CAF50; color: white; }
+        .disconnected { background-color: #f44336; color: white; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; background-color: #fff; }
+        th, td { padding: 12px; border: 1px solid #ddd; text-align: left; }
+        th { background-color: #4CAF50; color: white; }
+        tr:nth-child(even) { background-color: #f2f2f2; }
+        .pagination { display: flex; justify-content: center; margin-top: 20px; }
+        .pagination button { padding: 8px 16px; margin: 0 5px; background-color: #4CAF50; color: white; border: none; cursor: pointer; }
+        .pagination button:hover { background-color: #45a049; }
+        .qr-code-container { display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); padding: 20px; border: 1px solid #ddd; background: white; z-index: 1000; }
+        .qr-code-container img { width: 200px; height: 200px; }
+        .close-btn { display: block; margin-top: 10px; color: red; cursor: pointer; text-align: right; }
+        .btn { padding: 8px 12px; border: none; cursor: pointer; margin-right: 5px; }
+        .btn-qr { background-color: #4CAF50; color: white; }
+        .btn-delete { background-color: #f44336; color: white; }
+        .btn:hover { opacity: 0.8; }
+        .config-container { display: flex; justify-content: space-between; align-items: center; margin-top: 20px; }
+        .login-container { display: flex; flex-direction: column; max-width: 300px; margin: 0 auto; }
+        .login-container input { padding: 10px; margin: 5px 0; }
+        .hidden { display: none; }
+    </style>
+</head>
+<body>
+
+    <!-- Login Section -->
+    <div id="loginSection" class="login-container">
+        <h2>Login</h2>
+        <input type="text" id="username" placeholder="Usuário">
+        <input type="password" id="password" placeholder="Senha">
+        <button onclick="login()" class="btn btn-qr">Entrar</button>
+        <p id="loginError" style="color: red; display: none;">Usuário ou senha incorretos</p>
+    </div>
+
+    <!-- Session Management Section -->
+    <div id="sessionManagement" class="hidden">
+        <h2>Gerenciar Mensagens do WhatsApp</h2>
+
+        <!-- Status Summary -->
+        <div id="statusSummary" class="status-summary">
+            <span id="connectedCount" class="connected">Conectados: 0</span>
+            <span id="disconnectedCount" class="disconnected">Desconectados: 0</span>
+        </div>
+
+        <div class="config-container">
+            <button onclick="addSession()" class="btn btn-qr">Adicionar Sessão</button>
+            <button onclick="sendMessages()" class="btn btn-qr">Enviar Mensagens</button>
+            <div>
+                <label for="rowsPerPage">Linhas por Página:</label>
+                <select id="rowsPerPage" onchange="updateRowsPerPage()">
+                    <option value="5">5</option>
+                    <option value="10">10</option>
+                    <option value="15">15</option>
+                    <option value="30">30</option>
+                    <option value="50">50</option>
+                </select>
+            </div>
+                        <div>
+                        <button onclick="logout()" class="btn btn-delete">Sair</button>
+                        </div>
+        </div>
+
+
+
+        <h3>Sessões Ativas</h3>
+        <table id="sessionTable">
+            <thead>
+                <tr>
+                    <th>Nome da Sessão</th>
+                    <th>Status</th>
+                    <th>Ações</th>
+                </tr>
+            </thead>
+            <tbody id="sessionList"></tbody>
+        </table>
+
+        <div class="pagination" id="pagination"></div>
+
+        <!-- Div para exibir o QR Code -->
+        <div id="qrCodeContainer" class="qr-code-container">
+            <div id="qrCodeContent"></div>
+            <span class="close-btn" onclick="closeQRCode()">Fechar</span>
+        </div>
+    </div>
+
+    <script>
+        const username = "marcos";
+        const password = "719684";
+        let currentPage = 1;
+        let itemsPerPage = 5;
+
+        // Função de login
+        function login() {
+    const enteredUsername = document.getElementById('username').value;
+    const enteredPassword = document.getElementById('password').value;
+
+    if (enteredUsername === username && enteredPassword === password) {
+        localStorage.setItem('isLoggedIn', 'true'); // Salva o estado de login no Local Storage
+        showSessionManagement();
+    } else {
+        document.getElementById('loginError').style.display = 'block';
+    }
+}
+
+window.onload = function() {
+    const isLoggedIn = localStorage.getItem('isLoggedIn');
+    if (isLoggedIn === 'true') {
+        showSessionManagement();
+    } else {
+        document.getElementById('loginSection').style.display = 'flex';
+    }
+};
+
+function showSessionManagement() {
+    document.getElementById('loginSection').style.display = 'none';
+    document.getElementById('sessionManagement').classList.remove('hidden');
+    fetchSessions();
+}
+
+
+
+        // Atualiza o limite de linhas por página
+        function updateRowsPerPage() {
+            itemsPerPage = parseInt(document.getElementById("rowsPerPage").value);
+            currentPage = 1;
+            fetchSessions();
+        }
+
+        // Função para buscar todas as sessões com paginação
+        async function fetchSessions() {
+            const response = await fetch('/sessions');
+            const sessions = await response.json();
+            displaySessions(sessions);
+            setupPagination(sessions.length);
+            updateStatusSummary(sessions);
+        }
+
+        // Atualiza os contadores de conectados e desconectados
+        function updateStatusSummary(sessions) {
+            let connectedCount = 0;
+            let disconnectedCount = 0;
+
+            sessions.forEach(session => {
+                if (session.isConnected) {
+                    connectedCount++;
+                } else {
+                    disconnectedCount++;
+                }
+            });
+
+            document.getElementById('connectedCount').textContent = `Conectados: ${connectedCount}`;
+            document.getElementById('disconnectedCount').textContent = `Desconectados: ${disconnectedCount}`;
+        }
+
+        // Função para exibir sessões em uma tabela paginada
+        function displaySessions(sessions) {
+            const start = (currentPage - 1) * itemsPerPage;
+            const end = start + itemsPerPage;
+            const paginatedSessions = sessions.slice(start, end);
+
+            const sessionList = document.getElementById('sessionList');
+            sessionList.innerHTML = '';
+
+            paginatedSessions.forEach(session => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${session.sessionId}</td>
+                    <td>${session.isConnected ? "Conectado" : "Desconectado"}</td>
+                    <td>
+                        <button class="btn btn-qr" onclick="showQRCode('${session.sessionId}')">Gerar QR Code</button>
+                        <button class="btn btn-delete" onclick="deleteSession('${session.sessionId}')">Remover</button>
+                    </td>
+                `;
+                sessionList.appendChild(row);
+            });
+        }
+
+        // Configuração da paginação
+        function setupPagination(totalItems) {
+            const totalPages = Math.ceil(totalItems / itemsPerPage);
+            const paginationDiv = document.getElementById('pagination');
+            paginationDiv.innerHTML = '';
+
+            for (let i = 1; i <= totalPages; i++) {
+                const button = document.createElement('button');
+                button.textContent = i;
+                button.onclick = () => {
+                    currentPage = i;
+                    fetchSessions();
+                };
+                if (i === currentPage) {
+                    button.style.fontWeight = 'bold';
+                }
+                paginationDiv.appendChild(button);
+            }
+        }
+
+        // Função para adicionar uma nova sessão
+        async function addSession() {
+            const sessionId = prompt("Digite um ID único para a nova sessão:");
+            if (!sessionId) return;
+
+            const response = await fetch(`/start-session/${sessionId}`, { method: 'POST' });
+            const result = await response.json();
+
+            if (result.error) {
+                alert(result.error);
+                return;
+            }
+
+            fetchSessions(); // Atualizar lista de sessões
+        }
+
+        // Função para exibir o QR Code em uma div modal
+        async function showQRCode(sessionId) {
+            const qrCodeContainer = document.getElementById('qrCodeContainer');
+            const qrCodeContent = document.getElementById('qrCodeContent');
+
+            // Limpar conteúdo antigo
+            qrCodeContent.innerHTML = '';
+
+            const qrResponse = await fetch(`/qrcode/${sessionId}`);
+            if (qrResponse.ok) {
+                const qrBlob = await qrResponse.blob();
+                const qrUrl = URL.createObjectURL(qrBlob);
+                qrCodeContent.innerHTML = `<img src="${qrUrl}" alt="QR Code">`;
+                qrCodeContainer.style.display = 'block';
+            } else {
+                qrCodeContent.innerHTML = 'Erro ao gerar QR Code';
+            }
+        }
+
+        // Função para remover uma sessão
+        async function deleteSession(sessionId) {
+            if (confirm(`Tem certeza de que deseja remover a sessão ${sessionId}?`)) {
+                await fetch(`/end-session/${sessionId}`, { method: 'DELETE' });
+                fetchSessions(); // Atualizar lista de sessões após a exclusão
+            }
+        }
+
+        // Função para fechar o modal de QR Code
+        function closeQRCode() {
+            document.getElementById('qrCodeContainer').style.display = 'none';
+            document.getElementById('qrCodeContent').innerHTML = '';
+        }
+
+        // Função para iniciar o envio de mensagens
+        async function sendMessages() {
+            const confirmation = confirm("Deseja iniciar o envio de mensagens?");
+            if (confirmation) {
+                const response = await fetch('/start-sending', { method: 'POST' });
+                const result = await response.json();
+                alert(result.message || "Mensagens enviadas!");
+            }
+        }
+
+                function logout() {
+    localStorage.removeItem('isLoggedIn'); // Remove o estado de login
+    document.getElementById('sessionManagement').classList.add('hidden');
+    document.getElementById('loginSection').style.display = 'flex';
+}
+
+    </script>
+</body>
+</html>

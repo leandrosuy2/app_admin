@@ -1,0 +1,72 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-5">
+    <h1 class="text-center mb-4">Editar Título</h1>
+    <form method="POST">
+        {% csrf_token %}
+        <div class="row">
+            <div class="col-md-6 mb-3">
+                <label for="empresa_id">Empresa</label>
+                <select name="empresa_id" id="empresa_id" class="form-control" required>
+                    {% for empresa in core_empresa %}
+                    <option value="{{ empresa.id }}" {% if empresa.id == titulo.empresa.id %}selected{% endif %}>
+                        {{ empresa.razao_social }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-6 mb-3">
+                <label for="devedor_id">Devedor</label>
+                <select name="devedor_id" id="devedor_id" class="form-control" required>
+                    {% for devedor in devedores %}
+                    <option value="{{ devedor.id }}" {% if devedor.id == titulo.devedor.id %}selected{% endif %}>
+                        {{ devedor.nome }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-6 mb-3">
+                <label for="num_titulo">Número do Título</label>
+                <input type="number" name="num_titulo" id="num_titulo" value="{{ titulo.num_titulo }}" class="form-control" required>
+            </div>
+            <div class="col-md-6 mb-3">
+                <label for="tipo_doc_id">Tipo de Documento</label>
+                <select name="tipo_doc_id" id="tipo_doc_id" class="form-control" required>
+                    {% for tipo in tipos_docs %}
+                    <option value="{{ tipo.id }}" {% if tipo.id == titulo.tipo_doc_id %}selected{% endif %}>
+                        {{ tipo.name }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-4 mb-3">
+                <label for="valor">Valor</label>
+                <input type="text" step="0.01" name="valor" id="valor" value="{{ titulo.valor|floatformat:2 }}" class="form-control" required>
+			
+
+
+            </div>
+            <div class="col-md-4 mb-3">
+                <label for="data_vencimento">Data de Vencimento</label>
+                <input type="date" name="data_vencimento" id="data_vencimento" value="{{ titulo.dataVencimento }}" class="form-control" required>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-12 mb-3">
+                <label for="status_baixa">Status</label>
+                <select name="status_baixa" id="status_baixa" class="form-control">
+                    <option value="0" {% if titulo.status_baixa == 0 %}selected{% endif %}>Pendente</option>
+                    <option value="2" {% if titulo.status_baixa == 2 %}selected{% endif %}>Quitado</option>
+                    <option value="3" {% if titulo.status_baixa == 3 %}selected{% endif %}>Negociado</option>
+                </select>
+            </div>
+        </div>
+        <button type="submit" class="btn btn-primary">Salvar</button>
+    </form>
+</div>
+{% endblock %}

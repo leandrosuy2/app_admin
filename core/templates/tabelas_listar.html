@@ -1,0 +1,59 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-5">
+    <h3 class="text-center mb-4 fw-bold" style="font-size: 22px; color: #1abc9c; text-transform: uppercase; letter-spacing: 1px;">
+    <i class="fas fa-table me-2" style="color: #16a085;"></i> Lista de Tabelas
+</h3>
+
+    <div class="mb-3 d-flex justify-content-between">
+        <form method="GET" class="d-flex">
+            <input type="text" name="q" class="form-control form-control-sm" placeholder="Pesquisar..." value="{{ query }}">
+            <button type="submit" class="btn btn-sm btn-primary">Pesquisar</button>
+        </form>
+        <a href="{% url 'tabela_adicionar' %}" class="btn btn-sm btn-success">Adicionar Tabela</a>
+    </div>
+    <table class="table table-striped table-bordered text-center table-sm" style="font-size: 0.9rem;">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Nome da Tabela</th>
+                
+                <th>Ações</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for tabela in page_obj %}
+            <tr>
+                <td>{{ tabela.id }}</td>
+                <td>{{ tabela.nome }}</td>
+                
+                <td>
+                    <a href="{% url 'tabela_editar' tabela.id %}" class="btn btn-sm btn-primary">Editar</a>
+                    <a href="{% url 'tabela_excluir' tabela.id %}" class="btn btn-sm btn-danger">Excluir</a>
+					<a href="{% url 'lista_gerenciar' tabela.id %}" class="btn btn-sm btn-info">Condições</a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <div class="d-flex justify-content-between align-items-center">
+        <div>
+            {% if page_obj.has_previous %}
+                <a href="?page=1&{% if query %}q={{ query }}{% endif %}" class="btn btn-sm btn-primary">Primeira</a>
+                <a href="?page={{ page_obj.previous_page_number }}&{% if query %}q={{ query }}{% endif %}" class="btn btn-sm btn-secondary">Anterior</a>
+            {% endif %}
+        </div>
+        <div>
+            <span class="fw-bold">Página {{ page_obj.number }} de {{ page_obj.paginator.num_pages }}</span>
+        </div>
+        <div>
+            {% if page_obj.has_next %}
+                <a href="?page={{ page_obj.next_page_number }}&{% if query %}q={{ query }}{% endif %}" class="btn btn-sm btn-secondary">Próxima</a>
+                <a href="?page={{ page_obj.paginator.num_pages }}&{% if query %}q={{ query }}{% endif %}" class="btn btn-sm btn-primary">Última</a>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

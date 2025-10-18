@@ -1,0 +1,62 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-5">
+    <h1 class="text-center">Logs de Acesso</h1>
+
+    <div class="card mt-4">
+        <div class="card-header bg-info text-white">
+            <h3>Histórico de Acessos</h3>
+        </div>
+        <div class="card-body">
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>Usuário</th>
+                        <th>IP</th>
+                        <th>User Agent</th>
+                        <th>Path</th>
+                        <th>Método</th>
+                        <th>Data e Hora</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for log in page_obj %}
+                    <tr>
+                        <td>{{ log.user.username if log.user else 'Desconhecido' }}</td>
+                        <td>{{ log.ip_address }}</td>
+                        <td>{{ log.user_agent }}</td>
+                        <td>{{ log.path }}</td>
+                        <td>{{ log.method }}</td>
+                        <td>{{ log.timestamp|date:"d/m/Y H:i" }}</td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="6">Nenhum log encontrado.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+
+            <!-- Paginação -->
+            <div class="d-flex justify-content-center">
+                <div>
+                    <span>Pagina {{ page_obj.number }} de {{ page_obj.paginator.num_pages }}</span>
+                </div>
+                <div>
+                    <span>
+                        {% if page_obj.has_previous %}
+                            <a href="?page=1" class="btn btn-primary">Primeira</a>
+                            <a href="?page={{ page_obj.previous_page_number }}" class="btn btn-primary">Anterior</a>
+                        {% endif %}
+                        {% if page_obj.has_next %}
+                            <a href="?page={{ page_obj.next_page_number }}" class="btn btn-primary">Próxima</a>
+                            <a href="?page={{ page_obj.paginator.num_pages }}" class="btn btn-primary">Última</a>
+                        {% endif %}
+                    </span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

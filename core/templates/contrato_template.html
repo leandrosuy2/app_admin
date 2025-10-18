@@ -1,0 +1,156 @@
+{% load custom_filters %}
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <title>Acordo Extrajudicial de Renegociação de Dívida</title>
+    <style>
+        body { font-family: Arial, sans-serif; font-size: 14px; margin: 20px; line-height: 1.6; }
+        h1, h2, h3 { text-align: center; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        table, th, td { border: 1px solid black; }
+        th, td { padding: 8px; text-align: left; }
+    </style>
+</head>
+<body>
+    <h1>ACORDO EXTRAJUDICIAL DE RENEGOCIAÇÃO DE DÍVIDA</h1>
+    <p>
+        Pelo presente Termo e na melhor forma de direito, as partes abaixo qualificadas: 
+    </p>
+    <p>
+        <strong>DEVEDOR:</strong> {{ devedores.nome }}, residente e domiciliado na {{ devedores.endereco }},
+        CEP - {{ devedores.cep }}, {{ devedores.cidade }}/{{ devedores.uf }}, inscrito no CPF/MF {{ devedores.cpf }},
+        doravante simplesmente denominado DEVEDOR, e 
+        <strong>CREDORA:</strong> {{ core_empresa.razao_social }}, pessoa Jurídica, com sede (ou filial) localizada à
+        {{ core_empresa.endereco }}, {{ core_empresa.bairro }}, na cidade de {{ core_empresa.cidade }}/{{ core_empresa.uf }},
+        inscrita no CNPJ nº {{ core_empresa.cnpj }}, doravante simplesmente denominada CREDORA, resolvem firmar o presente
+        Contrato de Confissão e Renegociação de Dívida, que se regerá pelas cláusulas e condições descritas a seguir:
+    </p>
+    <h3>CLÁUSULA PRIMEIRA</h3>
+    <p>
+        O DEVEDOR reconhece e confessa o débito existente junto ao credor no valor total de
+        R$ {{ titulo.valor_total_negociacao }} ({{ titulo.valor_total_negociacao_extenso }}).
+    </p>
+    <h3>CLÁUSULA SEGUNDA</h3>
+    <p>
+        Para o pagamento das dívidas ora confessadas, o CREDOR concorda em receber a importância de
+        R$ {{ titulo.valor_total_negociacao }} ({{ titulo.valor_total_negociacao_extenso }}), sendo:
+    </p>
+    <ul>
+        <li>Entrada de R$ {{ titulo.entrada }} ({{ titulo.entrada_extenso }}).</li>
+        <li>O restante dividido em {{ titulo.qtde_prc }} parcela(s) de R$ {{ titulo.valor_por_parcela }}
+            ({{ titulo.valor_por_parcela_extenso }}), exigíveis, sendo:
+        </li>
+    </ul>
+    <table>
+    <thead>
+        <tr>
+            <th>Parcela</th>
+            <th>Vencimento</th>
+            <th>Valor</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for parcela in parcelas %}
+        <tr>
+            <td>{{ parcela.parcela_numero }}</td>
+            <td>{{ parcela.data_vencimento_parcela|date:"d/m/Y" }}</td>
+            <td>R$ {{ parcela.valor|floatformat:2 }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+    <h3>CLÁUSULA TERCEIRA</h3>
+    <p>
+        O pagamento das parcelas convencionadas na cláusula segunda deverá ser depositado na conta corrente do CREDOR ou
+        efetuado diretamente na loja física do CREDOR, Banco, sucessivamente até o término das parcelas.
+    </p>
+    <h3>CLÁUSULA QUARTA</h3>
+    <p>
+        O CREDOR e seus sucessores obrigam-se a não propor qualquer medida judicial, entendendo-se por este qualquer tipo
+        de ação cabível, enquanto estiver sendo cumprido o presente acordo.
+    </p>
+    <h3>CLÁUSULA QUINTA</h3>
+    <p>
+        O DEVEDOR admite o débito descrito na cláusula primeira para com o CREDOR, calculado de acordo com os respectivos
+        instrumentos de crédito e as normas do mercado, respondendo inclusive pelos encargos do inadimplemento.
+    </p>
+    <h3>CLÁUSULA SEXTA</h3>
+    <p>
+        O não pagamento de qualquer parcela dará ensejo ao CREDOR a considerar rescindido de pleno direito o presente
+        contrato, com o consequente vencimento antecipado das demais parcelas, fazendo assim jus a pleitear judicial ou
+        extrajudicialmente o débito restante, com todos os acréscimos.
+    </p>
+    <p>
+        <strong>Parágrafo único:</strong> Ocorrendo o descumprimento por parte do DEVEDOR, fica o valor devido acrescido de
+        juros legais, multa e atualização monetária, bem como validade a este acordo na forma do art. 323 do CPC para melhor
+        execução da obrigação.
+    </p>
+	<h3>CLÁUSULA SÉTIMA</h3>
+<p>
+    As partes contratantes fixam como Cláusula Penal o percentual de 10% (dez por cento) sobre o valor das parcelas vencidas e não pagas, e das vincendas; em caso de descumprimento de qualquer cláusula deste instrumento.
+</p>
+
+<h3>CLÁUSULA OITAVA</h3>
+<p>
+    Havendo atraso superior a 15 (quinze) dias no pagamento de qualquer das parcelas ocorrerá o vencimento antecipado das parcelas vincendas e poderá o (a) CREDOR(a) proceder a execução judicial da integralidade do débito, com os acréscimos da cláusula anterior, respondendo o (a) DEVEDOR (a) ainda pelos honorários advocatícios de até 20% (vinte por cento) e custas processuais.
+</p>
+
+<h3>CLÁUSULA NONA</h3>
+<p>
+    Eventual aceitação do (a) CREDOR (a) em receber parcelas pagas intempestivamente, a seu critério, não importará em novação, mas mera liberalidade, permanecendo inalteradas as cláusulas deste contrato.
+</p>
+
+<h3>CLÁUSULA DÉCIMA</h3>
+<p>
+    A liquidação das dívidas de que se trata acima fica expressamente condicionada ao cumprimento integral da conta única acordada na cláusula segunda, nas datas ali determinadas.
+</p>
+
+<h3>CLÁUSULA DÉCIMA PRIMEIRA</h3>
+<p>
+    O presente contrato passa a vigorar entre as partes a partir da aceitação por WhatsApp, E-mail, assinatura do mesmo ou qualquer outro meio que o DEVEDOR aceite de forma expresso ou tácito o contrato.
+</p>
+
+<h3>CLÁUSULA DÉCIMA SEGUNDA</h3>
+<p>
+    As partes acima nomeadas e qualificadas têm o intuito de inovar as obrigações descritas na cláusula primeira, o objetivo do presente instrumento é ajustar detalhes para o justo e devido pagamento da dívida.
+</p>
+
+<h3>CLÁUSULA DÉCIMA TERCEIRA</h3>
+<p>
+    O presente instrumento de acordo extrajudicial firmado pelas partes de forma tal que ambos reconhecem a dívida nele descrita como líquida e certa, outorgando ao mesmo a eficácia de Título Executivo Extrajudicial, conforme dispõe o art. 784, III, do Novo Código de Processo Civil brasileiro.
+</p>
+
+<h3>CLÁUSULA DÉCIMA QUARTA</h3>
+<p>
+    Este contrato estabelece que quaisquer controvérsias oriundas do mesmo possam ser submetida ao Juízo Arbitral, conforme os dispositivos da Lei 9.307/96, vedado o recurso à equidade. Tal dispositivo deve ser interpretado em conjunto com seu parágrafo único, que elege a câmara arbitral do Município de {{ core_empresa.cidade }}, no estado de {{ core_empresa.uf }}, ou como responsável pela resolução de conflitos.<br>
+	Parágrafo 1º: Podendo ser eleito o Foro da Comarca.<br>
+	Parágrafo 2º: A arbitragem, no Brasil, é regulada pela Lei n.º 9.307/96. <br>
+	Parágrafo 3º, havendo interesse do CREDOR, o Foro da Comarca do município e estado do presente contrato poderá ser eleito.
+	E, por estarem firmados.
+
+</p>
+
+<div style="margin-top: 40px; text-align: center;">
+    
+    <p align="right">{{ core_empresa.cidade }}, {{ core_empresa.uf }}, {{ titulo.data_entrada|data_por_extenso }}.</p>
+
+</div>
+<table style="width: 100%; margin-top: 20px; border: none;">
+    <tr>
+        <td style="text-align: center; border: none;">
+            <p>_________________________________________</p>
+            <p>Assinatura do Credor.<br>{{ core_empresa.razao_social }} <br> {{ core_empresa.cnpj }}</p>
+        </td>
+        <td style="text-align: center; border: none;">
+            <p>_________________________________________</p>
+            <p>Assinatura do Devedor<br>{{ devedores.nome }} <br>{{ devedores.cpf }}</p>
+        </td>
+    </tr>
+</table>
+
+
+
+</body>
+</html>

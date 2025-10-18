@@ -1,0 +1,45 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container mt-5">
+    <h3 class="text-center">Gerenciar Usuários</h3>
+    <a href="{% url 'adicionar_usuario' %}" class="btn btn-primary mb-3">Adicionar Usuário</a>
+    <table class="table table-bordered">
+        <thead>
+            <tr>
+                <th>Username</th>
+                <th>Email</th>
+                <th>Grupo</th>
+                <th>Ações</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for usuario in usuarios %}
+            <tr>
+                <td>{{ usuario.username }}</td>
+                <td>{{ usuario.email }}</td>
+                <td>{{ usuario.groups.first.name }}</td>
+                <td>
+  <a href="{% url 'editar_usuario' usuario.id %}" class="btn btn-warning btn-sm">Editar</a>
+
+ <form method="post"
+      action="{% url 'excluir_usuario' usuario.id %}?next={{ request.get_full_path|urlencode }}"
+      style="display:inline"
+      onsubmit="return confirm('Confirma a exclusão do usuário {{ usuario.username }}?');">
+
+  {% csrf_token %}
+  <button type="submit" class="btn btn-danger btn-sm">
+    <i class="bi bi-trash"></i> Excluir
+  </button>
+</form>
+
+
+
+
+</td>
+
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

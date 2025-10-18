@@ -1,0 +1,509 @@
+{% extends "base.html" %}
+{% load custom_filters %}
+
+{% block content %}
+<style>
+  .boletos-wrap{
+    border:1px solid #e5e7eb; border-radius:.75rem; background:#fff;
+    max-height:70vh; overflow-y:auto; overflow-x:hidden;
+  }
+  table.boletos{ width:100%; border-collapse:separate; border-spacing:0; }
+  .boletos thead th{ position:sticky; top:0; background:#fff; z-index:2; }
+  .boletos th, .boletos td{
+    padding:.55rem .65rem; vertical-align:middle; border:1px solid #eef1f4;
+    font-size:.95rem;
+  }
+  .text-money{ text-align:right; font-variant-numeric:tabular-nums; white-space:nowrap; }
+  .actions-col{ white-space:nowrap; }
+  .name-col{ max-width:420px; }
+  .summary-chip{
+    display:flex; flex-direction:column; gap:2px; padding:.75rem .9rem; border-radius:.75rem;
+    background:#fff; border:1px solid #e5e7eb; box-shadow:0 2px 8px rgba(0,0,0,.04);
+  }
+  .fixed-summary{
+    position:fixed; right:1rem; bottom:1rem; left:1rem;
+    background:rgba(255,255,255,.92); backdrop-filter:saturate(1.1) blur(3px);
+    border:1px solid #e5e7eb; border-radius:14px; padding:.6rem .9rem; z-index:50;
+    box-shadow:0 10px 30px rgba(0,0,0,.1);
+  }
+  @media (min-width: 992px){
+    .fixed-summary{ left:auto; width:720px; }
+  }
+</style>
+
+<h2 class="mb-3">Emitir Boletos</h2>
+
+{% if messages %}
+  <div class="alert alert-info">
+    <ul class="mb-0">
+      {% for message in messages %}
+        <li class="{{ message.tags }}">{{ message }}</li>
+      {% endfor %}
+    </ul>
+  </div>
+{% endif %}
+
+{% if pix_brcode %}
+  <div class="alert alert-success" style="margin: 12px 0;">
+    <strong>PIX Copia-e-Cola ({{ wa_razao }} – R$ {{ wa_valor }}):</strong>
+
+    <!-- Copia-e-cola + botões utilitários -->
+    <div class="d-flex align-items-start gap-2 mt-2">
+      <textarea id="pix-brcode" readonly class="form-control" style="height:110px;">{{ pix_brcode }}</textarea>
+      <button type="button" id="btn-copy-brcode" class="btn btn-outline-secondary" title="Copiar">
+        Copiar
+      </button>
+    </div>
+
+    {% if pix_link %}
+      <div class="mt-2">
+        <a class="btn btn-primary" href="{{ pix_link }}" target="_blank" rel="noopener">
+          Abrir QR-Code
+        </a>
+      </div>
+    {% endif %}
+
+    <hr>
+
+    <!-- Confirmação do WhatsApp (número + mensagem) -->
+    <form method="post" class="mt-2">
+      {% csrf_token %}
+      <input type="hidden" name="confirmar_wa" value="1">
+      <input type="hidden" name="empresa_id" value="{{ wa_empresa_id }}">
+
+      <div class="row g-3">
+        <div class="col-12 col-md-5">
+          <label class="form-label">Número WhatsApp (com DDD)</label>
+          <input type="text" name="numero_whatsapp" class="form-control" value="{{ wa_numero }}">
+          <div class="form-text">Ex.: 5591999999999 (padrão E.164) ou 91 99999-9999.</div>
+        </div>
+        <div class="col-12 col-md-7">
+          <label class="form-label">Mensagem</label>
+          <textarea name="wa_msg" class="form-control" rows="5">{{ wa_msg }}</textarea>
+        </div>
+        <div class="col-12 d-flex align-items-center gap-3">
+          <div class="form-check">
+            <input class="form-check-input" type="checkbox" value="1" id="chkSaveTel" name="salvar_tel_empresa">
+            <label class="form-check-label" for="chkSaveTel">
+              Atualizar telefone da empresa com este número
+            </label>
+          </div>
+
+          <button type="submit" class="btn btn-success ms-auto">
+            Salvar & Abrir WhatsApp
+          </button>
+        </div>
+      </div>
+    </form>
+  </div>
+{% endif %}
+{% if boleto_url or linha_digitavel %}
+  <div class="alert alert-success" style="margin:12px 0;">
+    <strong>BOLETO gerado ({{ wa_razao }} – R$ {{ wa_valor }}):</strong>
+
+    {% if linha_digitavel %}
+      <div class="mt-2">
+        <label class="form-label">Linha Digitável</label>
+        <div class="input-group">
+          <input id="linha-digitavel" type="text" class="form-control" readonly value="{{ linha_digitavel }}">
+          <button type="button" id="btn-copy-linha" class="btn btn-outline-secondary">Copiar</button>
+        </div>
+      </div>
+    {% endif %}
+
+    <div class="mt-2 d-flex gap-2">
+      {% if boleto_url %}
+        <a class="btn btn-primary" href="{{ boleto_url }}" target="_blank" rel="noopener">Abrir Boleto</a>
+      {% endif %}
+      {% if wa_empresa_id %}
+        <a class="btn btn-outline-primary" href="{% url 'baixar_boleto' wa_empresa_id %}" style="display:none;">PDF local</a>
+      {% endif %}
+    </div>
+
+    <hr>
+
+    <form method="post" class="mt-2">
+      {% csrf_token %}
+      <input type="hidden" name="confirmar_wa" value="1">
+      <input type="hidden" name="empresa_id" value="{{ wa_empresa_id }}">
+      <div class="row g-3">
+        <div class="col-12 col-md-5">
+          <label class="form-label">Número WhatsApp (com DDD)</label>
+          <input type="text" name="numero_whatsapp" class="form-control" value="{{ wa_numero }}">
+        </div>
+        <div class="col-12 col-md-7">
+          <label class="form-label">Mensagem</label>
+          <textarea name="wa_msg" class="form-control" rows="5">{{ wa_msg }}</textarea>
+        </div>
+        <div class="col-12 d-flex align-items-center gap-3">
+          <div class="form-check">
+            <input class="form-check-input" type="checkbox" value="1" id="chkSaveTelB" name="salvar_tel_empresa">
+            <label class="form-check-label" for="chkSaveTelB">Atualizar telefone da empresa</label>
+          </div>
+          <button type="submit" class="btn btn-success ms-auto">Salvar & Abrir WhatsApp</button>
+        </div>
+      </div>
+    </form>
+  </div>
+{% endif %}
+
+
+<form method="post" id="emitirBoletoForm">
+  {% csrf_token %}
+
+  <!-- Hidden inputs -->
+  <input type="hidden" name="emitir" id="emitir">
+  <input type="hidden" name="excluir" id="excluir">
+  <input type="hidden" name="billingType" id="billingType" value="BOLETO">
+
+  <!-- Dados da empresa (POST) -->
+  <input type="hidden" name="empresa_id"  id="empresa_id">
+  <input type="hidden" name="cnpj"        id="cnpj">
+  <input type="hidden" name="endereco"    id="endereco">
+  <input type="hidden" name="bairro"      id="bairro">
+  <input type="hidden" name="cidade"      id="cidade">
+  <input type="hidden" name="uf"          id="uf">
+  <input type="hidden" name="cep"         id="cep">
+  <input type="hidden" name="telefone"    id="telefone">
+  <input type="hidden" name="devedor_ids" id="devedor_ids">
+
+  <!-- Resumo rápido -->
+  <div class="row g-3 mb-3">
+    <div class="col-12 small text-muted">
+      Janela: {{ dt_from|date:"d/m/Y" }} → {{ dt_to|date:"d/m/Y" }}
+    </div>
+
+    <div class="col-12 col-md-4">
+      <div class="summary-chip">
+        <span class="text-muted small">Empresas na lista</span>
+        <strong class="fs-5">{{ tot_empresas|default:0 }}</strong>
+      </div>
+    </div>
+    <div class="col-12 col-md-4">
+      <div class="summary-chip">
+        <span class="text-muted small">Valor Recebido (total)</span>
+        <strong class="fs-5">R$ {{ tot_valor_recebido|floatformat:2 }}</strong>
+      </div>
+    </div>
+    <div class="col-12 col-md-4">
+      <div class="summary-chip">
+        <span class="text-muted small">Comissão (total boletável)</span>
+        <strong class="fs-5 text-danger">R$ {{ tot_comissao|floatformat:2 }}</strong>
+      </div>
+    </div>
+  </div>
+
+  <div class="boletos-wrap">
+    <table class="table table-sm table-hover boletos align-middle">
+      <colgroup>
+        <col style="width:42%">
+        <col style="width:14%">
+        <col style="width:17%">
+        <col style="width:17%">
+        <col style="width:10%">
+      </colgroup>
+
+      <thead class="table-light">
+        <tr>
+          <th>Razão Social</th>
+          <th class="text-center">Dias atraso (máx. histórico)</th>
+          <th class="text-money">Valor Recebido</th>
+          <th class="text-money">Comissão (R$)</th>
+          <th class="text-center">Ações</th>
+        </tr>
+      </thead>
+
+      <tbody>
+        {% for row in results %}
+        <tr>
+          <td class="name-col">
+            <strong class="text-truncate d-inline-block" style="max-width:100%">{{ row.1 }}</strong>
+            <div class="small text-muted">
+              CNPJ: {{ row.2 }} — Fone: {{ row.8 }}
+            </div>
+          </td>
+
+          <td class="text-center">
+            <span class="badge bg-light text-dark">{{ row.10 }}</span>
+          </td>
+
+          <td class="text-money">R$ {{ row.11|floatformat:2 }}</td>
+          <td class="text-money fw-semibold text-danger">R$ {{ row.12|floatformat:2 }}</td>
+
+          <td class="actions-col text-center">
+            <div class="btn-group" role="group" aria-label="Ações">
+              <button type="button"
+                      class="btn btn-outline-primary btn-sm"
+                      title="Ver detalhes"
+                      data-bs-toggle="modal"
+                      data-bs-target="#infoModal-{{ row.0 }}">
+                DETALHES
+              </button>
+<!-- PIX -->
+<button type="button" class="btn btn-secondary btn-sm emitirButton"
+        title="Gerar PIX"
+        data-tipo="PIX"
+        data-empresaid="{{ row.0 }}"
+        data-cnpj="{{ row.2 }}"
+        data-endereco="{{ row.3 }}"
+        data-bairro="{{ row.4 }}"
+        data-cidade="{{ row.5 }}"
+        data-uf="{{ row.6 }}"
+        data-cep="{{ row.7 }}"
+        data-telefone="{{ row.8 }}"
+        data-devedores="{{ row.9 }}">
+  GERAR PIX
+</button>
+
+<!-- BOLETO -->
+<button type="button" class="btn btn-primary btn-sm emitirButton"
+        title="Gerar Boleto"
+        data-tipo="BOLETO"
+        data-empresaid="{{ row.0 }}"
+        data-cnpj="{{ row.2 }}"
+        data-endereco="{{ row.3 }}"
+        data-bairro="{{ row.4 }}"
+        data-cidade="{{ row.5 }}"
+        data-uf="{{ row.6 }}"
+        data-cep="{{ row.7 }}"
+        data-telefone="{{ row.8 }}"
+        data-devedores="{{ row.9 }}">
+  GERAR BOLETO
+</button>
+
+
+              <button
+                type="button"
+                class="btn btn-outline-danger btn-sm excluirButton"
+                title="Excluir desta listagem (não emitir)"
+                data-empresaid="{{ row.0 }}">
+                EXCLUIR
+              </button>
+            </div>
+          </td>
+        </tr>
+        {% empty %}
+        <tr>
+          <td colspan="5" class="text-center text-muted py-4">Nenhuma empresa nesta janela.</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+
+      <!-- Linha de TOTAIS -->
+      <tfoot>
+        <tr class="table-secondary">
+          <td class="text-end fw-semibold" colspan="2">Totais</td>
+          <td class="text-money fw-semibold">R$ {{ tot_valor_recebido|floatformat:2 }}</td>
+          <td class="text-money fw-bold text-danger">R$ {{ tot_comissao|floatformat:2 }}</td>
+          <td></td>
+        </tr>
+      </tfoot>
+    </table>
+  </div>
+
+  {# ====== MODAIS DE DETALHE ====== #}
+  {% for row in results %}
+  <div class="modal fade" id="infoModal-{{ row.0 }}" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">Detalhes — {{ row.1 }}</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
+        </div>
+
+        <div class="modal-body">
+          <div class="row g-3">
+            <div class="col-md-6">
+              <small class="text-muted d-block">CNPJ</small><div>{{ row.2 }}</div>
+            </div>
+            <div class="col-md-6">
+              <small class="text-muted d-block">Telefone</small><div>{{ row.8 }}</div>
+            </div>
+            <div class="col-md-12">
+              <small class="text-muted d-block">Endereço</small>
+              <div>{{ row.3 }} — {{ row.4 }}, {{ row.5 }} / {{ row.6 }} — CEP {{ row.7 }}</div>
+            </div>
+            <div class="col-md-4">
+              <small class="text-muted d-block">Dias atraso (máx. na janela)</small><div>{{ row.10 }}</div>
+            </div>
+            <div class="col-md-4">
+              <small class="text-muted d-block">Valor Recebido (total)</small><div>R$ {{ row.11|floatformat:2 }}</div>
+            </div>
+            <div class="col-md-4">
+              <small class="text-muted d-block">Comissão</small><div class="fw-semibold text-danger">R$ {{ row.12|floatformat:2 }}</div>
+            </div>
+          </div>
+
+          <hr class="my-3">
+
+          <h6 class="mb-2">Títulos baixados nesta janela</h6>
+          <div class="table-responsive">
+            <table class="table table-sm table-striped table-bordered mb-0 align-middle">
+              <thead class="table-light">
+                <tr>
+                  <th style="width:90px;">ID Título</th>
+                  <th>Devedor</th>
+                  <th style="width:110px;">Nº Título</th>
+                  <th style="width:130px;" class="text-end">Valor Recebido</th>
+                  <th style="width:130px;">Vencimento</th>
+                  <th style="width:110px;">Status</th>
+                  <th style="width:110px;">Data Baixa</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% with lista=detalhes_por_empresa|get_item:row.0 %}
+                  {% if lista %}
+                    {% for d in lista %}
+                      <tr>
+                        <td><b>{{ d.id }}</b></td>
+                        <td class="text-start">{{ d.nome }}</td>
+                        <td>{{ d.num_titulo }}</td>
+                        <td class="text-end">R$ {{ d.valor|floatformat:2 }}</td>
+                        <td>{{ d.vencimento }}</td>
+                        <td>
+                          {% if d.status == "Pendente" %}<span class="badge bg-warning text-dark">Pendente</span>
+                          {% elif d.status == "Quitado" %}<span class="badge bg-success">Quitado</span>
+                          {% elif d.status == "Negociado" %}<span class="badge bg-info text-dark">Negociado</span>
+                          {% else %}<span class="badge bg-secondary">Desconhecido</span>{% endif %}
+                        </td>
+                        <td>{{ d.data_baixa }}</td>
+                      </tr>
+                    {% endfor %}
+                  {% else %}
+                    <tr><td colspan="7" class="text-center text-muted">Nenhum título nesta janela.</td></tr>
+                  {% endif %}
+                {% endwith %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button class="btn btn-outline-secondary" data-bs-dismiss="modal">Fechar</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  {% endfor %}
+  {# ====== /MODAIS ====== #}
+</form>
+
+<!-- Barra fixa de totais para conferência rápida -->
+<div class="fixed-summary d-print-none">
+  <div class="row g-3 align-items-center">
+    <div class="col-6 col-md">
+      <div class="small text-muted">Empresas</div>
+      <div class="fw-bold">{{ tot_empresas|default:0 }}</div>
+    </div>
+    <div class="col-6 col-md">
+      <div class="small text-muted">Recebido (total)</div>
+      <div class="fw-bold">R$ {{ tot_valor_recebido|floatformat:2 }}</div>
+    </div>
+    <div class="col-12 col-md">
+      <div class="small text-muted">Comissão (total)</div>
+      <div class="fw-bold text-danger">R$ {{ tot_comissao|floatformat:2 }}</div>
+    </div>
+    <div class="col-12 col-md-auto text-end">
+      <a href="#" class="btn btn-sm btn-outline-secondary" onclick="window.scrollTo({top:0,behavior:'smooth'})">
+        Voltar ao topo
+      </a>
+    </div>
+  </div>
+</div>
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+  const form = document.getElementById("emitirBoletoForm");
+
+  function ensureHidden(id) {
+    let el = document.getElementById(id);
+    if (!el) { el = document.createElement("input"); el.type = "hidden"; el.id = id; el.name = id; form.appendChild(el); }
+    return el;
+  }
+
+  const f_emitir      = ensureHidden("emitir");
+  const f_excluir     = ensureHidden("excluir");
+  const f_billingType = ensureHidden("billingType");
+  const f_empresa_id  = ensureHidden("empresa_id");
+  const f_cnpj        = ensureHidden("cnpj");
+  const f_endereco    = ensureHidden("endereco");
+  const f_bairro      = ensureHidden("bairro");
+  const f_cidade      = ensureHidden("cidade");
+  const f_uf          = ensureHidden("uf");
+  const f_cep         = ensureHidden("cep");
+  const f_telefone    = ensureHidden("telefone");
+  const f_devedores   = ensureHidden("devedor_ids");
+
+  // EMITIR (PIX)
+  document.querySelectorAll(".emitirButton").forEach(btn => {
+    btn.addEventListener("click", () => {
+      f_excluir.value = "";
+      f_emitir.value  = "1";
+      f_billingType.value = (btn.dataset.tipo || "BOLETO").toUpperCase();
+      f_empresa_id.value  = btn.dataset.empresaid || "";
+      f_cnpj.value        = btn.dataset.cnpj || "";
+      f_endereco.value    = btn.dataset.endereco || "";
+      f_bairro.value      = btn.dataset.bairro || "";
+      f_cidade.value      = btn.dataset.cidade || "";
+      f_uf.value          = btn.dataset.uf || "";
+      f_cep.value         = btn.dataset.cep || "";
+      f_telefone.value    = btn.dataset.telefone || "";
+      f_devedores.value   = btn.dataset.devedores || "";
+      form.submit();
+    });
+  });
+
+  // EXCLUIR
+  document.querySelectorAll(".excluirButton").forEach(btn => {
+    btn.addEventListener("click", () => {
+      if (!confirm("Confirma excluir esta empresa da emissão? Nada será enviado/emitido.")) return;
+      f_emitir.value  = "";
+      f_excluir.value = "1";
+      f_empresa_id.value = btn.dataset.empresaid || "";
+      form.submit();
+    });
+  });
+
+  // COPIAR PIX COPIA-E-COLA
+  const btnCopy = document.getElementById("btn-copy-brcode");
+  const ta = document.getElementById("pix-brcode");
+  if (btnCopy && ta) {
+    btnCopy.addEventListener("click", async () => {
+      try {
+        ta.select();
+        ta.setSelectionRange(0, ta.value.length);
+        await navigator.clipboard.writeText(ta.value);
+        btnCopy.textContent = 'Copiado!';
+        setTimeout(() => btnCopy.textContent = 'Copiar', 1500);
+      } catch (e) {
+        alert("Não foi possível copiar automaticamente. Copie manualmente o texto.");
+      }
+    });
+  }
+});
+</script>
+
+{% if wa_open_url %}
+<script>
+  // abre só depois da confirmação
+  (function () {
+    const url = "{{ wa_open_url|escapejs }}";
+    if (url) window.open(url, "_blank");
+  })();
+</script>
+{% endif %}
+
+<script>
+document.addEventListener("DOMContentLoaded", function(){
+  const btn = document.getElementById("btn-copy-linha");
+  const inp = document.getElementById("linha-digitavel");
+  if(btn && inp){
+    btn.addEventListener("click", async () => {
+      try { await navigator.clipboard.writeText(inp.value); btn.textContent="Copiado"; setTimeout(()=>btn.textContent="Copiar",1500); }
+      catch(e){ alert("Copie manualmente a linha digitável."); }
+    });
+  }
+});
+</script>
+
+{% endblock %}

@@ -1,0 +1,376 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container py-4">
+
+  <!-- Título + Status -->
+  <div class="d-flex align-items-center justify-content-between mb-3">
+    <h3 class="mb-0">Editar Empresa</h3>
+    <div class="d-flex align-items-center gap-3">
+      <span id="status-badge" class="badge py-2 px-3 {% if empresa.status_empresa %}bg-success{% else %}bg-danger{% endif %}">
+        {% if empresa.status_empresa %}ATIVADA{% else %}DESATIVADA{% endif %}
+      </span>
+
+      <div class="form-check form-switch m-0">
+        <input class="form-check-input" type="checkbox" id="status-switch" {% if empresa.status_empresa %}checked{% endif %}>
+        <label class="form-check-label" for="status-switch">Ativar/Desativar</label>
+      </div>
+
+      <button id="toggle-status" class="btn {% if empresa.status_empresa %}btn-danger{% else %}btn-success{% endif %}">
+        {% if empresa.status_empresa %}Desativar{% else %}Ativar{% endif %}
+      </button>
+    </div>
+  </div>
+
+  <form method="post" action="{% url 'editar_empresa' empresa.id %}" enctype="multipart/form-data">
+    {% csrf_token %}
+
+    <div class="row g-4">
+      <!-- Coluna esquerda: Logo -->
+      <div class="col-lg-4">
+        <div class="card shadow-sm logo-card">
+          <div class="card-header bg-white">
+            <strong>Logo da empresa</strong>
+          </div>
+          <div class="card-body text-center">
+            <div class="logo-preview rounded-3 border">
+              {% if empresa.logo %}
+                <img id="logo-img" src="{{ empresa.logo.url }}" alt="Logo da Empresa" class="img-fluid">
+              {% else %}
+                <img id="logo-img" src="" alt="Logo da Empresa" class="img-fluid d-none">
+                <div id="logo-placeholder" class="text-muted small">Sem logo cadastrada</div>
+              {% endif %}
+            </div>
+
+            <label for="logo" class="btn btn-outline-primary mt-3">
+              Alterar logo
+            </label>
+            <input type="file" id="logo" name="logo" class="form-control d-none" accept="image/*">
+
+            <div class="form-text mt-2">
+              Recomendações: PNG/JPG, fundo transparente preferível, altura até ~160px.
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Coluna direita: campos -->
+      <div class="col-lg-8">
+        <!-- Dados principais -->
+        <div class="card shadow-sm mb-4">
+          <div class="card-header bg-white"><strong>Dados da empresa</strong></div>
+          <div class="card-body">
+            <div class="row g-3">
+              <div class="col-md-6">
+                <label for="cnpj" class="form-label">CNPJ</label>
+                <input type="text" id="cnpj" name="cnpj" class="form-control" value="{{ empresa.cnpj }}" required>
+              </div>
+              <div class="col-md-6">
+                <label for="nome_fantasia" class="form-label">Nome Fantasia</label>
+                <input type="text" id="nome_fantasia" name="nome_fantasia" class="form-control" value="{{ empresa.nome_fantasia }}" required>
+              </div>
+              <div class="col-md-12">
+                <label for="razao_social" class="form-label">Razão Social</label>
+                <input type="text" id="razao_social" name="razao_social" class="form-control" value="{{ empresa.razao_social }}" required>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Dados Bancários para Depósito -->
+        <div class="card shadow-sm mb-4">
+          <div class="card-header bg-white"><strong>Dados Bancários para Depósito</strong></div>
+          <div class="card-body">
+            <div class="row g-3">
+              <div class="col-md-3">
+                <label for="banco_nome" class="form-label">Banco</label>
+                <input type="text" id="banco_nome" name="banco_nome" class="form-control" value="{{ empresa.banco_nome }}">
+              </div>
+              <div class="col-md-3">
+                <label for="agencia" class="form-label">Agência</label>
+                <input type="text" id="agencia" name="agencia" class="form-control" value="{{ empresa.agencia }}">
+              </div>
+              <div class="col-md-3">
+                <label for="conta" class="form-label">Conta</label>
+                <input type="text" id="conta" name="conta" class="form-control" value="{{ empresa.conta }}">
+              </div>
+              <div class="col-md-3">
+                <label for="chave_pix" class="form-label">Chave PIX</label>
+                <input
+                  type="text"
+                  id="chave_pix"
+                  name="chave_pix"
+                  class="form-control"
+                  value="{% if empresa.chave_pix %}{{ empresa.chave_pix }}{% elif empresa.banco %}{{ empresa.banco }}{% endif %}"
+                >
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- PIX & Financeiro -->
+        <div class="card shadow-sm mb-4">
+          <div class="card-header bg-white"><strong>PIX & Financeiro</strong></div>
+          <div class="card-body">
+            <div class="row g-3">
+              <div class="col-md-6">
+                <label for="nome_favorecido_pix" class="form-label">Favorecido (PIX)</label>
+                <input type="text" id="nome_favorecido_pix" name="nome_favorecido_pix" class="form-control" value="{{ empresa.nome_favorecido_pix }}">
+              </div>
+              <div class="col-md-6">
+                <label for="tipo_pix" class="form-label">Tipo de chave</label>
+                <select id="tipo_pix" name="tipo_pix" class="form-select">
+                  <option value="">Selecione</option>
+                  <option value="cnpj" {% if empresa.tipo_pix == "cnpj" %}selected{% endif %}>CNPJ</option>
+                  <option value="cpf" {% if empresa.tipo_pix == "cpf" %}selected{% endif %}>CPF</option>
+                  <option value="email" {% if empresa.tipo_pix == "email" %}selected{% endif %}>Email</option>
+                  <option value="telefone" {% if empresa.tipo_pix == "telefone" %}selected{% endif %}>Telefone</option>
+                  <option value="chave_aleatoria" {% if empresa.tipo_pix == "chave_aleatoria" %}selected{% endif %}>Chave Aleatória</option>
+                  <option value="agencia_conta" {% if empresa.tipo_pix == "agencia_conta" %}selected{% endif %}>Agência e Conta</option>
+                </select>
+              </div>
+
+              <div class="col-md-6">
+                <label for="valor_adesao" class="form-label">Implantação</label>
+                <input type="text" id="valor_adesao" name="valor_adesao" class="form-control" value="{{ empresa.valor_adesao }}">
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Condições de Negociação aos Devedores -->
+        <div class="card shadow-sm mb-4">
+          <div class="card-header bg-white"><strong>Condições de Negociação aos Devedores</strong></div>
+          <div class="card-body">
+            <div class="row g-3">
+              <div class="col-md-4">
+                <label for="qtd_parcelas" class="form-label">Quantidade de parcelas</label>
+                <input type="number" id="qtd_parcelas" name="qtd_parcelas" class="form-control" min="0" value="{{ empresa.qtd_parcelas }}">
+              </div>
+              <div class="col-md-4">
+                <label for="desconto_total_avista" class="form-label">Descontos (à vista) %</label>
+                <input type="text" id="desconto_total_avista" name="desconto_total_avista" class="form-control" value="{{ empresa.desconto_total_avista }}">
+              </div>
+              <div class="col-md-4">
+                <label for="desconto_total_aprazo" class="form-label">Descontos (a prazo) %</label>
+                <input type="text" id="desconto_total_aprazo" name="desconto_total_aprazo" class="form-control" value="{{ empresa.desconto_total_aprazo }}">
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Contatos -->
+        <div class="card shadow-sm mb-4">
+          <div class="card-header bg-white"><strong>Contatos</strong></div>
+          <div class="card-body">
+            <div class="row g-3">
+              <div class="col-md-6">
+                <label for="nome_contato" class="form-label">Nome do Contato</label>
+                <input type="text" id="nome_contato" name="nome_contato" class="form-control" value="{{ empresa.nome_contato }}">
+              </div>
+              <div class="col-md-6">
+                <label for="cpf_contato" class="form-label">CPF do Contato</label>
+                <input type="text" id="cpf_contato" name="cpf_contato" class="form-control" value="{{ empresa.cpf_contato }}">
+              </div>
+              <div class="col-md-4">
+                <label for="telefone" class="form-label">Telefone</label>
+                <input type="text" id="telefone" name="telefone" class="form-control" value="{{ empresa.telefone }}">
+              </div>
+              <div class="col-md-4">
+                <label for="celular" class="form-label">Celular</label>
+                <input type="text" id="celular" name="celular" class="form-control" value="{{ empresa.celular }}">
+              </div>
+              <div class="col-md-4">
+                <label for="whatsapp_financeiro" class="form-label">WhatsApp Financeiro</label>
+                <input type="text" id="whatsapp_financeiro" name="whatsapp_financeiro" class="form-control" value="{{ empresa.whatsapp_financeiro }}">
+              </div>
+              <div class="col-md-6">
+                <label for="email" class="form-label">Email</label>
+                <input type="email" id="email" name="email" class="form-control" value="{{ empresa.email }}">
+              </div>
+              <div class="col-md-6">
+                <label for="email_financeiro" class="form-label">Email Financeiro</label>
+                <input type="email" id="email_financeiro" name="email_financeiro" class="form-control" value="{{ empresa.email_financeiro }}">
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Endereço -->
+        <div class="card shadow-sm mb-4">
+          <div class="card-header bg-white"><strong>Endereço</strong></div>
+          <div class="card-body">
+            <div class="row g-3">
+              <div class="col-md-3">
+                <label for="cep" class="form-label">CEP</label>
+                <input type="text" id="cep" name="cep" class="form-control" value="{{ empresa.cep }}">
+              </div>
+              <div class="col-md-6">
+                <label for="endereco" class="form-label">Endereço</label>
+                <input type="text" id="endereco" name="endereco" class="form-control" value="{{ empresa.endereco }}">
+              </div>
+              <div class="col-md-3">
+                <label for="numero" class="form-label">Número</label>
+                <input type="text" id="numero" name="numero" class="form-control" value="{{ empresa.numero }}">
+              </div>
+              <div class="col-md-4">
+                <label for="bairro" class="form-label">Bairro</label>
+                <input type="text" id="bairro" name="bairro" class="form-control" value="{{ empresa.bairro }}">
+              </div>
+              <div class="col-md-2">
+                <label for="uf" class="form-label">UF</label>
+                <input type="text" id="uf" name="uf" class="form-control" value="{{ empresa.uf }}" maxlength="2">
+              </div>
+              <div class="col-md-6">
+                <label for="cidade" class="form-label">Cidade</label>
+                <input type="text" id="cidade" name="cidade" class="form-control" value="{{ empresa.cidade }}">
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Responsáveis + Plano -->
+        <div class="card shadow-sm mb-4">
+          <div class="card-header bg-white"><strong>Equipe & Plano</strong></div>
+          <div class="card-body">
+            <div class="row g-3">
+              <div class="col-md-4">
+                <label for="operador" class="form-label">Operador</label>
+                <input type="text" id="operador" name="operador" class="form-control" value="{{ empresa.operador }}">
+              </div>
+              <div class="col-md-4">
+                <label for="supervisor" class="form-label">Supervisor</label>
+                <input type="text" id="supervisor" name="supervisor" class="form-control" value="{{ empresa.supervisor }}">
+              </div>
+              <div class="col-md-4">
+                <label for="gerente" class="form-label">Gerente</label>
+                <input type="text" id="gerente" name="gerente" class="form-control" value="{{ empresa.gerente }}">
+              </div>
+
+              <div class="col-md-6">
+                <label for="plano" class="form-label">Plano</label>
+                <select name="plano" id="plano" class="form-select" required>
+                  <option value="">Selecione um plano</option>
+                  {% for tabela in tabelas %}
+                    <option value="{{ tabela.id }}" {% if empresa.plano and empresa.plano.id == tabela.id %}selected{% endif %}>{{ tabela.nome }}</option>
+                  {% endfor %}
+                </select>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Botão salvar -->
+        <div class="text-end">
+          <button type="submit" class="btn btn-primary btn-lg">
+            Salvar alterações
+          </button>
+        </div>
+      </div>
+    </div>
+  </form>
+</div>
+
+<!-- Estilos finos para a logo -->
+<style>
+  .logo-card .logo-preview{
+    width: 100%;
+    max-width: 380px;
+    height: 170px;                 /* controla a altura do quadro */
+    margin: 0 auto;
+    background: #f8f9fa;
+    display: flex; align-items: center; justify-content: center;
+    overflow: hidden;
+  }
+  .logo-card .logo-preview img{
+    max-height: 150px;             /* altura real da imagem */
+    width: auto;
+    object-fit: contain;
+  }
+</style>
+
+<script>
+  // --- Toggle status (AJAX) ---
+  const btnToggle   = document.getElementById('toggle-status');
+  const switchInput = document.getElementById('status-switch');
+  const badge       = document.getElementById('status-badge');
+
+  function applyStatusUI(isActive){
+    badge.textContent = isActive ? 'ATIVADA' : 'DESATIVADA';
+    badge.classList.toggle('bg-success', isActive);
+    badge.classList.toggle('bg-danger', !isActive);
+    btnToggle.textContent = isActive ? 'Desativar' : 'Ativar';
+    btnToggle.classList.toggle('btn-danger', isActive);
+    btnToggle.classList.toggle('btn-success', !isActive);
+    switchInput.checked = isActive;
+  }
+
+  function sendStatus(newStatus){
+    fetch("{% url 'alterar_status_empresa' empresa.id %}", {
+      method: "POST",
+      headers: {
+        "X-CSRFToken": "{{ csrf_token }}",
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({ status_empresa: newStatus })
+    })
+    .then(r => r.json())
+    .then(data => {
+      if(data.success){
+        applyStatusUI(!!data.status_empresa);
+      }else{
+        alert("Erro ao alterar o status.");
+        applyStatusUI(!newStatus); // reverte UI
+      }
+    })
+    .catch(() => {
+      alert("Erro de comunicação.");
+      applyStatusUI(!newStatus); // reverte UI
+    });
+  }
+
+  btnToggle.addEventListener('click', (e) => {
+    e.preventDefault();
+    sendStatus(!switchInput.checked);
+  });
+  switchInput.addEventListener('change', (e) => {
+    sendStatus(e.target.checked);
+  });
+
+  // --- Preview da logo ao escolher arquivo ---
+  const inputLogo = document.getElementById('logo');
+  const imgLogo   = document.getElementById('logo-img');
+  const placeholder = document.getElementById('logo-placeholder');
+
+  if(inputLogo){
+    inputLogo.addEventListener('change', (e) => {
+      const file = e.target.files && e.target.files[0];
+      if(!file) return;
+      const reader = new FileReader();
+      reader.onload = (ev) => {
+        imgLogo.src = ev.target.result;
+        imgLogo.classList.remove('d-none');
+        if (placeholder) placeholder.classList.add('d-none');
+      };
+      reader.readAsDataURL(file);
+    });
+  }
+
+  // --- Máscaras (simples) ---
+  function aplicarMascara(input, func){ setTimeout(()=>{ input.value = func(input.value); },1); }
+  const mascaras = {
+    cnpj: v => v.replace(/\D/g,'').replace(/^(\d{2})(\d)/,'$1.$2').replace(/\.(\d{3})(\d)/,'.$1/$2').replace(/(\d{4})(\d)/,'$1-$2'),
+    cpf: v => v.replace(/\D/g,'').replace(/(\d{3})(\d)/g,'$1.$2').replace(/(\d{3})-(\d{2})/,'$1-$2'),
+    telefone: v => v.replace(/\D/g,'').replace(/(\d{2})(\d)/,'($1) $2').replace(/(\d{4,5})(\d)/,'$1-$2'),
+    cep: v => v.replace(/\D/g,'').replace(/(\d{5})(\d)/,'$1-$2'),
+  };
+  ['cnpj','cpf_contato','telefone','celular','whatsapp_financeiro','cep'].forEach(id=>{
+    const el = document.getElementById(id);
+    if(el){
+      const mask = mascaras[id.includes('cpf')?'cpf':id] || null;
+      if(mask) el.addEventListener('input', e => aplicarMascara(e.target, mask));
+    }
+  });
+</script>
+{% endblock %}
+

@@ -1,0 +1,44 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-5">
+    <h3 class="text-center mb-4">Detalhes da Parcela</h3>
+
+    <table class="table table-bordered">
+        <tr>
+            <th>Parcela</th>
+            <td>{{ parcelamento.parcela_numero }}</td>
+        </tr>
+        <tr>
+            <th>Valor</th>
+            <td>R$ {{ parcelamento.valor|floatformat:2 }}</td>
+        </tr>
+        <tr>
+            <th>Data de Vencimento</th>
+            <td>{{ parcelamento.data_vencimento|date:"d/m/Y" }}</td>
+        </tr>
+        <tr>
+            <th>Status</th>
+            <td>{{ parcelamento.status }}</td>
+        </tr>
+        <tr>
+            <th>Devedor</th>
+            <td>{{ parcelamento.acordo.titulo.devedor.nome }}</td>
+        </tr>
+        <tr>
+            <th>Empresa</th>
+            <td>{{ parcelamento.acordo.titulo.devedor.empresa.nome_fantasia }}</td>
+        </tr>
+        <tr>
+            <th>Contato</th>
+            <td>{{ parcelamento.acordo.contato }}</td>
+        </tr>
+        <tr>
+            <th>Criado em</th>
+            <td>{{ parcelamento.created_at|date:"d/m/Y H:i" }}</td>
+        </tr>
+    </table>
+
+    <a href="{% url 'dashboard' %}" class="btn btn-primary">Voltar ao Dashboard</a>
+</div>
+{% endblock %}

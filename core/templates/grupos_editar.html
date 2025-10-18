@@ -1,0 +1,114 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-5">
+    <h3 class="text-center">Editar Permissões - {{ grupo.name }}</h3>
+    <form method="post">
+        {% csrf_token %}
+        <table class="table table-bordered mt-4">
+            <thead>
+                <tr>
+                    <th>Permissão</th>
+                    <th>Descrição</th>
+                    <th>Permitir?</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for permissao in permissoes_detalhadas %}
+                <tr>
+                    <td>{{ permissao.codename }}</td>
+                    <td>{{ permissao.traduzido }}</td>
+                    <td class="text-center">
+                        <button type="button" class="btn btn-success btn-sm toggle-permission" 
+                                data-permission-id="{{ permissao.id }}" 
+                                data-action="sim" 
+                                style="display: {% if permissao.atribuida %}none{% endif %};">
+                            Sim
+                        </button>
+                        <button type="button" class="btn btn-danger btn-sm toggle-permission" 
+                                data-permission-id="{{ permissao.id }}" 
+                                data-action="nao" 
+                                style="display: {% if not permissao.atribuida %}none{% endif %};">
+                            Não
+                        </button>
+                        <input type="hidden" name="permissoes_{{ permissao.id }}" value="{% if permissao.atribuida %}sim{% else %}nao{% endif %}">
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+       <!-- <div class="text-center mt-3">
+            <button type="submit" class="btn btn-success">Salvar Permissões</button>
+            <a href="{% url 'listar_grupos' %}" class="btn btn-secondary">Voltar</a>
+        </div> -->
+    </form>
+</div>
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const buttons = document.querySelectorAll(".toggle-permission");
+
+        buttons.forEach(button => {
+            button.addEventListener("click", function () {
+                const action = this.dataset.action;
+                const permissionId = this.dataset.permissionId;
+                const groupId = "{{ grupo.id }}"; // ID do grupo atual
+
+                // Alterna exibição dos botões
+                const simButton = document.querySelector(`.toggle-permission[data-permission-id='${permissionId}'][data-action='sim']`);
+                const naoButton = document.querySelector(`.toggle-permission[data-permission-id='${permissionId}'][data-action='nao']`);
+
+                if (action === "sim") {
+                    simButton.style.display = "none";
+                    naoButton.style.display = "inline-block";
+                } else {
+                    naoButton.style.display = "none";
+                    simButton.style.display = "inline-block";
+                }
+
+                // Envia requisição AJAX para salvar a alteração
+                fetch("{% url 'atualizar_permissao' %}", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "X-CSRFToken": "{{ csrf_token }}"
+                    },
+                    body: JSON.stringify({
+                        permission_id: permissionId,
+                        group_id: groupId,
+                        action: action
+                    })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        console.log(`Permissão ${action} para ${permissionId} salva com sucesso.`);
+                    } else {
+                        alert("Erro ao salvar permissão.");
+                        // Reverte o estado visual se falhar
+                        if (action === "sim") {
+                            simButton.style.display = "inline-block";
+                            naoButton.style.display = "none";
+                        } else {
+                            naoButton.style.display = "inline-block";
+                            simButton.style.display = "none";
+                        }
+                    }
+                })
+                .catch(error => {
+                    alert("Erro na conexão com o servidor.");
+                    console.error("Erro:", error);
+                    // Reverte o estado visual em caso de erro
+                    if (action === "sim") {
+                        simButton.style.display = "inline-block";
+                        naoButton.style.display = "none";
+                    } else {
+                        naoButton.style.display = "inline-block";
+                        simButton.style.display = "none";
+                    }
+                });
+            });
+        });
+    });
+</script>
+
+{% endblock %}

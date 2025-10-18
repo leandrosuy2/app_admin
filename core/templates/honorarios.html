@@ -1,0 +1,290 @@
+{% extends 'base.html' %}
+{% load humanize l10n %}
+
+{% block content %}
+<!-- Se o Tailwind já estiver no base.html, pode remover as 2 linhas abaixo -->
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+  <!-- Título -->
+  <div class="text-center mb-6">
+    <h2 class="text-2xl font-extrabold text-slate-800">Relatório de Honorários</h2>
+    <p class="text-slate-500">Filtre e veja os valores. Detalhes completos no botão de “olho”.</p>
+  </div>
+
+  <!-- Filtros -->
+  <div class="bg-white rounded-2xl shadow-sm ring-1 ring-slate-200 p-4 md:p-6 mb-6">
+    <form method="get" class="grid grid-cols-1 md:grid-cols-6 gap-3">
+      <div>
+        <label class="block text-sm font-medium text-slate-700 mb-1" for="data_inicio">Data Início</label>
+        <input type="date" id="data_inicio" name="data_inicio" value="{{ data_inicio }}"
+               class="w-full rounded-xl border-slate-300 focus:ring-2 focus:ring-sky-500 focus:border-sky-500"/>
+      </div>
+
+      <div>
+        <label class="block text-sm font-medium text-slate-700 mb-1" for="data_fim">Data Fim</label>
+        <input type="date" id="data_fim" name="data_fim" value="{{ data_fim }}"
+               class="w-full rounded-xl border-slate-300 focus:ring-2 focus:ring-sky-500 focus:border-sky-500"/>
+      </div>
+
+      {% if request.user.is_staff or request.user.is_superuser %}
+      <div>
+        <label class="block text-sm font-medium text-slate-700 mb-1" for="operador">Consultor</label>
+        <select id="operador" name="operador"
+                class="w-full rounded-xl border-slate-300 focus:ring-2 focus:ring-sky-500 focus:border-sky-500">
+          <option value="">Todos</option>
+          {% for op in operadores %}
+            <option value="{{ op }}" {% if op == operador %}selected{% endif %}>{{ op }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      {% else %}
+      <div>
+        <label class="block text-sm font-medium text-slate-700 mb-1">Consultor</label>
+        <div class="inline-flex items-center gap-2 rounded-full bg-slate-100 px-3 py-1 text-slate-700">
+          <i class="fa-solid fa-user text-slate-500"></i> <span class="text-sm">{{ operador }}</span>
+        </div>
+        <input type="hidden" name="operador" value="{{ operador }}">
+      </div>
+      {% endif %}
+
+      <div>
+        <label class="block text-sm font-medium text-slate-700 mb-1" for="empresa">Credor</label>
+        <select id="empresa" name="empresa"
+                class="w-full rounded-xl border-slate-300 focus:ring-2 focus:ring-sky-500 focus:border-sky-500">
+          <option value="">Todos</option>
+          {% for emp in empresas %}
+            <option value="{{ emp }}" {% if emp == empresa %}selected{% endif %}>{{ emp }}</option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div>
+        <label class="block text-sm font-medium text-slate-700 mb-1" for="devedor">Devedor</label>
+        <input type="text" id="devedor" name="devedor" value="{{ devedor }}" placeholder="Nome do devedor"
+               class="w-full rounded-xl border-slate-300 focus:ring-2 focus:ring-sky-500 focus:border-sky-500"/>
+      </div>
+
+      <div>
+        <label class="block text-sm font-medium text-slate-700 mb-1" for="cpf_cnpj">CPF/CNPJ</label>
+        <input type="text" id="cpf_cnpj" name="cpf_cnpj" value="{{ cpf_cnpj }}" placeholder="CPF ou CNPJ"
+               class="w-full rounded-xl border-slate-300 focus:ring-2 focus:ring-sky-500 focus:border-sky-500"/>
+      </div>
+
+      <div class="md:col-span-2 flex gap-3 items-end">
+        <button type="submit"
+                class="inline-flex items-center justify-center gap-2 w-full md:w-auto px-4 py-2.5 rounded-xl bg-sky-600 text-white hover:bg-sky-700 active:bg-sky-800 transition">
+          <i class="fa-solid fa-filter"></i><span>Filtrar</span>
+        </button>
+        <button type="submit" name="exportar_excel" value="1"
+                class="inline-flex items-center justify-center gap-2 w-full md:w-auto px-4 py-2.5 rounded-xl bg-emerald-600 text-white hover:bg-emerald-700 active:bg-emerald-800 transition">
+          <i class="fa-solid fa-file-excel"></i><span>Exportar Excel</span>
+        </button>
+      </div>
+    </form>
+
+    {% if trava_operador %}
+    <div class="mt-3 text-xs text-slate-500">
+      * Exibindo apenas registros do consultor <span class="font-semibold text-slate-700">{{ operador }}</span>.
+    </div>
+    {% endif %}
+  </div>
+
+  <!-- Cards rápidos -->
+  <div class="grid md:grid-cols-3 gap-4 mb-4">
+    <div class="bg-sky-600 text-white rounded-2xl shadow-sm p-4 text-center">
+      <p class="text-sm/5 opacity-90">Total Quitado</p>
+      <p class="text-2xl font-extrabold mt-1">R$ {{ tot_valor_pago|default_if_none:0|localize }}</p>
+    </div>
+    <div class="bg-emerald-600 text-white rounded-2xl shadow-sm p-4 text-center">
+      <p class="text-sm/5 opacity-90">Comissão (Honorários)</p>
+      <p class="text-2xl font-extrabold mt-1">R$ {{ tot_comissao|default_if_none:0|localize }}</p>
+    </div>
+    <div class="bg-amber-500 text-white rounded-2xl shadow-sm p-4 text-center">
+      <p class="text-sm/5 opacity-90">Operador (25%)</p>
+      <p class="text-2xl font-extrabold mt-1">R$ {{ honorario_total|default_if_none:0|localize }}</p>
+    </div>
+  </div>
+
+  <!-- Tabela -->
+  <div class="rounded-2xl ring-1 ring-slate-200 shadow-sm overflow-hidden">
+    <table class="min-w-full text-sm">
+      <thead class="bg-slate-100 sticky top-0 z-10">
+        <tr class="text-left text-slate-700">
+          <th class="px-3 py-2 font-semibold w-[44%]">Devedor</th>
+          <th class="px-3 py-2 font-semibold hidden md:table-cell w-[26%]">Credor</th>
+          <th class="px-3 py-2 font-semibold text-right w-[10%]">Pago</th>
+          <th class="px-3 py-2 font-semibold text-right w-[10%]">Honorários</th>
+          <th class="px-3 py-2 font-semibold text-right hidden lg:table-cell w-[10%]">Líquido</th>
+        </tr>
+      </thead>
+
+      <tbody class="divide-y divide-slate-100 bg-white">
+        {% for h in page_obj %}
+        <tr class="hover:bg-slate-50">
+          <!-- Devedor (com botão de detalhes) -->
+          <td class="px-3 py-2 align-top">
+            <div class="flex items-start gap-2">
+              <div class="truncate" title="{{ h.devedor }}">{{ h.devedor }}</div>
+
+              <!-- Botão com payload nos data-* -->
+              <button type="button"
+                      class="mt-0.5 shrink-0 inline-flex items-center justify-center w-7 h-7 rounded-full bg-slate-100 text-slate-600 hover:bg-slate-200"
+                      onclick="openDet(this)"
+                      title="Ver detalhes"
+                      data-devedor="{{ h.devedor }}"
+                      data-doc="{{ h.doc }}"
+                      data-credor="{{ h.credor }}"
+                      data-consultor="{{ h.consultor }}"
+                      data-vencto="{{ h.vencto|date:'d/m/Y' }}"
+                      data-pagto="{{ h.pagto|date:'d/m/Y' }}"
+                      data-forma="{{ h.forma }}"
+                      data-parc="{{ h.parc }}"
+                      data-valor-principal="{{ h.valor_principal|localize }}"
+                      data-valor-pago="{{ h.valor_pago|localize }}"
+                      data-honorarios-credor="{{ h.honorarios_credor|localize }}"
+                      data-valor-liq="{{ h.valor_liq|localize }}">
+                <i class="fa-solid fa-eye text-xs"></i>
+              </button>
+            </div>
+          </td>
+
+          <!-- Credor (some no mobile) -->
+          <td class="px-3 py-2 align-top hidden md:table-cell">
+            <div class="truncate" title="{{ h.credor }}">{{ h.credor }}</div>
+          </td>
+
+          <!-- Valores -->
+          <td class="px-3 py-2 align-top text-right font-semibold">R$ {{ h.valor_pago|localize }}</td>
+          <td class="px-3 py-2 align-top text-right text-red-600 font-semibold">R$ {{ h.honorarios_credor|localize }}</td>
+          <td class="px-3 py-2 align-top text-right text-emerald-600 hidden lg:table-cell">R$ {{ h.valor_liq|localize }}</td>
+        </tr>
+        {% empty %}
+        <tr>
+          <td colspan="5" class="px-3 py-8 text-center text-slate-500">Nenhum registro encontrado.</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+
+      <!-- Totais -->
+      <tfoot class="bg-slate-50">
+        <tr class="text-slate-700 font-semibold">
+          <td class="px-3 py-3 text-right" colspan="2">Totais</td>
+          <td class="px-3 py-3 text-right">R$ {{ tot_valor_pago|localize }}</td>
+          <td class="px-3 py-3 text-right">R$ {{ tot_comissao|localize }}</td>
+          <td class="px-3 py-3 text-right hidden lg:table-cell">R$ {{ tot_liquido|localize }}</td>
+        </tr>
+      </tfoot>
+    </table>
+  </div>
+
+  <!-- Paginação -->
+  <div class="mt-6 flex justify-center">
+    <nav class="inline-flex rounded-xl shadow-sm ring-1 ring-slate-200 overflow-hidden bg-white">
+      {% if page_obj.has_previous %}
+      <a class="px-4 py-2 text-slate-700 hover:bg-slate-50"
+         href="?page={{ page_obj.previous_page_number }}&data_inicio={{ data_inicio }}&data_fim={{ data_fim }}&operador={{ operador }}&empresa={{ empresa }}&devedor={{ devedor }}&cpf_cnpj={{ cpf_cnpj }}">‹ Anterior</a>
+      {% endif %}
+      <span class="px-4 py-2 text-slate-500">Página {{ page_obj.number }} de {{ page_obj.paginator.num_pages }}</span>
+      {% if page_obj.has_next %}
+      <a class="px-4 py-2 text-slate-700 hover:bg-slate-50"
+         href="?page={{ page_obj.next_page_number }}&data_inicio={{ data_inicio }}&data_fim={{ data_fim }}&operador={{ operador }}&empresa={{ empresa }}&devedor={{ devedor }}&cpf_cnpj={{ cpf_cnpj }}">Próximo ›</a>
+      {% endif %}
+    </nav>
+  </div>
+</div>
+
+<!-- Barra fixa de totais (resumo amigável) -->
+<div class="fixed bottom-4 inset-x-4 md:inset-x-auto md:right-6 md:w-[720px] z-20">
+  <div class="bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/80 ring-1 ring-slate-200 rounded-2xl shadow-lg px-4 py-3">
+    <div class="grid grid-cols-2 sm:grid-cols-5 gap-3 text-sm">
+      <div class="flex flex-col">
+        <span class="text-slate-500">Principal</span>
+        <span class="font-bold text-slate-800">R$ {{ tot_valor_principal|localize }}</span>
+      </div>
+      <div class="flex flex-col">
+        <span class="text-slate-500">Pago</span>
+        <span class="font-bold text-slate-800">R$ {{ tot_valor_pago|localize }}</span>
+      </div>
+      <div class="flex flex-col">
+        <span class="text-slate-500">Honorários</span>
+        <span class="font-bold text-red-600">R$ {{ tot_comissao|localize }}</span>
+      </div>
+      <div class="flex flex-col">
+        <span class="text-slate-500">Líquido</span>
+        <span class="font-bold text-emerald-600">R$ {{ tot_liquido|localize }}</span>
+      </div>
+      <div class="flex flex-col">
+        <span class="text-slate-500">Operador (25%)</span>
+        <span class="font-bold text-amber-600">R$ {{ honorario_total|localize }}</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Único (fora da tabela) -->
+<dialog id="det-modal" class="rounded-xl p-0 backdrop:bg-black/30">
+  <div class="bg-white w-[min(92vw,720px)] rounded-xl">
+    <div class="px-4 py-3 border-b border-slate-200 flex items-center justify-between">
+      <h3 class="text-sm font-semibold text-slate-700">Detalhes do título</h3>
+      <button class="text-slate-500 hover:text-slate-700" onclick="closeDlg('det-modal')">
+        <i class="fa-solid fa-xmark text-lg"></i>
+      </button>
+    </div>
+    <div class="p-4 text-slate-700 space-y-4">
+      <div class="grid sm:grid-cols-2 gap-3">
+        <div><span class="font-medium">Devedor:</span> <span id="det-devedor"></span></div>
+        <div><span class="font-medium">Documento:</span> <span id="det-doc"></span></div>
+        <div><span class="font-medium">Credor:</span> <span id="det-credor"></span></div>
+        <div><span class="font-medium">Consultor:</span> <span id="det-consultor"></span></div>
+      </div>
+
+      <div class="grid sm:grid-cols-4 gap-3">
+        <div><span class="font-medium">Venc.:</span> <span id="det-vencto"></span></div>
+        <div><span class="font-medium">Pagto.:</span> <span id="det-pagto"></span></div>
+        <div><span class="font-medium">Forma:</span> <span id="det-forma"></span></div>
+        <div><span class="font-medium">Parc.:</span> <span id="det-parc"></span></div>
+      </div>
+
+      <div class="grid sm:grid-cols-4 gap-3">
+        <div><span class="font-medium">Valor principal:</span><br/> R$ <span id="det-valor-principal"></span></div>
+        <div><span class="font-medium">Valor pago:</span><br/> R$ <span id="det-valor-pago"></span></div>
+        <div><span class="font-medium">Honorários do credor:</span><br/> R$ <span id="det-honorarios-credor"></span></div>
+        <div><span class="font-medium">Valor líquido:</span><br/> R$ <span id="det-valor-liq"></span></div>
+      </div>
+    </div>
+    <div class="px-4 py-3 border-t border-slate-200 flex justify-end">
+      <button class="inline-flex items-center gap-2 px-3 py-2 rounded-lg bg-slate-800 text-white hover:bg-slate-900"
+              onclick="closeDlg('det-modal')">
+        <i class="fa-solid fa-check"></i> Fechar
+      </button>
+    </div>
+  </div>
+</dialog>
+
+<!-- Scripts -->
+<script>
+  function openDlg(id){ const d=document.getElementById(id); if(d && typeof d.showModal==='function') d.showModal(); }
+  function closeDlg(id){ const d=document.getElementById(id); if(d) d.close(); }
+
+  function $(id){ return document.getElementById(id); }
+
+  function openDet(btn){
+    const ds = btn.dataset;
+    $("det-devedor").textContent          = ds.devedor || "";
+    $("det-doc").textContent              = ds.doc || "";
+    $("det-credor").textContent           = ds.credor || "";
+    $("det-consultor").textContent        = ds.consultor || "";
+    $("det-vencto").textContent           = ds.vencto || "";
+    $("det-pagto").textContent            = ds.pagto || "";
+    $("det-forma").textContent            = ds.forma || "";
+    $("det-parc").textContent             = ds.parc || "";
+    $("det-valor-principal").textContent  = ds.valorPrincipal || "";
+    $("det-valor-pago").textContent       = ds.valorPago || "";
+    $("det-honorarios-credor").textContent= ds.honorariosCredor || "";
+    $("det-valor-liq").textContent        = ds.valorLiq || "";
+    openDlg('det-modal');
+  }
+</script>
+{% endblock %}

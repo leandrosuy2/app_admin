@@ -1,0 +1,9 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-5">
+    <h1>Adicionar Follow-Up</h1>
+    <p>Follow-up adicionado com sucesso para o devedor: {{ devedor.nome }}</p>
+    <a href="{% url 'detalhes_devedor' devedor.id %}" class="btn btn-primary">Voltar para os Detalhes</a>
+</div>
+{% endblock %}

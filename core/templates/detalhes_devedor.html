@@ -1,0 +1,1169 @@
+{% extends 'base.html' %}
+{% load custom_filters l10n %}
+{% block content %}
+<div class="container mt-5">
+
+  <!-- ====== CONTEXTO EM DATASETS (para JS usar com segurança) ====== -->
+  <div id="ctx"
+       data-user="{{ request.user.get_full_name|default:request.user.first_name|default:request.user.username|escapejs }}"
+
+       data-devedor="{{ devedor.nome|default_if_none:''|escapejs }}"
+       data-empresa-fantasia="{{ empresa.nome_fantasia|default_if_none:''|escapejs }}"
+       data-empresa-razao="{{ empresa.razao_social|default_if_none:''|escapejs }}"
+       data-chave-pix="{{ empresa.banco|default_if_none:''|escapejs }}">
+  </div>
+
+  <h1 class="text-center">Detalhes do Devedor</h1>
+
+  {% if messages %}
+  <div class="mt-3">
+    {% for message in messages %}
+      <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+        {{ message }}
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+      </div>
+    {% endfor %}
+  </div>
+  {% endif %}
+
+  {% if obito_info %}
+  <div class="alert {% if obito_info.deceased %}alert-danger{% else %}alert-success{% endif %} d-flex align-items-center mt-3" role="alert">
+    <i class="bi bi-activity me-2"></i>
+    {% if obito_info.deceased %}<strong>TITULAR FALECIDO.</strong>{% else %}<strong>Sem registro de óbito para este CPF.</strong>{% endif %}
+    {% if obito_info.date %}<span class="ms-2">• Data: {{ obito_info.date }}</span>{% endif %}
+    {% if obito_info.source %}<span class="ms-2">• Fonte: {{ obito_info.source }}</span>{% endif %}
+    {% if obito_info.cached %}<span class="ms-2 text-muted">(cache)</span>{% endif %}
+  </div>
+  {% endif %}
+
+  <!-- =================== DADOS DO DEVEDOR =================== -->
+  <div class="card mt-4">
+    <div class="card-header bg-primary text-white"><h3>Informações do Devedor</h3></div>
+    <div class="card-body">
+      <form method="post" action="">
+        {% csrf_token %}
+        <div class="row">
+          <div class="col-md-6 mb-3"><label><strong>Nome:</strong></label><p class="form-control-plaintext">{{ devedor.nome }}</p></div>
+          <div class="col-md-6 mb-3"><label><strong>CPF:</strong></label><p class="form-control-plaintext">{{ devedor.cpf }}</p></div>
+          <div class="col-md-6 mb-3"><label><strong>CNPJ:</strong></label><p class="form-control-plaintext">{{ devedor.cnpj }}</p></div>
+          <div class="col-md-6 mb-3"><label><strong>Nome da Mãe:</strong></label><p class="form-control-plaintext">{{ devedor.nome_mae }}</p></div>
+          <div class="col-md-6 mb-3"><label><strong>RG:</strong></label><p class="form-control-plaintext">{{ devedor.rg }}</p></div>
+          <div class="col-md-6 mb-3"><label><strong>Observação:</strong></label><p class="form-control-plaintext">{{ devedor.observacao }}</p></div>
+          <div class="col-md-6 mb-3"><label><strong>CEP:</strong></label><p class="form-control-plaintext">{{ devedor.cep }}</p></div>
+          <div class="col-md-6 mb-3"><label><strong>Endereço:</strong></label><p class="form-control-plaintext">{{ devedor.endereco }}</p></div>
+          <div class="col-md-6 mb-3"><label><strong>Bairro:</strong></label><p class="form-control-plaintext">{{ devedor.bairro }}</p></div>
+          <div class="col-md-6 mb-3"><label><strong>Cidade:</strong></label><p class="form-control-plaintext">{{ devedor.cidade }}</p></div>
+          <div class="col-md-6 mb-3"><label><strong>UF:</strong></label><p class="form-control-plaintext">{{ devedor.uf }}</p></div>
+          <div class="col-md-6 mb-3"><label><strong>E-mail 1:</strong></label><p class="form-control-plaintext">{{ devedor.email1 }}</p></div>
+          <div class="col-md-6 mb-3"><label><strong>E-mail 2:</strong></label><p class="form-control-plaintext">{{ devedor.email2 }}</p></div>
+        </div>
+
+        <h4 class="mt-4">Telefones</h4>
+        <div class="row">
+
+          <div class="card mb-3">
+            <div class="card-header"><strong>Legenda</strong></div>
+            <div class="card-body">
+              <ul class="list-unstyled mb-0">
+                <li class="d-flex align-items-center mb-2"><i class="fas fa-check-circle text-success me-2"></i>✔ Telefone válido</li>
+                <li class="d-flex align-items-center mb-2"><i class="fas fa-times-circle text-danger me-2"></i>✖ Telefone inválido</li>
+                <li class="d-flex align-items-center"><i class="fas fa-question-circle text-secondary me-2"></i>? Telefone não verificado</li>
+              </ul>
+            </div>
+          </div>
+
+          <!-- Telefone 1 -->
+          <div class="col-md-6">
+            <label for="telefone1" class="form-label">Telefone 1</label>
+            <div class="d-flex align-items-center">
+              <input type="text" name="telefone1" id="telefone1" class="form-control me-2 
+                {% if devedor.telefone1_valido == 'SIM' %}status-valid{% elif devedor.telefone1_valido == 'NÃO' %}status-invalid{% else %}status-unknown{% endif %}" 
+                value="{{ devedor.telefone1|default:'' }}">
+              <button type="button" class="btn btn-success btn-sm ms-2" title="Abrir no WhatsApp"
+                      data-whats="{{ devedor.telefone1|clean_phone_number }}" onclick="abrirModalWhats(this)">
+                <i class="bi bi-whatsapp"></i> WhatsApp
+              </button>
+              <input type="hidden" name="telefone1_valido" id="telefone1_valido" value="{{ devedor.telefone1_valido|default:'NAO VERIFICADO' }}">
+              <div class="btn-group">
+                <button type="button" class="btn btn-success btn-sm {% if devedor.telefone1_valido == 'SIM' %}active{% endif %}" onclick="updateValidationStatus('telefone1', 'SIM')"><i class="fas fa-check-circle"></i></button>
+                <button type="button" class="btn btn-danger btn-sm {% if devedor.telefone1_valido == 'NÃO' %}active{% endif %}" onclick="updateValidationStatus('telefone1', 'NÃO')"><i class="fas fa-times-circle"></i></button>
+                <button type="button" class="btn btn-secondary btn-sm {% if devedor.telefone1_valido == 'NAO VERIFICADO' %}active{% endif %}" onclick="updateValidationStatus('telefone1', 'NAO VERIFICADO')"><i class="fas fa-question-circle"></i></button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Telefone 2 -->
+          <div class="col-md-6">
+            <label for="telefone2" class="form-label">Telefone 2</label>
+            <div class="d-flex align-items-center">
+              <input type="text" name="telefone2" id="telefone2" class="form-control me-2 
+                {% if devedor.telefone2_valido == 'SIM' %}status-valid{% elif devedor.telefone2_valido == 'NÃO' %}status-invalid{% else %}status-unknown{% endif %}" 
+                value="{{ devedor.telefone2|default:'' }}">
+              <button type="button" class="btn btn-success btn-sm ms-2" title="Abrir no WhatsApp"
+                      data-whats="{{ devedor.telefone2|clean_phone_number }}" onclick="abrirModalWhats(this)">
+                <i class="bi bi-whatsapp"></i> WhatsApp
+              </button>
+              <input type="hidden" name="telefone2_valido" id="telefone2_valido" value="{{ devedor.telefone2_valido|default:'NAO VERIFICADO' }}">
+              <div class="btn-group">
+                <button type="button" class="btn btn-success btn-sm {% if devedor.telefone2_valido == 'SIM' %}active{% endif %}" onclick="updateValidationStatus('telefone2', 'SIM')"><i class="fas fa-check-circle"></i></button>
+                <button type="button" class="btn btn-danger btn-sm {% if devedor.telefone2_valido == 'NÃO' %}active{% endif %}" onclick="updateValidationStatus('telefone2', 'NÃO')"><i class="fas fa-times-circle"></i></button>
+                <button type="button" class="btn btn-secondary btn-sm {% if devedor.telefone2_valido == 'NAO VERIFICADO' %}active{% endif %}" onclick="updateValidationStatus('telefone2', 'NAO VERIFICADO')"><i class="fas fa-question-circle"></i></button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Telefone 3 -->
+          <div class="col-md-6">
+            <label for="telefone3" class="form-label">Telefone 3</label>
+            <div class="d-flex align-items-center">
+              <input type="text" name="telefone3" id="telefone3" class="form-control me-2 
+                {% if devedor.telefone3_valido == 'SIM' %}status-valid{% elif devedor.telefone3_valido == 'NÃO' %}status-invalid{% else %}status-unknown{% endif %}" 
+                value="{{ devedor.telefone3|default:'' }}">
+              <button type="button" class="btn btn-success btn-sm ms-2" title="Abrir no WhatsApp"
+                      data-whats="{{ devedor.telefone3|clean_phone_number }}" onclick="abrirModalWhats(this)">
+                <i class="bi bi-whatsapp"></i> WhatsApp
+              </button>
+              <input type="hidden" name="telefone3_valido" id="telefone3_valido" value="{{ devedor.telefone3_valido|default:'NAO VERIFICADO' }}">
+              <div class="btn-group">
+                <button type="button" class="btn btn-success btn-sm {% if devedor.telefone3_valido == 'SIM' %}active{% endif %}" onclick="updateValidationStatus('telefone3', 'SIM')"><i class="fas fa-check-circle"></i></button>
+                <button type="button" class="btn btn-danger btn-sm {% if devedor.telefone3_valido == 'NÃO' %}active{% endif %}" onclick="updateValidationStatus('telefone3', 'NÃO')"><i class="fas fa-times-circle"></i></button>
+                <button type="button" class="btn btn-secondary btn-sm {% if devedor.telefone3_valido == 'NAO VERIFICADO' %}active{% endif %}" onclick="updateValidationStatus('telefone3', 'NAO VERIFICADO')"><i class="fas fa-question-circle"></i></button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Telefone 4 -->
+          <div class="col-md-6">
+            <label for="telefone4" class="form-label">Telefone 4</label>
+            <div class="d-flex align-items-center">
+              <input type="text" name="telefone4" id="telefone4" class="form-control me-2 
+                {% if devedor.telefone4_valido == 'SIM' %}status-valid{% elif devedor.telefone4_valido == 'NÃO' %}status-invalid{% else %}status-unknown{% endif %}" 
+                value="{{ devedor.telefone4|default:'' }}">
+              <button type="button" class="btn btn-success btn-sm ms-2" title="Abrir no WhatsApp"
+                      data-whats="{{ devedor.telefone4|clean_phone_number }}" onclick="abrirModalWhats(this)">
+                <i class="bi bi-whatsapp"></i> WhatsApp
+              </button>
+              <input type="hidden" name="telefone4_valido" id="telefone4_valido" value="{{ devedor.telefone4_valido|default:'NAO VERIFICADO' }}">
+              <div class="btn-group">
+                <button type="button" class="btn btn-success btn-sm {% if devedor.telefone4_valido == 'SIM' %}active{% endif %}" onclick="updateValidationStatus('telefone4', 'SIM')"><i class="fas fa-check-circle"></i></button>
+                <button type="button" class="btn btn-danger btn-sm {% if devedor.telefone4_valido == 'NÃO' %}active{% endif %}" onclick="updateValidationStatus('telefone4', 'NÃO')"><i class="fas fa-times-circle"></i></button>
+                <button type="button" class="btn btn-secondary btn-sm {% if devedor.telefone4_valido == 'NAO VERIFICADO' %}active{% endif %}" onclick="updateValidationStatus('telefone4', 'NAO VERIFICADO')"><i class="fas fa-question-circle"></i></button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Telefone 5 -->
+          <div class="col-md-6">
+            <label for="telefone5" class="form-label">Telefone 5</label>
+            <div class="d-flex align-items-center">
+              <input type="text" name="telefone5" id="telefone5" class="form-control me-2 
+                {% if devedor.telefone5_valido == 'SIM' %}status-valid{% elif devedor.telefone5_valido == 'NÃO' %}status-invalid{% else %}status-unknown{% endif %}" 
+                value="{{ devedor.telefone5|default:'' }}">
+              <button type="button" class="btn btn-success btn-sm ms-2" title="Abrir no WhatsApp"
+                      data-whats="{{ devedor.telefone5|clean_phone_number }}" onclick="abrirModalWhats(this)">
+                <i class="bi bi-whatsapp"></i> WhatsApp
+              </button>
+              <input type="hidden" name="telefone5_valido" id="telefone5_valido" value="{{ devedor.telefone5_valido|default:'NAO VERIFICADO' }}">
+              <div class="btn-group">
+                <button type="button" class="btn btn-success btn-sm {% if devedor.telefone5_valido == 'SIM' %}active{% endif %}" onclick="updateValidationStatus('telefone5', 'SIM')"><i class="fas fa-check-circle"></i></button>
+                <button type="button" class="btn btn-danger btn-sm {% if devedor.telefone5_valido == 'NÃO' %}active{% endif %}" onclick="updateValidationStatus('telefone5', 'NÃO')"><i class="fas fa-times-circle"></i></button>
+                <button type="button" class="btn btn-secondary btn-sm {% if devedor.telefone5_valido == 'NAO VERIFICADO' %}active{% endif %}" onclick="updateValidationStatus('telefone5', 'NAO VERIFICADO')"><i class="fas fa-question-circle"></i></button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Telefone 6 -->
+          <div class="col-md-6">
+            <label for="telefone6" class="form-label">Telefone 6</label>
+            <div class="d-flex align-items-center">
+              <input type="text" name="telefone6" id="telefone6" class="form-control me-2 
+                {% if devedor.telefone6_valido == 'SIM' %}status-valid{% elif devedor.telefone6_valido == 'NÃO' %}status-invalid{% else %}status-unknown{% endif %}" 
+                value="{{ devedor.telefone6|default:'' }}">
+              <button type="button" class="btn btn-success btn-sm ms-2" title="Abrir no WhatsApp"
+                      data-whats="{{ devedor.telefone6|clean_phone_number }}" onclick="abrirModalWhats(this)">
+                <i class="bi bi-whatsapp"></i> WhatsApp
+              </button>
+              <input type="hidden" name="telefone6_valido" id="telefone6_valido" value="{{ devedor.telefone6_valido|default:'NAO VERIFICADO' }}">
+              <div class="btn-group">
+                <button type="button" class="btn btn-success btn-sm {% if devedor.telefone6_valido == 'SIM' %}active{% endif %}" onclick="updateValidationStatus('telefone6', 'SIM')"><i class="fas fa-check-circle"></i></button>
+                <button type="button" class="btn btn-danger btn-sm {% if devedor.telefone6_valido == 'NÃO' %}active{% endif %}" onclick="updateValidationStatus('telefone6', 'NÃO')"><i class="fas fa-times-circle"></i></button>
+                <button type="button" class="btn btn-secondary btn-sm {% if devedor.telefone6_valido == 'NAO VERIFICADO' %}active{% endif %}" onclick="updateValidationStatus('telefone6', 'NAO VERIFICADO')"><i class="fas fa-question-circle"></i></button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Telefone 7 -->
+          <div class="col-md-6">
+            <label for="telefone7" class="form-label">Telefone 7</label>
+            <div class="d-flex align-items-center">
+              <input type="text" name="telefone7" id="telefone7" class="form-control me-2 
+                {% if devedor.telefone7_valido == 'SIM' %}status-valid{% elif devedor.telefone7_valido == 'NÃO' %}status-invalid{% else %}status-unknown{% endif %}" 
+                value="{{ devedor.telefone7|default:'' }}">
+              <button type="button" class="btn btn-success btn-sm ms-2" title="Abrir no WhatsApp"
+                      data-whats="{{ devedor.telefone7|clean_phone_number }}" onclick="abrirModalWhats(this)">
+                <i class="bi bi-whatsapp"></i> WhatsApp
+              </button>
+              <input type="hidden" name="telefone7_valido" id="telefone7_valido" value="{{ devedor.telefone7_valido|default:'NAO VERIFICADO' }}">
+              <div class="btn-group">
+                <button type="button" class="btn btn-success btn-sm {% if devedor.telefone7_valido == 'SIM' %}active{% endif %}" onclick="updateValidationStatus('telefone7', 'SIM')"><i class="fas fa-check-circle"></i></button>
+                <button type="button" class="btn btn-danger btn-sm {% if devedor.telefone7_valido == 'NÃO' %}active{% endif %}" onclick="updateValidationStatus('telefone7', 'NÃO')"><i class="fas fa-times-circle"></i></button>
+                <button type="button" class="btn btn-secondary btn-sm {% if devedor.telefone7_valido == 'NAO VERIFICADO' %}active{% endif %}" onclick="updateValidationStatus('telefone7', 'NAO VERIFICADO')"><i class="fas fa-question-circle"></i></button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Telefone 8 -->
+          <div class="col-md-6">
+            <label for="telefone8" class="form-label">Telefone 8</label>
+            <div class="d-flex align-items-center">
+              <input type="text" name="telefone8" id="telefone8" class="form-control me-2 
+                {% if devedor.telefone8_valido == 'SIM' %}status-valid{% elif devedor.telefone8_valido == 'NÃO' %}status-invalid{% else %}status-unknown{% endif %}" 
+                value="{{ devedor.telefone8|default:'' }}">
+              <button type="button" class="btn btn-success btn-sm ms-2" title="Abrir no WhatsApp"
+                      data-whats="{{ devedor.telefone8|clean_phone_number }}" onclick="abrirModalWhats(this)">
+                <i class="bi bi-whatsapp"></i> WhatsApp
+              </button>
+              <input type="hidden" name="telefone8_valido" id="telefone8_valido" value="{{ devedor.telefone8_valido|default:'NAO VERIFICADO' }}">
+              <div class="btn-group">
+                <button type="button" class="btn btn-success btn-sm {% if devedor.telefone8_valido == 'SIM' %}active{% endif %}" onclick="updateValidationStatus('telefone8', 'SIM')"><i class="fas fa-check-circle"></i></button>
+                <button type="button" class="btn btn-danger btn-sm {% if devedor.telefone8_valido == 'NÃO' %}active{% endif %}" onclick="updateValidationStatus('telefone8', 'NÃO')"><i class="fas fa-times-circle"></i></button>
+                <button type="button" class="btn btn-secondary btn-sm {% if devedor.telefone8_valido == 'NAO VERIFICADO' %}active{% endif %}" onclick="updateValidationStatus('telefone8', 'NAO VERIFICADO')"><i class="fas fa-question-circle"></i></button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Telefone 9 -->
+          <div class="col-md-6">
+            <label for="telefone9" class="form-label">Telefone 9</label>
+            <div class="d-flex align-items-center">
+              <input type="text" name="telefone9" id="telefone9" class="form-control me-2 
+                {% if devedor.telefone9_valido == 'SIM' %}status-valid{% elif devedor.telefone9_valido == 'NÃO' %}status-invalid{% else %}status-unknown{% endif %}" 
+                value="{{ devedor.telefone9|default:'' }}">
+              <button type="button" class="btn btn-success btn-sm ms-2" title="Abrir no WhatsApp"
+                      data-whats="{{ devedor.telefone9|clean_phone_number }}" onclick="abrirModalWhats(this)">
+                <i class="bi bi-whatsapp"></i> WhatsApp
+              </button>
+              <input type="hidden" name="telefone9_valido" id="telefone9_valido" value="{{ devedor.telefone9_valido|default:'NAO VERIFICADO' }}">
+              <div class="btn-group">
+                <button type="button" class="btn btn-success btn-sm {% if devedor.telefone9_valido == 'SIM' %}active{% endif %}" onclick="updateValidationStatus('telefone9', 'SIM')"><i class="fas fa-check-circle"></i></button>
+                <button type="button" class="btn btn-danger btn-sm {% if devedor.telefone9_valido == 'NÃO' %}active{% endif %}" onclick="updateValidationStatus('telefone9', 'NÃO')"><i class="fas fa-times-circle"></i></button>
+                <button type="button" class="btn btn-secondary btn-sm {% if devedor.telefone9_valido == 'NAO VERIFICADO' %}active{% endif %}" onclick="updateValidationStatus('telefone9', 'NAO VERIFICADO')"><i class="fas fa-question-circle"></i></button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Telefone 10 -->
+          <div class="col-md-6">
+            <label for="telefone10" class="form-label">Telefone 10</label>
+            <div class="d-flex align-items-center">
+              <input type="text" name="telefone10" id="telefone10" class="form-control me-2 
+                {% if devedor.telefone10_valido == 'SIM' %}status-valid{% elif devedor.telefone10_valido == 'NÃO' %}status-invalid{% else %}status-unknown{% endif %}" 
+                value="{{ devedor.telefone10|default:'' }}">
+              <button type="button" class="btn btn-success btn-sm ms-2" title="Abrir no WhatsApp"
+                      data-whats="{{ devedor.telefone10|clean_phone_number }}" onclick="abrirModalWhats(this)">
+                <i class="bi bi-whatsapp"></i> WhatsApp
+              </button>
+              <input type="hidden" name="telefone10_valido" id="telefone10_valido" value="{{ devedor.telefone10_valido|default:'NAO VERIFICADO' }}">
+              <div class="btn-group">
+                <button type="button" class="btn btn-success btn-sm {% if devedor.telefone10_valido == 'SIM' %}active{% endif %}" onclick="updateValidationStatus('telefone10', 'SIM')"><i class="fas fa-check-circle"></i></button>
+                <button type="button" class="btn btn-danger btn-sm {% if devedor.telefone10_valido == 'NÃO' %}active{% endif %}" onclick="updateValidationStatus('telefone10', 'NÃO')"><i class="fas fa-times-circle"></i></button>
+                <button type="button" class="btn btn-secondary btn-sm {% if devedor.telefone10_valido == 'NAO VERIFICADO' %}active{% endif %}" onclick="updateValidationStatus('telefone10', 'NAO VERIFICADO')"><i class="fas fa-question-circle"></i></button>
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+        <style>
+          .status-valid{border-color:#28a745!important;background:#e9f9ee!important}
+          .status-invalid{border-color:#dc3545!important;background:#fff5f5!important}
+          .status-unknown{border-color:#6c757d!important;background:#f1f3f5!important}
+          .btn-group .btn{width:40px;display:flex;align-items:center;justify-content:center}
+        </style>
+        <script>
+          function updateValidationStatus(fieldId,status){
+            const i=document.getElementById(fieldId), h=document.getElementById(fieldId+'_valido');
+            i.classList.remove('status-valid','status-invalid','status-unknown');
+            if(status==='SIM') i.classList.add('status-valid'); else if(status==='NÃO') i.classList.add('status-invalid'); else i.classList.add('status-unknown');
+            if(h) h.value=status;
+          }
+        </script>
+
+        <button type="submit" class="btn btn-primary w-100 mt-3">Salvar Alterações</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- ===================== GERAR PROPOSTA AO CREDOR (sem versão cliente) ===================== -->
+  <div class="card mt-4">
+    <div class="card-header bg-warning text-dark d-flex align-items-center justify-content-between">
+      <h3 class="m-0">Gerar proposta ao credor</h3>
+      <div class="d-flex gap-2">
+        <span class="badge bg-success">Desconto à vista % {{ percentual_avista_default }}</span>
+        <span class="badge bg-primary">Desconto parcelado % {{ percentual_parc_default }}</span>
+      </div>
+    </div>
+    <div class="card-body">
+      <div class="row g-3">
+        <!-- Base com juros (usa saldo_pendente se houver; senão total_pendente) -->
+        <div class="col-md-3">
+          <label class="form-label"><strong>Base (pendente + juros)</strong></label>
+          <input id="valorBase" type="text" class="form-control" readonly
+                 data-total="{{ saldo_pendente|default:total_pendente|default:0|unlocalize }}"
+                 data-capital="{{ total_pendente|default:''|unlocalize }}"
+                 value="{{ saldo_pendente|default:total_pendente|default:0|floatformat:2 }}">
+        </div>
+        <div class="col-md-3">
+          <label class="form-label"><strong>Capital (sem juros)</strong></label>
+          <input id="valorCapital" type="text" class="form-control" readonly value="R$ 0,00">
+        </div>
+        <div class="col-md-3">
+          <label class="form-label"><strong>Juros apurados</strong></label>
+          <input id="valorJuros" type="text" class="form-control" readonly value="R$ 0,00">
+        </div>
+
+        <!-- Percentuais (desconto só nos juros) -->
+        <div class="col-md-3">
+          <label class="form-label">Desconto à vista (%) <small class="text-muted">apenas nos juros</small></label>
+          <div class="input-group">
+            <input id="pctAvista" type="number" class="form-control" value="{{ percentual_avista_default }}">
+            <button type="button" class="btn btn-outline-success" onclick="aplicarAtalho('avista')">usar {{ percentual_avista_default }}%</button>
+          </div>
+        </div>
+        <div class="col-md-3">
+          <label class="form-label">Desconto parcelado (%) <small class="text-muted">apenas nos juros</small></label>
+          <div class="input-group">
+            <input id="pctParc" type="number" class="form-control" value="{{ percentual_parc_default }}">
+            <button type="button" class="btn btn-outline-primary" onclick="aplicarAtalho('parc')">usar {{ percentual_parc_default }}%</button>
+          </div>
+        </div>
+
+        <div class="col-md-3">
+          <label class="form-label">Entrada (%)</label>
+          <input id="pctEntrada" type="number" class="form-control" value="30">
+        </div>
+        <div class="col-md-3">
+          <label class="form-label">Quantidade de parcelas</label>
+          <input id="qtdParcelas" type="number" class="form-control" min="1" value="3">
+        </div>
+        <div class="col-md-3">
+          <label class="form-label">Data da entrada</label>
+          <input id="dataEntrada" type="date" class="form-control" value="{{ today|date:'Y-m-d' }}">
+        </div>
+
+        <!-- Calculados -->
+        <div class="col-md-3">
+          <label class="form-label">À vista (capital + juros c/ desconto)</label>
+          <input id="valorAvista" type="text" class="form-control" readonly>
+        </div>
+        <div class="col-md-3">
+          <label class="form-label">Total parcelado (capital + juros c/ desconto)</label>
+          <input id="totalProposta" type="text" class="form-control" readonly>
+        </div>
+        <div class="col-md-3">
+          <label class="form-label">Entrada (auto)</label>
+          <input id="valorEntrada" type="text" class="form-control" readonly>
+        </div>
+        <div class="col-md-3">
+          <label class="form-label">Parcela (auto)</label>
+          <input id="valorParcela" type="text" class="form-control" readonly>
+        </div>
+
+        <!-- Modo manual opcional -->
+        <div class="col-12 form-check mt-2">
+          <input class="form-check-input" type="checkbox" id="editarManual">
+          <label class="form-check-label" for="editarManual">Permitir edição manual dos campos calculados</label>
+        </div>
+
+        <!-- Cronograma -->
+        <div class="col-12">
+          <label class="form-label mb-1"><strong>Cronograma das parcelas (auto)</strong></label>
+          <div class="table-responsive">
+            <table class="table table-sm align-middle mb-0" id="tabelaParcelas">
+              <thead class="table-light"><tr><th>#</th><th>Vencimento</th><th>Valor</th></tr></thead>
+              <tbody></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <hr>
+
+      <!-- PRÉVIA INTERNA (CREDOR) — APENAS COPIAR/SALVAR -->
+      <label class="form-label"><strong>Prévia do texto ao CREDOR (será salvo em Detalhamento)</strong></label>
+      <textarea id="previewInterno" class="form-control" rows="12" spellcheck="false"></textarea>
+
+      <div class="d-flex gap-2 mt-3 flex-wrap">
+        <!-- Copiar texto do CREDOR (clipboard) -->
+        <button type="button" class="btn btn-outline-secondary" onclick="copiarTextoCredor()">
+          Copiar texto (Credor)
+        </button>
+
+        <!-- Salvar em Detalhamento (CREDOR) -->
+        <form id="formSalvarDetalhamento" method="post" action="{% url 'adicionar_follow_up' devedor.id %}">
+          {% csrf_token %}
+          <input type="hidden" name="texto" id="textoHidden">
+          <button type="submit" class="btn btn-primary">Salvar em Detalhamento</button>
+        </form>
+      </div>
+      <small class="text-muted d-block mt-2">
+        Observação: o texto acima é <strong>apenas para o CREDOR</strong>. Não há envio por WhatsApp desta proposta.
+      </small>
+    </div>
+  </div>
+
+  <style>.badge{font-size:.9rem}</style>
+  <script>
+    // ===== Utils
+    const moedaBRL = v => new Intl.NumberFormat('pt-BR',{style:'currency',currency:'BRL'}).format(Number(v||0));
+    const parseBRL = s => { if(!s) return 0; s=(''+s).replace(/[^\d,.-]/g,'').replace(/\./g,'').replace(',','.'); const n=Number(s); return isNaN(n)?0:n; };
+    const pad2 = n => String(n).padStart(2,'0');
+    const fmtDateBR = iso => { if(!iso) return '-'; const [y,m,d]=iso.split('-'); return `${d}/${m}/${y}`; };
+    const parseBRDateToISO = br => { if(!br||!/^\d{2}\/\d{2}\/\d{4}$/.test(br)) return ''; const [d,m,y]=br.split('/'); return `${y}-${m}-${d}`; };
+    const addMonths = (iso, m)=>{ if(!iso) return ''; const [y,mo,d]=iso.split('-').map(Number); const dt=new Date(y,mo-1,d); dt.setMonth(dt.getMonth()+m); return `${dt.getFullYear()}-${pad2(dt.getMonth()+1)}-${pad2(dt.getDate())}`; };
+
+    // ===== Extrai títulos das tabelas (entrada + associados)
+    function extrairTitulos(){
+      const arr=[];
+      const te = document.getElementById('tblTitulosEntrada');
+      if(te){
+        te.querySelectorAll('tbody tr').forEach(tr=>{
+          const td=tr.querySelectorAll('td'); if(td.length<12) return;
+          const capital = parseBRL(td[3].textContent);            // Valor Divida
+          const vencBR  = (td[7].textContent||'').trim();         // Vencimento
+          const juros   = parseBRL(td[9].textContent);            // Juros
+          const comJuros= parseBRL(td[10].textContent);           // Valor com juros
+          const dias    = parseInt((td[11].textContent||'0').replace(/\D/g,''))||0; // Dias atraso
+          const iso     = parseBRDateToISO(vencBR);
+          const total   = comJuros || (capital + juros);
+          const ju      = (juros || Math.max(0,total-capital));
+          if(capital>0 || total>0){ arr.push({capital, juros: ju, total, iso, dias}); }
+        });
+      }
+      const ta = document.getElementById('tblTitulosAssociados');
+      if(ta){
+        ta.querySelectorAll('tbody tr').forEach(tr=>{
+          const td=tr.querySelectorAll('td'); if(td.length<12) return;
+          const total   = parseBRL(td[4].textContent);            // Total & Parcela
+          const vencBR  = (td[6].textContent||'').trim();
+          const juros   = parseBRL(td[8].textContent);
+          const cap     = Math.max(0, total - juros);
+          const dias    = parseInt((td[9].textContent||'0').replace(/\D/g,''))||0;
+          const iso     = parseBRDateToISO(vencBR);
+          if(cap>0 || total>0){ arr.push({capital: cap, juros, total, iso, dias}); }
+        });
+      }
+      let sumCap=0, sumJuros=0, sumTotal=0, firstISO='', maxDias=0;
+      arr.forEach(x=>{
+        sumCap+=x.capital||0; sumJuros+=x.juros||0; sumTotal+=x.total||0;
+        if(x.iso){ if(!firstISO || new Date(x.iso) < new Date(firstISO)) firstISO = x.iso; }
+        if(x.dias && x.dias>maxDias) maxDias=x.dias;
+      });
+      return { sumCap, sumJuros, sumTotal, firstISO, maxDias };
+    }
+
+    // ===== Lê totais + fallback
+    function lerTotaisEVencimentoEAtraso(){
+      const el = document.getElementById('valorBase');
+      const totalContext = Number(el?.dataset.total || 0);
+      const capitalContext = el?.dataset.capital !== '' ? Number(el.dataset.capital) : NaN;
+
+      const viaTabela = extrairTitulos();
+
+      const total = viaTabela.sumTotal || totalContext || 0;
+
+      let capital = viaTabela.sumCap || (!isNaN(capitalContext) ? capitalContext : 0);
+      let juros   = viaTabela.sumJuros || Math.max(0, total - capital);
+
+      const firstISO = viaTabela.firstISO || '';
+      const maxDias  = viaTabela.maxDias || 0;
+
+      // Reflete nos campos visuais
+      document.getElementById('valorBase').value   = moedaBRL(total||0);
+      document.getElementById('valorCapital').value = moedaBRL(capital||0);
+      document.getElementById('valorJuros').value   = moedaBRL(juros||0);
+
+      return { total, capital, juros, firstISO, maxDias };
+    }
+
+    let modoManual=false;
+    function toggleEdicaoManual(){
+      modoManual=document.getElementById('editarManual').checked;
+      ['valorAvista','totalProposta','valorEntrada','valorParcela'].forEach(id=>{
+        const el=document.getElementById(id); if(el) el.readOnly=!modoManual;
+      });
+    }
+    function sincronizarHidden(){
+      const t=document.getElementById('previewInterno').value||''; 
+      const h=document.getElementById('textoHidden'); if(h) h.value=t;
+    }
+    async function copiarTextoCredor(){
+      const t=document.getElementById('previewInterno')?.value||'';
+      try{
+        await navigator.clipboard.writeText(t);
+        alert('Texto copiado para a área de transferência.');
+      }catch(e){
+        // fallback
+        const ta=document.createElement('textarea'); ta.value=t; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); document.body.removeChild(ta);
+        alert('Texto copiado.');
+      }
+    }
+
+    function montarTabelaParcelas(qtdParcelas, dataEntrada, valorParcela){
+      const tbody=document.querySelector('#tabelaParcelas tbody'); if(!tbody) return;
+      const baseISO=dataEntrada || new Date().toISOString().slice(0,10);
+      let html='';
+      for(let i=1;i<=qtdParcelas;i++){
+        const iso=addMonths(baseISO,i);
+        html += `<tr><td>${i}</td><td>${fmtDateBR(iso)}</td><td>${moedaBRL(valorParcela)}</td></tr>`;
+      }
+      tbody.innerHTML=html;
+    }
+
+    // ===== Texto (Credor)
+    function montarTextoInterno(ctx, tot, cap, jur, pctAvista, pctParc, valorAvista, totalProposta, dataEntrada, valorEntrada, qtdParcelas, valorParcela, primeiroVenc, maxAtraso){
+      const baseISO=dataEntrada || new Date().toISOString().slice(0,10);
+      const unesc = s => (s || '').replace(/\\u([0-9a-fA-F]{4})/g,(_,h)=>String.fromCharCode(parseInt(h,16))).replace(/&amp;/g,'&');
+      const linhas=[];
+      for(let i=1;i<=qtdParcelas;i++){ const iso=addMonths(baseISO,i); linhas.push(`Parcela ${i}: ${moedaBRL(valorParcela)} (venc. ${fmtDateBR(iso)})`); }
+      return [
+        "Prezados,",
+        "",
+        "Apresentamos a seguinte proposta de pagamento:",
+        `Devedor: ${unesc(ctx.devedor) || '-'}`,
+        "",
+        `Empresa: ${unesc(ctx.fantasia||ctx.razao) || '-'}`,
+        `Base com juros (pendente + juros): ${moedaBRL(tot)}`,
+        `Capital (sem juros): ${moedaBRL(cap)}`,
+        `Juros apurados: ${moedaBRL(jur)}`,
+        `Primeiro vencimento do(s) título(s): ${primeiroVenc?fmtDateBR(primeiroVenc):'-'}`,
+        `Dias de atraso (máx.): ${maxAtraso}`,
+        `Desconto à vista (${pctAvista}% sobre juros) → Total à vista: ${moedaBRL(valorAvista)}`,
+        `Desconto parcelado (${pctParc}% sobre juros) → Total parcelado: ${moedaBRL(totalProposta)}`,
+        `Entrada em ${dataEntrada?fmtDateBR(dataEntrada):'-'}: ${moedaBRL(valorEntrada)}`,
+        `Parcelas: ${qtdParcelas}x de ${moedaBRL(valorParcela)}`,
+        "",
+        "Cronograma:",
+        ...linhas,
+        "",
+        "Atenciosamente,",
+        (ctx.user||'').toString(),
+        "Atendimento ao Cliente",
+        "Negociar Cobranças"
+      ].join("\n");
+    }
+
+    function atualizarCalculos(){
+      const ctxEl=document.getElementById('ctx');
+      const ctx={
+        user: ctxEl.dataset.user||'',
+        devedor: ctxEl.dataset.devedor||'',
+        fantasia: ctxEl.dataset.empresaFantasia||'',
+        razao: ctxEl.dataset.empresaRazao||'',
+        empresa: (ctxEl.dataset.empresaFantasia||ctxEl.dataset.empresaRazao||''),
+        pix: ctxEl.dataset.chavePix||''
+      };
+
+      const { total, capital, juros, firstISO, maxDias } = lerTotaisEVencimentoEAtraso();
+
+      const pctAvista  = Number(document.getElementById('pctAvista').value || 0);
+      const pctParc    = Number(document.getElementById('pctParc').value || 0);
+      const pctEntrada = Number(document.getElementById('pctEntrada').value || 0);
+      const qtdParcelas= Math.max(1, parseInt(document.getElementById('qtdParcelas').value || '1', 10));
+      const dataEntrada= document.getElementById('dataEntrada').value || '';
+
+      // DESCONTO SÓ NOS JUROS
+      const jurosAvista = Math.max(0, juros * (1 - pctAvista/100));
+      const jurosParcel = Math.max(0, juros * (1 - pctParc/100));
+
+      let valorAvista, totalProposta, valorEntrada, valorParcela;
+      if(modoManual){
+        valorAvista   = parseBRL(document.getElementById('valorAvista').value);
+        totalProposta = parseBRL(document.getElementById('totalProposta').value);
+        valorEntrada  = parseBRL(document.getElementById('valorEntrada').value);
+        valorParcela  = parseBRL(document.getElementById('valorParcela').value);
+      }else{
+        valorAvista   = capital + jurosAvista;
+        totalProposta = capital + jurosParcel;
+        valorEntrada  = totalProposta * (pctEntrada/100);
+        valorParcela  = (totalProposta - valorEntrada) / qtdParcelas;
+
+        document.getElementById('valorAvista').value   = moedaBRL(valorAvista);
+        document.getElementById('totalProposta').value = moedaBRL(totalProposta);
+        document.getElementById('valorEntrada').value  = moedaBRL(valorEntrada);
+        document.getElementById('valorParcela').value  = moedaBRL(valorParcela);
+      }
+
+      montarTabelaParcelas(qtdParcelas, dataEntrada, valorParcela);
+
+      // texto interno (CREDOR) → salvo/copiar
+      document.getElementById('previewInterno').value =
+        montarTextoInterno(ctx, total, capital, juros,
+                           pctAvista, pctParc,
+                           valorAvista, totalProposta,
+                           dataEntrada, valorEntrada, qtdParcelas, valorParcela,
+                           firstISO, maxDias);
+
+      sincronizarHidden();
+    }
+
+    function aplicarAtalho(tipo){
+      if (tipo === 'avista') document.getElementById('pctAvista').value = '{{ percentual_avista_default }}';
+      else document.getElementById('pctParc').value = '{{ percentual_parc_default }}';
+      atualizarCalculos();
+    }
+
+    document.getElementById('editarManual').addEventListener('change', ()=>{ toggleEdicaoManual(); atualizarCalculos(); });
+    ['pctAvista','pctParc','pctEntrada','qtdParcelas','dataEntrada'].forEach(id=>{
+      document.getElementById(id).addEventListener('input', atualizarCalculos);
+    });
+    ['valorAvista','totalProposta','valorEntrada','valorParcela'].forEach(id=>{
+      document.getElementById(id).addEventListener('input', ()=>{ if(modoManual) atualizarCalculos(); });
+    });
+    document.getElementById('previewInterno').addEventListener('input', sincronizarHidden);
+    document.getElementById('formSalvarDetalhamento').addEventListener('submit', sincronizarHidden);
+
+    document.addEventListener('DOMContentLoaded', ()=>{ toggleEdicaoManual(); atualizarCalculos(); });
+  </script>
+  <!-- =================== FIM GERAR PROPOSTA AO CREDOR =================== -->
+
+  <!-- =================== TÍTULOS =================== -->
+  <h2 class="text-center mt-4">Títulos Associados</h2>
+
+  {% if titulos_entrada %}
+  <h2 class="text-center mt-4">Entrada</h2>
+  <table id="tblTitulosEntrada" class="table table-striped table-bordered text-center table-sm" style="font-size: .9rem;">
+    <thead class="table-dark text-center">
+      <tr>
+        <th>Empresa</th>
+        <th>Devedor</th>
+        <th>Título</th>
+        <th>Valor Divida</th>
+        <th>Valor Recebido</th>
+        <th>Forma Pagamento</th>
+        <th>Data baixa</th>
+        <th>Vencimento</th>
+        <th>Status</th>
+        <th>Juros</th>
+        <th>Valor com juros</th>
+        <th>Dias Atraso</th>
+        <th>Ações</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for titulo in titulos_entrada %}
+      <tr>
+        <td>{{ empresa.razao_social }}</td>
+        <td>{{ devedor.nome }}</td>
+        <td>{{ titulo.num_titulo }}</td>
+        <td>R$ {{ titulo.valor|floatformat:2 }}</td>
+        <td>R$ {{ titulo.valorRecebido|floatformat:2 }}</td>
+        <td>{{ forma_pagamento_map|get_dict_value:titulo.forma_pag_Id }}</td>
+        <td>{{ titulo.data_baixa|date:"d/m/Y" }}</td>
+        <td>{{ titulo.dataVencimento|date:"d/m/Y" }}</td>
+        <td>
+          {% if titulo.statusBaixa == 0 %}<span class="badge bg-warning text-dark">Pendente</span>
+          {% elif titulo.statusBaixa == 2 %}<span class="badge bg-success">Quitado</span>
+          {% elif titulo.statusBaixa == 3 %}<span class="badge bg-info text-dark">Negociado</span>{% endif %}
+        </td>
+        <td>R$ {{ titulo.juros|floatformat:2 }}</td>
+        <td>R$ {{ titulo.valor_com_juros|floatformat:2 }}</td>
+        <td>{{ titulo.dias_atraso }}</td>
+        <td>
+          {% if titulo.statusBaixa == 0 or titulo.statusBaixa is none %}
+            <a href="{% url 'realizar_acordo' titulo.id %}" class="btn btn-sm btn-success">
+              <i class="fas fa-handshake"></i> Gerar Acordo
+            </a>
+            <a href="{% url 'realizar_baixa' titulo.id %}" class="btn btn-sm btn-primary">
+              <i class="fas fa-download"></i> Baixar
+            </a>
+            <a href="{% url 'editar_titulo' titulo.id %}" class="btn btn-warning">Editar</a>
+          {% endif %}
+          {% if titulo.statusBaixa == 3 %}
+            <button type="button" class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#modalQuitar{{ titulo.id }}">
+              <i class="fas fa-check"></i> Quitar
+            </button>
+            <a href="{% url 'editar_titulo' titulo.id %}" class="btn btn-warning">Editar</a>
+          {% endif %}
+          {% if titulo.statusBaixa == 2 %}
+            <a href="{% url 'gerar_recibo' titulo.id %}" target="_blank" class="btn btn-sm btn-info">
+              <i class="fas fa-file-pdf"></i> Gerar Recibo
+            </a>
+          {% endif %}
+        </td>
+      </tr>
+
+      <!-- Modal Quitar Entrada -->
+      <div class="modal fade" id="modalQuitar{{ titulo.id }}" tabindex="-1" aria-labelledby="modalQuitarLabel{{ titulo.id }}" aria-hidden="true">
+        <div class="modal-dialog"><div class="modal-content">
+          <form method="POST" action="{% url 'quitar_parcela' titulo.id %}" enctype="multipart/form-data">
+            {% csrf_token %}
+            <div class="modal-header">
+              <h5 class="modal-title" id="modalQuitarLabel{{ titulo.id }}">Quitar Entrada</h5>
+              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+              <p><strong>Título:</strong> {{ titulo.num_titulo }}</p>
+              <p><strong>Valor a Quitar:</strong> R$ {{ titulo.valor_recebido|floatformat:2 }}</p>
+              <p><strong>Vencimento:</strong> {{ titulo.data_vencimento|date:"d/m/Y" }}</p>
+              <p><strong>Devedor:</strong> {{ titulo.devedor_nome }}</p>
+
+              <div class="mb-3">
+                <label for="valorRecebido{{ titulo.id }}" class="form-label">Valor Recebido:</label>
+                <input type="number" step="0.01" class="form-control" id="valorRecebido{{ titulo.id }}" name="valorRecebido" value="{{ titulo.valor_recebido|floatformat:2 }}" required>
+              </div>
+              <div class="mb-3">
+                <label for="dataBaixa{{ titulo.id }}" class="form-label">Data de Baixa:</label>
+                <input type="date" class="form-control" id="dataBaixa{{ titulo.id }}" name="dataBaixa" required>
+              </div>
+              <div class="mb-3">
+                <label for="formaPagamento{{ titulo.id }}" class="form-label">Forma de Pagamento:</label>
+                <select class="form-select" id="formaPagamento{{ titulo.id }}" name="formaPagamento" required>
+                  <option value="0">Pix</option>
+                  <option value="1">Dinheiro</option>
+                  <option value="2">Cartão de Débito</option>
+                  <option value="3">Cartão de Crédito</option>
+                  <option value="4">Cheque</option>
+                  <option value="5">Depósito em Conta</option>
+                  <option value="6">Pagamento na Loja</option>
+                  <option value="7">Boleto Bancário</option>
+                  <option value="8">Duplicata</option>
+                   <option value="8">Recebimento pelo credor</option>
+                </select>
+              </div>
+
+              <div class="mb-3">
+                <label class="form-label">Comprovante (PDF ou imagem)</label>
+                <input type="file" class="form-control" name="comprovante" accept="application/pdf,image/*">
+                <div class="form-text">Opcional. Máx. 10MB.</div>
+              </div>
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+              <button type="submit" class="btn btn-primary">Confirmar Quitação</button>
+            </div>
+          </form>
+        </div></div>
+      </div>
+
+      {% endfor %}
+    </tbody>
+  </table>
+  {% endif %}
+
+  <table id="tblTitulosAssociados" class="table table-striped table-bordered text-center table-sm" style="font-size: .9rem;">
+    <thead class="table-dark text-center">
+      <tr>
+        <th>Empresa</th>
+        <th>Devedor</th>
+        <th>Título</th>
+        <th>Valor Recebido</th>
+        <th>Total & Parcela</th>
+        <th>Forma de Pagamento</th>
+        <th>Vencimento</th>
+        <th>Data de Baixa</th>
+        <th>Juros</th>
+        <th>Dias de atraso</th>
+        <th>Status</th>
+        <th>Ações</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% if titulos_associados %}
+        {% for titulo in titulos_associados %}
+        <tr style="{% if titulo.statusBaixa == 3 and titulo.dataVencimento < today %}background-color:#FFA500;color:#000;{% endif %}">
+          <td>{{ empresa.razao_social|default:"N/A" }}</td>
+          <td>{{ devedor.nome }}</td>
+          <td>{{ titulo.num_titulo }}</td>
+          <td>R$ {{ titulo.valorRecebido|floatformat:2 }}</td>
+          <td>R$ {{ titulo.valor|floatformat:2 }}</td>
+          <td>{{ forma_pagamento_map|get_dict_value:titulo.forma_pag_Id }}</td>
+          <td>{{ titulo.dataVencimento|date:"d/m/Y" }}</td>
+          <td>{% if titulo.data_baixa %}{{ titulo.data_baixa|date:"d/m/Y" }}{% else %}-{% endif %}</td>
+          <td>R$ {{ titulo.juros|floatformat:2 }}</td>
+          <td>{{ titulo.dias_atraso }}</td>
+          <td>
+            {% if titulo.statusBaixa == 0 or titulo.statusBaixa == None %}
+              <span class="badge bg-warning text-dark">Pendente</span>
+            {% elif titulo.statusBaixa == 2 %}
+              <span class="badge bg-success">Quitado</span>
+            {% elif titulo.statusBaixa == 3 %}
+              <span class="badge bg-info text-dark">Negociado</span>
+            {% endif %}
+          </td>
+          <td>
+            {% if titulo.statusBaixa == 3 %}
+              <button type="button" class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#modalQuitarAssoc{{ titulo.id }}">
+                <i class="fas fa-check"></i> Quitar
+              </button>
+              <a href="{% url 'editar_titulo' titulo.id %}" class="btn btn-warning">Editar</a>
+            {% endif %}
+            {% if titulo.statusBaixa == 2 %}
+              <a href="{% url 'gerar_recibo' titulo.id %}" target="_blank" class="btn btn-sm btn-info">
+                <i class="fas fa-file-pdf"></i> Gerar Recibo
+              </a>
+            {% endif %}
+            {% if titulo.statusBaixa == 0 or titulo.statusBaixa is none %}
+              <a href="{% url 'realizar_acordo' titulo.id %}" class="btn btn-sm btn-success">
+                <i class="fas fa-handshake"></i> Gerar Acordo
+              </a>
+              <a href="{% url 'realizar_baixa' titulo.id %}" class="btn btn-sm btn-primary">
+                <i class="fas fa-download"></i> Baixar
+              </a>
+              <a href="{% url 'editar_titulo' titulo.id %}" class="btn btn-warning">Editar</a>
+            {% endif %}
+          </td>
+        </tr>
+
+        <!-- Modal Quitar Parcela (Associados) -->
+        <div class="modal fade" id="modalQuitarAssoc{{ titulo.id }}" tabindex="-1" aria-labelledby="modalQuitarAssocLabel{{ titulo.id }}" aria-hidden="true">
+          <div class="modal-dialog"><div class="modal-content">
+            <form method="POST" action="{% url 'quitar_parcela' titulo.id %}" enctype="multipart/form-data"
+                  onsubmit="return validarValorRecebido({{ titulo.id }}, {{ titulo.valor|floatformat:2 }});">
+              {% csrf_token %}
+              <div class="modal-header">
+                <h5 class="modal-title" id="modalQuitarAssocLabel{{ titulo.id }}">Quitar Parcela</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+              </div>
+              <div class="modal-body">
+                <p><strong>Título:</strong> {{ titulo.num_titulo }}</p>
+                <p><strong>Valor a Quitar:</strong> R$ {{ titulo.valor|floatformat:2 }}</p>
+                <p><strong>Vencimento:</strong> {{ titulo.dataVencimento|date:"d/m/Y" }}</p>
+                <p><strong>Devedor:</strong> {{ titulo.devedor.nome }}</p>
+
+                <div class="mb-3">
+                  <label for="valorRecebido{{ titulo.id }}" class="form-label">Valor Recebido:</label>
+                  <input type="number" step="0.01" class="form-control" id="valorRecebido{{ titulo.id }}" name="valorRecebido" value="{{ titulo.valor|floatformat:2 }}" required>
+                  <div id="erroValorRecebido{{ titulo.id }}" class="text-danger mt-2" style="display: none;">
+                    O valor recebido não pode ser menor que o valor total do título.
+                  </div>
+                </div>
+                <div class="mb-3">
+                  <label for="dataBaixa{{ titulo.id }}" class="form-label">Data de Baixa:</label>
+                  <input type="date" class="form-control" id="dataBaixa{{ titulo.id }}" name="dataBaixa" required>
+                </div>
+                <div class="mb-3">
+                  <label for="formaPagamento{{ titulo.id }}" class="form-label">Forma de Pagamento:</label>
+                  <select class="form-select" id="formaPagamento{{ titulo.id }}" name="formaPagamento" required>
+                    <option value="0">Pix</option>
+                    <option value="1">Dinheiro</option>
+                    <option value="2">Cartão de Débito</option>
+                    <option value="3">Cartão de Crédito</option>
+                    <option value="4">Cheque</option>
+                    <option value="5">Depósito em Conta</option>
+                    <option value="6">Pagamento na Loja</option>
+                    <option value="7">Boleto Bancário</option>
+                    <option value="8">Duplicata</option>
+                  </select>
+                </div>
+
+                <div class="mb-3">
+                  <label class="form-label">Comprovante (PDF ou imagem)</label>
+                  <input type="file" class="form-control" name="comprovante" accept="application/pdf,image/*">
+                  <div class="form-text">Opcional. Máx. 10MB.</div>
+                </div>
+              </div>
+              <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="submit" class="btn btn-primary">Confirmar Quitação</button>
+              </div>
+            </form>
+          </div></div>
+        </div>
+        {% endfor %}
+      {% else %}
+      <tr><td colspan="12">Nenhum título encontrado para esta empresa.</td></tr>
+      {% endif %}
+    </tbody>
+  </table>
+
+  <script>
+    function validarValorRecebido(tituloId, valorMinimo) {
+      const inputValorRecebido = document.getElementById(`valorRecebido${tituloId}`);
+      const erroValorRecebido = document.getElementById(`erroValorRecebido${tituloId}`);
+      if (parseFloat(inputValorRecebido.value) < valorMinimo) {
+        erroValorRecebido.style.display = 'block'; return false;
+      }
+      erroValorRecebido.style.display = 'none'; return true;
+    }
+  </script>
+
+  <!-- ========== EMPRESA CREDORA ========== -->
+  <div class="card mt-4">
+    <div class="card-header bg-warning text-dark"><h3>Empresa Credora</h3></div>
+    <div class="card-body">
+      <div class="row">
+        <div class="col-md-6 mb-3"><label><strong>Razão Social:</strong></label><p class="form-control-plaintext">{{ empresa.razao_social }}</p></div>
+        <div class="col-md-6 mb-3"><label><strong>Nome Fantasia:</strong></label><p class="form-control-plaintext">{{ empresa.nome_fantasia }}</p></div>
+        <div class="col-md-6 mb-3"><label><strong>CNPJ:</strong></label><p class="form-control-plaintext">{{ empresa.cnpj }}</p></div>
+        <div class="col-md-6 mb-3"><label><strong>Telefone:</strong></label><p class="form-control-plaintext">{{ empresa.telefone }}</p></div>
+        <div class="col-md-6 mb-3"><label><strong>E-mail:</strong></label><p class="form-control-plaintext">{{ empresa.email }}</p></div>
+        <div class="col-md-6 mb-3"><label><strong>Endereço:</strong></label><p class="form-control-plaintext">{{ empresa.endereco }}, {{ empresa.numero }}</p></div>
+        <div class="col-md-6 mb-3"><label><strong>Bairro:</strong></label><p class="form-control-plaintext">{{ empresa.bairro }}</p></div>
+        <div class="col-md-6 mb-3"><label><strong>UF:</strong></label><p class="form-control-plaintext">{{ empresa.uf }}</p></div>
+        <div class="col-md-6 mb-3"><label><strong>Cidade:</strong></label><p class="form-control-plaintext">{{ empresa.cidade }}</p></div>
+        <div class="col-md-6 mb-3"><label><strong>Chave pix:</strong></label><p class="form-control-plaintext">{{ empresa.banco }}</p></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========== AGENDAMENTOS ========== -->
+  <div class="card mt-4">
+    <div class="card-header bg-success text-white d-flex justify-content-between align-items-center">
+      <h3 class="mb-0">Agendamentos</h3>
+      <a href="{% url 'criar_agendamento' %}?devedor_id={{ devedor.id }}" class="btn btn-primary">Criar Novo Agendamento</a>
+    </div>
+    <div class="card-body">
+      <table class="table table-striped">
+        <thead>
+          <tr>
+            <th>Data de Abertura</th>
+            <th>Data de Retorno</th>
+            <th>Assunto</th>
+            <th>Operador</th>
+            <th>Status</th>
+            <th>Telefone</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for agendamento in agendamentos %}
+          <tr>
+            <td>{{ agendamento.data_abertura|date:"d/m/Y H:i" }}</td>
+            <td>{{ agendamento.data_retorno|date:"d/m/Y H:i" }}</td>
+            <td>{{ agendamento.assunto }}</td>
+            <td>{{ agendamento.operador.get_full_name|default:agendamento.operador.first_name|default:agendamento.operador.username }}</td>
+
+            <td>{{ agendamento.get_status_display }}</td>
+            <td>
+              {{ agendamento.telefone }}
+              <button type="button" class="btn btn-success btn-sm ms-2" title="Abrir no WhatsApp"
+                      data-whats="{{ agendamento.telefone|clean_phone_number }}" onclick="abrirModalWhats(this)">
+                <i class="bi bi-whatsapp"></i> WhatsApp
+              </button>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+</div>
+
+<!-- ========== DETALHAMENTO ========== -->
+<div class="card mt-4">
+  <div class="card-header bg-secondary text-white"><h3>Detalhamento</h3></div>
+  <div class="card-body">
+    <form method="post" action="{% url 'adicionar_follow_up' devedor.id %}">
+      {% csrf_token %}
+      <div class="mb-3">
+        <label for="texto" class="form-label"><strong>Novo Detalhamento:</strong></label>
+        <textarea id="texto" name="texto" class="form-control" rows="3" placeholder="Digite aqui o histórico do WhatsApp ou informações relevantes."></textarea>
+      </div>
+      <button type="submit" class="btn btn-primary">Adicionar Detalhamento</button>
+    </form>
+
+    <h4 class="mt-4">Histórico</h4>
+    <ul class="list-group" id="followupList">
+
+      {% for follow_up in follow_ups %}
+        <li class="list-group-item">
+          <p class="mb-1"><strong>{{ follow_up.created_at|date:"d/m/Y H:i" }}:</strong> {{ follow_up.texto }}</p>
+        </li>
+      {% empty %}
+        <li class="list-group-item">Nenhum Follow-up registrado.</li>
+      {% endfor %}
+    </ul>
+  </div>
+</div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    const preSelecionado = {{ pre_selecionado|default:"null"|safe }};
+    if (preSelecionado) {
+      if(document.getElementById('devedor_id')) document.getElementById('devedor_id').value = preSelecionado.id;
+      if(document.getElementById('empresa_id')) document.getElementById('empresa_id').value = preSelecionado.empresa_id || '';
+      if(document.getElementById('empresa_nome_fantasia')) document.getElementById('empresa_nome_fantasia').value = preSelecionado.nome_fantasia || 'N/A';
+      if(document.getElementById('telefone')) document.getElementById('telefone').value = preSelecionado.telefone || '';
+      if(document.getElementById('pesquisa_devedor')) document.getElementById('pesquisa_devedor').value = preSelecionado.nome;
+    }
+  });
+</script>
+
+<!-- ========== MODAL WHATSAPP (templates padrão para outras mensagens) ========== -->
+<div class="modal fade" id="modalWhatsapp" tabindex="-1" aria-labelledby="modalWhatsappLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg"><div class="modal-content">
+    <div class="modal-header">
+      <h5 class="modal-title" id="modalWhatsappLabel">Selecionar mensagem do WhatsApp (templates)</h5>
+      <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
+    </div>
+    <div class="modal-body">
+      <div class="mb-3">
+        <label class="form-label">Enviar para</label>
+        <select id="whatsNumeroSelect" class="form-select">
+          {% if devedor.telefone1 %}<option value="{{ devedor.telefone1|clean_phone_number }}">{{ devedor.telefone1 }}</option>{% endif %}
+          {% if devedor.telefone2 %}<option value="{{ devedor.telefone2|clean_phone_number }}">{{ devedor.telefone2 }}</option>{% endif %}
+          {% if devedor.telefone3 %}<option value="{{ devedor.telefone3|clean_phone_number }}">{{ devedor.telefone3 }}</option>{% endif %}
+          {% if devedor.telefone4 %}<option value="{{ devedor.telefone4|clean_phone_number }}">{{ devedor.telefone4 }}</option>{% endif %}
+          {% if devedor.telefone5 %}<option value="{{ devedor.telefone5|clean_phone_number }}">{{ devedor.telefone5 }}</option>{% endif %}
+          {% if devedor.telefone6 %}<option value="{{ devedor.telefone6|clean_phone_number }}">{{ devedor.telefone6 }}</option>{% endif %}
+          {% if devedor.telefone7 %}<option value="{{ devedor.telefone7|clean_phone_number }}">{{ devedor.telefone7 }}</option>{% endif %}
+          {% if devedor.telefone8 %}<option value="{{ devedor.telefone8|clean_phone_number }}">{{ devedor.telefone8 }}</option>{% endif %}
+          {% if devedor.telefone9 %}<option value="{{ devedor.telefone9|clean_phone_number }}">{{ devedor.telefone9 }}</option>{% endif %}
+          {% if devedor.telefone10 %}<option value="{{ devedor.telefone10|clean_phone_number }}">{{ devedor.telefone10 }}</option>{% endif %}
+        </select>
+      </div>
+
+      <div class="btn-group flex-wrap w-100 mb-2" role="group" aria-label="Escolha a mensagem">
+        <button type="button" class="btn btn-outline-primary active" data-opt="padrao" onclick="escolherMsg('padrao')">Padrão</button>
+        <button type="button" class="btn btn-outline-primary" data-opt="vencidas" onclick="escolherMsg('vencidas')">Vencidas</button>
+        <button type="button" class="btn btn-outline-primary" data-opt="a_vencer" onclick="escolherMsg('a_vencer')">A vencer</button>
+        <button type="button" class="btn btn-outline-primary" data-opt="quebra" onclick="escolherMsg('quebra')">Quebra de acordo</button>
+      </div>
+
+      <div class="accordion" id="accMsg">
+        <div class="accordion-item">
+          <h2 class="accordion-header" id="headMsg">
+            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseMsg">Ver mensagem selecionada</button>
+          </h2>
+          <div id="collapseMsg" class="accordion-collapse collapse">
+            <div class="accordion-body">
+              <pre id="previewMsgText" class="mb-0" style="white-space:pre-wrap;"></pre>
+            </div>
+          </div>
+        </div>
+      </div>
+      <small class="text-muted d-block mt-2">Nada é enviado automaticamente.</small>
+    </div>
+    <div class="modal-footer">
+      <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
+      <button type="button" class="btn btn-success" onclick="enviarWhats()"><i class="bi bi-whatsapp"></i> Abrir WhatsApp</button>
+    </div>
+  </div></div>
+</div>
+
+<script>
+  /* ================== CONFIG ================== */
+  // true: recarrega a página após salvar o follow-up
+  // false: só insere o item no "Histórico" (UL com id="followupList")
+  const HARD_RELOAD_AFTER_POST = false;
+
+  /* ================== MENSAGENS ================== */
+  const MSGS_WHATS = {
+    vencidas: `{{ msg_vencidas|default_if_none:''|escapejs }}`,
+    a_vencer:`{{ msg_a_vencer|default_if_none:''|escapejs }}`,
+    padrao:  `{{ msg_padrao|default_if_none:''|escapejs }}`,
+    quebra:  `{{ msg_quebra|default_if_none:''|escapejs }}`
+  };
+  const LABEL_TEMPLATE = { padrao:'Padrão', vencidas:'Vencidas', a_vencer:'A vencer', quebra:'Quebra de acordo' };
+  let ESCOLHA_ATUAL = 'padrao';
+
+  /* ================== UI DO MODAL ================== */
+  function atualizarPreviewMsg(){
+    const el = document.getElementById('previewMsgText');
+    if (el) el.textContent = MSGS_WHATS[ESCOLHA_ATUAL] || '';
+  }
+  function escolherMsg(tipo){
+    ESCOLHA_ATUAL = tipo;
+    document.querySelectorAll('[data-opt]').forEach(b=>b.classList.remove('active'));
+    const bt = document.querySelector(`[data-opt="${tipo}"]`);
+    if (bt) bt.classList.add('active');
+    atualizarPreviewMsg();
+  }
+  function abrirModalWhats(btn){
+    const numero = btn?.getAttribute('data-whats') || '';
+    const sel = document.getElementById('whatsNumeroSelect');
+    if (sel && numero){
+      const opt = [...sel.options].find(o => o.value === numero);
+      if (opt) sel.value = numero;
+    }
+    escolherMsg('padrao');
+    new bootstrap.Modal(document.getElementById('modalWhatsapp')).show();
+  }
+
+  /* ================== HELPERS ================== */
+  function getCookie(name){
+    const v = document.cookie.split(';').map(c=>c.trim()).find(c=>c.startsWith(name+'='));
+    return v ? decodeURIComponent(v.split('=')[1]) : '';
+  }
+  function escapeHTML(s){
+    return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;');
+  }
+
+  /* ================== FOLLOW-UP ================== */
+  // Salva o follow-up e retorna uma Promise (pra sabermos quando terminou)
+  function salvarFollowUpWhats({ texto, numero, tipo }){
+    const endpoint = "{% url 'adicionar_follow_up' devedor.id %}";
+    const csrf = getCookie('csrftoken');
+    const operador = document.getElementById('ctx')?.dataset.user || '';
+    const payloadText = `[WHATSAPP • ${tipo}]${operador ? ' (Operador: ' + operador + ')' : ''}\nPara: ${numero}\n\n${texto}`;
+
+    const body = new URLSearchParams({
+      'csrfmiddlewaretoken': csrf,
+      'texto': payloadText
+    });
+
+    return new Promise((resolve) => {
+      if (navigator.sendBeacon) {
+        const blob = new Blob([body], { type: 'application/x-www-form-urlencoded; charset=UTF-8' });
+        navigator.sendBeacon(endpoint, blob);
+        // pequeno atraso pro servidor persistir
+        setTimeout(resolve, 300);
+      } else {
+        fetch(endpoint, {
+          method: 'POST',
+          headers: { 'Content-Type':'application/x-www-form-urlencoded', 'X-CSRFToken': csrf },
+          body
+        }).finally(resolve);
+      }
+    });
+  }
+
+  // Insere o follow-up no topo da lista sem recarregar
+  function addFollowupToDOM(texto){
+    const ul = document.getElementById('followupList'); // <ul class="list-group" id="followupList">
+    if (!ul) return;
+    const li = document.createElement('li');
+    li.className = 'list-group-item';
+    const now = new Date();
+    const ts = now.toLocaleDateString('pt-BR') + ' ' + now.toLocaleTimeString('pt-BR', { hour:'2-digit', minute:'2-digit' });
+    const safe = escapeHTML(texto).replace(/\n/g,'<br>');
+    li.innerHTML = `<p class="mb-1"><strong>${ts}:</strong> ${safe}</p>`;
+    ul.prepend(li);
+  }
+
+  /* ================== AÇÃO: ENVIAR WHATS ================== */
+  function enviarWhats(){
+    const sel = document.getElementById('whatsNumeroSelect');
+    const numero = sel ? sel.value : '';
+    if (!numero){ alert('Selecione um número válido.'); return; }
+
+    const texto = MSGS_WHATS[ESCOLHA_ATUAL] || '';
+    const tipo  = LABEL_TEMPLATE[ESCOLHA_ATUAL] || ESCOLHA_ATUAL;
+
+    // Abre a aba já no clique (evita bloqueio de popup)
+    const win = window.open('', '_blank');
+
+    // Salva o follow-up e, depois, atualiza a UI ou recarrega
+    salvarFollowUpWhats({ texto, numero, tipo }).then(() => {
+      const hasList = !!document.getElementById('followupList');
+      if (HARD_RELOAD_AFTER_POST || !hasList) {
+        setTimeout(()=>location.reload(), 200);
+      } else {
+        const operador = document.getElementById('ctx')?.dataset.user || '';
+        const header = `[WHATSAPP • ${tipo}]${operador ? ' (Operador: ' + operador + ')' : ''}\nPara: ${numero}\n\n`;
+        addFollowupToDOM(header + texto);
+      }
+    });
+
+    // Vai para o WhatsApp
+    win.location = `https://wa.me/55${numero}?text=${encodeURIComponent(texto)}`;
+
+    // Fecha o modal
+    const modalEl = document.getElementById('modalWhatsapp');
+    bootstrap.Modal.getInstance(modalEl)?.hide();
+  }
+</script>
+
+
+{% endblock %}

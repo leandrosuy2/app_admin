@@ -1,0 +1,20 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-5">
+    <h3 class="text-center mb-4">Editar Tabela</h3>
+    <form method="post" action="{% url 'tabela_editar' tabela.id %}">
+        {% csrf_token %}
+        <div class="row g-3">
+            <div class="col-md-12">
+                <label for="nome" class="form-label">Nome da Tabela</label>
+                <input type="text" id="nome" name="nome" class="form-control" value="{{ tabela.nome }}" required>
+            </div>
+            
+            <div class="col-12 text-center mt-4">
+                <button type="submit" class="btn btn-primary btn-lg">Salvar Alterações</button>
+            </div>
+        </div>
+    </form>
+</div>
+{% endblock %}

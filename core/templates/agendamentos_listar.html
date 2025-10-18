@@ -1,0 +1,193 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-5">
+  <h1 class="text-center mb-4 fw-bold" style="font-size:26px;color:#2c3e50;text-transform:uppercase;letter-spacing:1px;">
+    <i class="fas fa-calendar-alt me-2" style="color:#34495e;"></i> Lista de Agendamentos
+  </h1>
+
+  <!-- Filtros -->
+  <form method="GET" class="row g-2 mb-3">
+    <div class="col-md-4">
+      <input type="text" name="q" value="{{ query }}" class="form-control"
+             placeholder="Pesquisar por devedor, empresa, CPF/CNPJ, telefone">
+    </div>
+
+    {% if request.user.is_staff or request.user.is_superuser %}
+      <div class="col-md-3">
+        <select name="operador" class="form-select">
+          <option value="">Todos os Operadores</option>
+          {% for op in operadores %}
+            <option value="{{ op }}" {% if op == operador %}selected{% endif %}>{{ op }}</option>
+          {% endfor %}
+        </select>
+      </div>
+    {% else %}
+      <div class="col-md-3 d-flex align-items-center gap-2">
+        <span class="badge bg-secondary">Operador: {{ operador }}</span>
+        <input type="hidden" name="operador" value="{{ operador }}">
+      </div>
+    {% endif %}
+
+    <div class="col-md-3">
+      <select name="supervisor" class="form-select">
+        <option value="">Todos os Supervisores</option>
+        {% for sup in supervisores %}
+          <option value="{{ sup }}" {% if sup == supervisor %}selected{% endif %}>{{ sup }}</option>
+        {% endfor %}
+      </select>
+    </div>
+
+    <div class="col-md-2">
+      <select name="status" class="form-select">
+        <option value="">Todos os Status</option>
+        <option value="Pendente"   {% if status_filter == 'Pendente' %}selected{% endif %}>Pendente</option>
+        <option value="Agendado"   {% if status_filter == 'Agendado' %}selected{% endif %}>Agendado</option>
+        <option value="Finalizado" {% if status_filter == 'Finalizado' %}selected{% endif %}>Finalizado</option>
+      </select>
+    </div>
+
+    <div class="col-md-2 d-flex gap-2">
+      <button class="btn btn-primary w-100" type="submit">Filtrar</button>
+      <a class="btn btn-outline-secondary w-100" href="{% url 'listar_agendamentos' %}">Limpar</a>
+    </div>
+
+    {% if trava_operador %}
+      <div class="col-12 small text-muted">
+        * Exibindo somente registros do operador/supervisor <strong>{{ operador }}</strong>.
+      </div>
+    {% endif %}
+  </form>
+
+  <div class="d-flex justify-content-end mb-2">
+    <a href="{% url 'criar_agendamento' %}" class="btn btn-success">Criar Novo Agendamento</a>
+  </div>
+
+  <!-- Tabela -->
+  <table class="table table-hover table-bordered align-middle" style="font-size:0.85rem;">
+    <thead class="table-dark">
+      <tr>
+        <th>Devedor</th>
+        <th>Empresa</th>
+        <th>Telefone</th>
+        <th>Data de Abertura</th>
+        <th>Data de Retorno</th>
+        <th>Operador</th>
+        <th>Supervisor</th>
+        <th>Status</th>
+        <th class="text-center">Ações</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for agendamento in agendamentos %}
+        <tr>
+          <td><b>{{ agendamento.devedor.nome|default:agendamento.devedor.nome_fantasia }}</b></td>
+          <td><b>{{ agendamento.empresa.nome_fantasia }}</b></td>
+          <td><b>{{ agendamento.telefone|default:"" }}</b></td>
+          <td><b>{{ agendamento.data_abertura|date:"d/m/Y" }}</b></td>
+          <td><b>{{ agendamento.data_retorno|date:"d/m/Y" }}</b></td>
+          <td><b>{{ agendamento.operador }}</b></td>
+          <td><b>{{ agendamento.empresa.supervisor }}</b></td>
+          <td>
+            <span class="badge
+              {% if agendamento.status == 'Finalizado' %} bg-success
+              {% elif agendamento.status == 'Agendado' %} bg-info text-dark
+              {% else %} bg-warning text-dark {% endif %}">
+              {{ agendamento.status }}
+            </span>
+          </td>
+          <td class="text-center">
+            <div class="d-flex justify-content-center align-items-center">
+              <a href="{% url 'editar_agendamento' agendamento.id %}" class="btn btn-sm btn-warning me-1">Editar</a>
+              {% if agendamento.status != 'Finalizado' %}
+              <form method="POST" action="{% url 'finalizar_agendamento' agendamento.id %}" style="display:inline;">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-sm btn-success me-1">Finalizar</button>
+              </form>
+              {% endif %}
+              <button type="button" class="btn btn-sm btn-info" data-bs-toggle="modal" data-bs-target="#modalAgendamento{{ agendamento.id }}">Visualizar</button>
+            </div>
+          </td>
+        </tr>
+
+        <!-- Modal -->
+        <div class="modal fade" id="modalAgendamento{{ agendamento.id }}" tabindex="-1" aria-labelledby="modalLabel{{ agendamento.id }}" aria-hidden="true">
+          <div class="modal-dialog modal-dialog-centered"><div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+              <h5 class="modal-title" id="modalLabel{{ agendamento.id }}">Detalhes do Agendamento</h5>
+              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+              <p><strong>Devedor:</strong> {{ agendamento.devedor.nome|default:agendamento.devedor.nome_fantasia }}</p>
+              <p><strong>Empresa:</strong> {{ agendamento.empresa.nome_fantasia }}</p>
+              <p><strong>Telefone:</strong> {{ agendamento.telefone|default:"" }}</p>
+              <p><strong>Data de Retorno:</strong> {{ agendamento.data_retorno|date:"d/m/Y H:i" }}</p>
+              <p><strong>Data de Abertura:</strong> {{ agendamento.data_abertura|date:"d/m/Y H:i" }}</p>
+              <p><strong>Operador:</strong> {{ agendamento.operador }}</p>
+              <p><strong>Supervisor:</strong> {{ agendamento.empresa.supervisor }}</p>
+              <p><strong>Status:</strong>
+                <span class="badge
+                  {% if agendamento.status == 'Finalizado' %} bg-success
+                  {% elif agendamento.status == 'Agendado' %} bg-info text-dark
+                  {% else %} bg-warning text-dark {% endif %}">
+                  {{ agendamento.status }}
+                </span>
+              </p>
+              <p><strong>Assunto:</strong> {{ agendamento.assunto|default:"Não informado" }}</p>
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fechar</button>
+            </div>
+          </div></div>
+        </div>
+      {% empty %}
+        <tr><td colspan="9" class="text-center text-muted">Nenhum agendamento encontrado.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  <!-- Paginação -->
+  <div class="d-flex justify-content-between align-items-center mt-4">
+    <div>
+      Mostrando {{ agendamentos.start_index }} a {{ agendamentos.end_index }} de {{ agendamentos.paginator.count }} agendamentos.
+    </div>
+    <nav>
+      <ul class="pagination">
+        {% if agendamentos.has_previous %}
+          <li class="page-item">
+            <a class="page-link"
+               href="?page={{ agendamentos.previous_page_number }}&q={{ query }}&status={{ status_filter }}&operador={{ operador }}&supervisor={{ supervisor }}">
+               Anterior</a>
+          </li>
+        {% else %}
+          <li class="page-item disabled"><span class="page-link">Anterior</span></li>
+        {% endif %}
+
+        {% for p in agendamentos.paginator.page_range %}
+          {% if p >= agendamentos.number|add:"-3" and p <= agendamentos.number|add:"3" %}
+            {% if p == agendamentos.number %}
+              <li class="page-item active"><span class="page-link">{{ p }}</span></li>
+            {% else %}
+              <li class="page-item">
+                <a class="page-link"
+                   href="?page={{ p }}&q={{ query }}&status={{ status_filter }}&operador={{ operador }}&supervisor={{ supervisor }}">
+                   {{ p }}</a>
+              </li>
+            {% endif %}
+          {% endif %}
+        {% endfor %}
+
+        {% if agendamentos.has_next %}
+          <li class="page-item">
+            <a class="page-link"
+               href="?page={{ agendamentos.next_page_number }}&q={{ query }}&status={{ status_filter }}&operador={{ operador }}&supervisor={{ supervisor }}">
+               Próximo</a>
+          </li>
+        {% else %}
+          <li class="page-item disabled"><span class="page-link">Próximo</span></li>
+        {% endif %}
+      </ul>
+    </nav>
+  </div>
+</div>
+{% endblock %}

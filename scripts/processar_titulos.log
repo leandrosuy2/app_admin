@@ -1,0 +1,90 @@
+2024-12-19 21:02:28,873 [INFO] Iniciando processamento dos títulos
+2024-12-19 21:02:28,873 [ERROR] Erro ao processar título ID 1234
+NoneType: None
+2024-12-19 21:02:28,885 [INFO] package: mysql.connector.plugins
+2024-12-19 21:02:28,885 [INFO] plugin_name: mysql_native_password
+2024-12-19 21:02:28,886 [INFO] AUTHENTICATION_PLUGIN_CLASS: MySQLNativePasswordAuthPlugin
+2024-12-19 21:07:44,935 [INFO] Iniciando processamento dos títulos
+2024-12-19 21:07:44,935 [ERROR] Erro ao processar título ID 1234
+NoneType: None
+2024-12-19 21:07:44,943 [INFO] package: mysql.connector.plugins
+2024-12-19 21:07:44,944 [INFO] plugin_name: mysql_native_password
+2024-12-19 21:07:44,944 [INFO] AUTHENTICATION_PLUGIN_CLASS: MySQLNativePasswordAuthPlugin
+2024-12-19 21:43:47,995 [INFO] Iniciando processamento dos títulos
+2024-12-19 21:43:47,995 [ERROR] Erro ao processar título ID 1234
+NoneType: None
+2024-12-19 21:43:48,001 [INFO] package: mysql.connector.plugins
+2024-12-19 21:43:48,002 [INFO] plugin_name: mysql_native_password
+2024-12-19 21:43:48,002 [INFO] AUTHENTICATION_PLUGIN_CLASS: MySQLNativePasswordAuthPlugin
+2024-12-19 21:54:06,054 [INFO] Iniciando processamento dos títulos
+2024-12-19 21:54:06,054 [ERROR] Erro ao processar título ID 1234
+NoneType: None
+2024-12-19 21:54:06,063 [INFO] package: mysql.connector.plugins
+2024-12-19 21:54:06,064 [INFO] plugin_name: mysql_native_password
+2024-12-19 21:54:06,064 [INFO] AUTHENTICATION_PLUGIN_CLASS: MySQLNativePasswordAuthPlugin
+2024-12-19 22:02:10,689 [INFO] Iniciando processamento dos títulos
+2024-12-19 22:02:10,689 [ERROR] Erro ao processar título ID 1234
+NoneType: None
+2024-12-19 22:02:10,696 [INFO] package: mysql.connector.plugins
+2024-12-19 22:02:10,696 [INFO] plugin_name: mysql_native_password
+2024-12-19 22:02:10,697 [INFO] AUTHENTICATION_PLUGIN_CLASS: MySQLNativePasswordAuthPlugin
+2024-12-19 22:02:11,986 [INFO] Iniciando processamento dos títulos
+2024-12-19 22:02:11,986 [ERROR] Erro ao processar título ID 1234
+NoneType: None
+2024-12-19 22:02:11,994 [INFO] package: mysql.connector.plugins
+2024-12-19 22:02:11,994 [INFO] plugin_name: mysql_native_password
+2024-12-19 22:02:11,994 [INFO] AUTHENTICATION_PLUGIN_CLASS: MySQLNativePasswordAuthPlugin
+2024-12-19 22:02:13,150 [INFO] Iniciando processamento dos títulos
+2024-12-19 22:02:13,150 [ERROR] Erro ao processar título ID 1234
+NoneType: None
+2024-12-19 22:02:13,158 [INFO] package: mysql.connector.plugins
+2024-12-19 22:02:13,158 [INFO] plugin_name: mysql_native_password
+2024-12-19 22:02:13,158 [INFO] AUTHENTICATION_PLUGIN_CLASS: MySQLNativePasswordAuthPlugin
+2024-12-19 22:02:14,153 [INFO] Iniciando processamento dos títulos
+2024-12-19 22:02:14,153 [ERROR] Erro ao processar título ID 1234
+NoneType: None
+2024-12-19 22:02:14,161 [INFO] package: mysql.connector.plugins
+2024-12-19 22:02:14,161 [INFO] plugin_name: mysql_native_password
+2024-12-19 22:02:14,161 [INFO] AUTHENTICATION_PLUGIN_CLASS: MySQLNativePasswordAuthPlugin
+2024-12-19 22:02:15,024 [INFO] Iniciando processamento dos títulos
+2024-12-19 22:02:15,024 [ERROR] Erro ao processar título ID 1234
+NoneType: None
+2024-12-19 22:02:15,031 [INFO] package: mysql.connector.plugins
+2024-12-19 22:02:15,031 [INFO] plugin_name: mysql_native_password
+2024-12-19 22:02:15,032 [INFO] AUTHENTICATION_PLUGIN_CLASS: MySQLNativePasswordAuthPlugin
+2024-12-19 22:02:49,168 [INFO] Iniciando processamento dos títulos
+2024-12-19 22:02:49,168 [ERROR] Erro ao processar título ID 1234
+NoneType: None
+2024-12-19 22:02:49,174 [INFO] package: mysql.connector.plugins
+2024-12-19 22:02:49,174 [INFO] plugin_name: mysql_native_password
+2024-12-19 22:02:49,175 [INFO] AUTHENTICATION_PLUGIN_CLASS: MySQLNativePasswordAuthPlugin
+2024-12-19 22:02:50,246 [INFO] Iniciando processamento dos títulos
+2024-12-19 22:02:50,247 [ERROR] Erro ao processar título ID 1234
+NoneType: None
+2024-12-19 22:02:50,253 [INFO] package: mysql.connector.plugins
+2024-12-19 22:02:50,254 [INFO] plugin_name: mysql_native_password
+2024-12-19 22:02:50,254 [INFO] AUTHENTICATION_PLUGIN_CLASS: MySQLNativePasswordAuthPlugin
+2024-12-19 22:02:52,046 [INFO] Iniciando processamento dos títulos
+2024-12-19 22:02:52,046 [ERROR] Erro ao processar título ID 1234
+NoneType: None
+2024-12-19 22:02:52,057 [INFO] package: mysql.connector.plugins
+2024-12-19 22:02:52,057 [INFO] plugin_name: mysql_native_password
+2024-12-19 22:02:52,057 [INFO] AUTHENTICATION_PLUGIN_CLASS: MySQLNativePasswordAuthPlugin
+2024-12-19 22:02:52,925 [INFO] Iniciando processamento dos títulos
+2024-12-19 22:02:52,925 [ERROR] Erro ao processar título ID 1234
+NoneType: None
+2024-12-19 22:02:52,932 [INFO] package: mysql.connector.plugins
+2024-12-19 22:02:52,932 [INFO] plugin_name: mysql_native_password
+2024-12-19 22:02:52,932 [INFO] AUTHENTICATION_PLUGIN_CLASS: MySQLNativePasswordAuthPlugin
+2024-12-19 22:02:54,222 [INFO] Iniciando processamento dos títulos
+2024-12-19 22:02:54,222 [ERROR] Erro ao processar título ID 1234
+NoneType: None
+2024-12-19 22:02:54,229 [INFO] package: mysql.connector.plugins
+2024-12-19 22:02:54,229 [INFO] plugin_name: mysql_native_password
+2024-12-19 22:02:54,229 [INFO] AUTHENTICATION_PLUGIN_CLASS: MySQLNativePasswordAuthPlugin
+2024-12-19 22:05:04,098 [INFO] Iniciando processamento dos títulos
+2024-12-19 22:05:04,098 [ERROR] Erro ao processar título ID 1234
+NoneType: None
+2024-12-19 22:05:04,108 [INFO] package: mysql.connector.plugins
+2024-12-19 22:05:04,108 [INFO] plugin_name: mysql_native_password
+2024-12-19 22:05:04,108 [INFO] AUTHENTICATION_PLUGIN_CLASS: MySQLNativePasswordAuthPlugin

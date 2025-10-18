@@ -1,0 +1,36 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-5">
+    <h1 class="text-center mb-4 fw-bold" style="font-size: 26px; color: #2c3e50; text-transform: uppercase; letter-spacing: 1px;">
+        <i class="fas fa-file-alt me-2" style="color: #34495e;"></i> Lista de Templates de E-mails
+    </h1>
+    
+    <div class="d-flex justify-content-end mb-3">
+        <a href="{% url 'email_template_criar' %}" class="btn btn-primary">
+            <i class="fas fa-plus"></i> Adicionar Template
+        </a>
+    </div>
+    
+    <table class="table table-hover table-bordered align-middle">
+        <thead class="table-dark">
+            <tr>
+                <th>ID</th>
+                <th>Tipo de Envio</th>
+                <th class="text-center">Ações</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for template in templates %}
+            <tr>
+                <td>{{ template.id }}</td>
+                <td>{{ template.tipo_envio }}</td>
+                <td class="text-center">
+                    <a href="{% url 'email_template_editar' template.id %}" class="btn btn-sm btn-warning">Editar</a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

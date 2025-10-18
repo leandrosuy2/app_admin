@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html lang="pt-br" data-theme="light">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Negociar Cobranças — {% block title %}Sistema de Cobrança{% endblock %}</title>
+
+  <!-- Fonte moderna -->
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+  <!-- Bootstrap + Icons -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer" />
+
+  <style>
+    /* ====== Design tokens ====== */
+    :root{
+      --bg: #f6f7fb;
+      --card: #fff;
+      --text: #0f172a;
+      --muted:#64748b;
+      --line: rgba(15,23,42,.08);
+
+      --brand-50:#eef2ff;
+      --brand-100:#e0e7ff;
+      --brand-200:#c7d2fe;
+      --brand-400:#818cf8;
+      --brand-500:#6366f1;  /* principal */
+      --brand-600:#4f46e5;
+      --brand-700:#4338ca;
+
+      --accent:#f59e0b;
+
+      --shadow: 0 10px 30px rgba(2,6,23,.06);
+      --ring: 0 0 0 .2rem rgba(99,102,241,.25);
+    }
+    [data-theme="dark"]{
+      --bg:#0b1220;
+      --card:#0f172a;
+      --text:#e5e7eb;
+      --muted:#94a3b8;
+      --line: rgba(148,163,184,.18);
+
+      --shadow: 0 16px 40px rgba(0,0,0,.45);
+      --ring: 0 0 0 .2rem rgba(99,102,241,.35);
+    }
+
+    html, body { height: 100%; }
+    body{
+      background: var(--bg);
+      color: var(--text);
+      font-family: "Inter", system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial, sans-serif;
+      -webkit-font-smoothing: antialiased;
+      text-rendering: optimizeLegibility;
+    }
+
+    /* ====== Appbar ====== */
+    .appbar{
+      position: sticky; top: 0; z-index: 1030;
+      background: color-mix(in srgb, var(--card) 96%, transparent);
+      backdrop-filter: blur(8px);
+      border-bottom: 1px solid var(--line);
+      box-shadow: var(--shadow);
+    }
+    .brand{
+      display:flex; align-items:center; gap:.75rem; text-decoration:none;
+    }
+    .brand .logo{
+      width:40px; height:40px; border-radius:12px; object-fit:cover;
+      border:1px solid var(--line);
+    }
+    .brand .title{
+      font-weight:700; letter-spacing:.2px; color: var(--text);
+    }
+
+    /* ====== Nav “pills” ====== */
+    .chip{
+      display:inline-flex; align-items:center; gap:.5rem;
+      padding:.5rem .9rem; border-radius:999px;
+      border:1px solid var(--line); background: var(--card);
+      color: var(--text); font-weight:600; text-decoration:none;
+      transition:.18s ease;
+    }
+    .chip:hover{ border-color: var(--brand-400); box-shadow: var(--ring); }
+    .chip i{ font-size: .95rem; }
+    .chip.is-active{
+      background: var(--brand-100);
+      border-color: var(--brand-400);
+      color: var(--brand-700);
+    }
+    /* Dropdown trigger com cara de chip */
+    .chip-dropdown::after{ display:none; }
+    .chip-dropdown{ cursor:pointer; }
+
+    .dropdown-menu{
+      background: var(--card);
+      border:1px solid var(--line);
+      box-shadow: var(--shadow);
+      border-radius:14px; padding:.5rem;
+    }
+    .dropdown-item{
+      border-radius:10px; font-weight:500; color: var(--text);
+    }
+    .dropdown-item i{ width:1.1rem; }
+    .dropdown-item:hover{ background: var(--brand-100); color: var(--brand-700); }
+
+    /* ====== Icon buttons ====== */
+    .icon-btn{
+      display:inline-flex; align-items:center; justify-content:center;
+      width:38px; height:38px; border-radius:12px;
+      border:1px solid var(--line); background: var(--card); color: var(--text);
+      transition:.18s ease;
+    }
+    .icon-btn:hover{ box-shadow: var(--ring); border-color: var(--brand-400); }
+
+    /* ====== Content shell ====== */
+    .container-page{ padding: 28px 0 40px; }
+    .card-shell{
+      background: var(--card); border:1px solid var(--line);
+      border-radius:18px; box-shadow: var(--shadow); padding: 28px;
+      min-height: calc(100vh - 180px);
+    }
+
+    /* ====== Footer ====== */
+    footer{
+      border-top:1px solid var(--line); background: var(--card);
+      color: var(--muted); padding: 18px 0;
+    }
+    footer a{ color: var(--brand-600); text-decoration:none; font-weight:600; }
+    footer a:hover{ color: var(--accent); }
+
+    /* Toasts (Django messages) */
+    .toast-container{ position: fixed; top: 1rem; right: 1rem; z-index: 1095; }
+    .toast{ background: var(--card); color: var(--text); border:1px solid var(--line); }
+
+    /* Acessibilidade */
+    :focus-visible{ outline: 3px solid var(--brand-400); outline-offset:2px; }
+
+    /* Mobile */
+    @media (max-width: 991.98px){
+      .nav-desktop{ display:none !important; }
+    }
+  </style>
+</head>
+
+<body>
+  <!-- ====== APPBAR ====== -->
+  <header class="appbar">
+    <div class="container-xl py-2">
+      <div class="d-flex align-items-center justify-content-between gap-2">
+        <!-- Brand -->
+        <a href="{% url 'dashboard' %}" class="brand">
+          <img src="/media/logos/logo_empresa.jpeg" alt="Logo" class="logo">
+          <span class="title">Negociar Cobranças</span>
+        </a>
+
+        <!-- Navegação desktop (pills) -->
+        <nav class="nav-desktop d-none d-lg-flex align-items-center gap-2">
+          <!-- Links externos -->
+          <div class="dropdown">
+            <a class="chip chip-dropdown dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
+              <i class="fa-solid fa-link"></i> Links
+            </a>
+            <ul class="dropdown-menu">
+              <li><a class="dropdown-item" target="_blank" href="http://admin.negociarcobrancas.com.br/"><i class="fa-solid fa-user-shield me-1"></i> Admin</a></li>
+              <li><a class="dropdown-item" target="_blank" href="http://lojista.negociarcobrancas.com.br/"><i class="fa-solid fa-store me-1"></i> Lojista</a></li>
+              <li><a class="dropdown-item" target="_blank" href="http://consultor.negociarcobrancas.com.br/"><i class="fa-solid fa-chalkboard-user me-1"></i> Consultor</a></li>
+              <li><a class="dropdown-item" target="_blank" href="http://operador.negociarcobrancas.com.br/"><i class="fa-solid fa-headset me-1"></i> Operador</a></li>
+            </ul>
+          </div>
+
+          <a class="chip {% if request.resolver_match.url_name == 'dashboard' %}is-active{% endif %}" href="{% url 'dashboard' %}">
+            <i class="fa-solid fa-gauge-high"></i> Painel
+          </a>
+
+          <a class="chip {% if request.resolver_match.url_name == 'listar_empresas' %}is-active{% endif %}" href="{% url 'listar_empresas' %}">
+            <i class="fa-solid fa-building"></i> Empresas
+          </a>
+
+          <!-- Gerenciamento -->
+          <div class="dropdown">
+            <a class="chip chip-dropdown dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
+              <i class="fa-solid fa-screwdriver-wrench"></i> Gerenciamento
+            </a>
+            <ul class="dropdown-menu">
+              <li><a class="dropdown-item" href="{% url 'devedores_listar' %}"><i class="fa-solid fa-users"></i> Devedores</a></li>
+              <li><a class="dropdown-item" href="{% url 'emitir_boletos' %}"><i class="fa-solid fa-file-invoice-dollar"></i> Boletos a emitir</a></li>
+              <li><a class="dropdown-item" href="{% url 'boletos_listar_emitidos' %}"><i class="fa-solid fa-file-invoice"></i> Boletos emitidos</a></li>
+              <li><a class="dropdown-item" href="{% url 'quitados_listar' %}"><i class="fa-solid fa-circle-check"></i> Lista de Quitados</a></li>
+              <li><a class="dropdown-item" href="{% url 'honorarios' %}"><i class="fa-solid fa-money-bill-wave"></i> Honorários</a></li>
+              <li><a class="dropdown-item" href="{% url 'listar_agendamentos' %}"><i class="fa-solid fa-calendar-days"></i> Agendamentos</a></li>
+              <li><a class="dropdown-item" href="{% url 'acordos_listar' %}"><i class="fa-solid fa-handshake"></i> Acordos & Pagamentos</a></li>
+              <li><a class="dropdown-item" href="{% url 'listar_logs' %}"><i class="fa-solid fa-clipboard-list"></i> Logs de Acesso</a></li>
+              <li><a class="dropdown-item" href="{% url 'listar_mensagens' %}"><i class="fa-solid fa-message"></i> Mensagens WhatsApp</a></li>
+              <li><a class="dropdown-item" target="_blank" href="https://pendentes.negociarcobrancas.com.br"><i class="fa-solid fa-comments"></i> Conectar WhatsApp — Pendentes</a></li>
+              <li><a class="dropdown-item" target="_blank" href="https://negociados.negociarcobrancas.com.br"><i class="fa-solid fa-comments-dollar"></i> Conectar WhatsApp — Negociados</a></li>
+              <li><a class="dropdown-item" href="{% url 'tabelas_listar' %}"><i class="fa-solid fa-table"></i> Tabelas de Remuneração</a></li>
+            </ul>
+          </div>
+
+          <!-- Configurações -->
+          <div class="dropdown">
+            <a class="chip chip-dropdown dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
+              <i class="fa-solid fa-gear"></i> Configurações
+            </a>
+            <ul class="dropdown-menu">
+              <li><a class="dropdown-item" href="{% url 'emails_envio_listar' %}"><i class="fa-solid fa-envelope"></i> E-mails</a></li>
+              <li><a class="dropdown-item" href="{% url 'email_template_listar' %}"><i class="fa-solid fa-file-lines"></i> Template de E-mails</a></li>
+            </ul>
+          </div>
+
+          <!-- Usuários -->
+          <div class="dropdown">
+            <a class="chip chip-dropdown dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
+              <i class="fa-solid fa-users"></i> Usuários
+            </a>
+            <ul class="dropdown-menu">
+              <li><a class="dropdown-item" href="{% url 'listar_usuarios' %}"><i class="fa-solid fa-user"></i> Gerenciar Usuários</a></li>
+              <li><a class="dropdown-item" href="{% url 'listar_grupos' %}"><i class="fa-solid fa-users-gear"></i> Gerenciar Grupos</a></li>
+              <li><a class="dropdown-item" href="{% url 'usuarios_lojista_listar' %}"><i class="fa-solid fa-store"></i> Gerenciar Lojistas</a></li>
+            </ul>
+          </div>
+        </nav>
+
+        <!-- Ações (direita) -->
+        <div class="d-flex align-items-center gap-2">
+          <button class="icon-btn" id="themeToggle" title="Alternar tema" aria-label="Alternar tema">
+            <i class="fa-solid fa-moon"></i>
+          </button>
+
+          {% if user.is_authenticated %}
+          <div class="dropdown">
+            <button class="icon-btn dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Menu do usuário">
+              <i class="fa-solid fa-circle-user"></i>
+            </button>
+            <ul class="dropdown-menu dropdown-menu-end">
+              <li class="px-3 py-2 small text-muted">Olá, <strong>{{ user.get_full_name|default:user.username }}</strong></li>
+              <li><hr class="dropdown-divider"></li>
+              <li><a class="dropdown-item text-danger" href="{% url 'logout' %}"><i class="fa-solid fa-right-from-bracket me-1"></i> Sair</a></li>
+            </ul>
+          </div>
+          {% else %}
+            <a href="{% url 'login' %}" class="chip"><i class="fa-solid fa-right-to-bracket"></i> Login</a>
+          {% endif %}
+
+          <!-- Botão para menu mobile -->
+          <button class="icon-btn d-lg-none" data-bs-toggle="offcanvas" data-bs-target="#mobileNav" aria-controls="mobileNav" aria-label="Abrir menu">
+            <i class="fa-solid fa-bars"></i>
+          </button>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- ====== NAV MOBILE (offcanvas) ====== -->
+  <div class="offcanvas offcanvas-end" tabindex="-1" id="mobileNav" aria-labelledby="mobileNavLabel">
+    <div class="offcanvas-header">
+      <h5 class="offcanvas-title" id="mobileNavLabel">Navegação</h5>
+      <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Fechar"></button>
+    </div>
+    <div class="offcanvas-body">
+      <div class="list-group list-group-flush">
+        <a class="list-group-item list-group-item-action" href="{% url 'dashboard' %}">
+          <i class="fa-solid fa-gauge-high me-2"></i> Painel
+        </a>
+        <a class="list-group-item list-group-item-action" href="{% url 'listar_empresas' %}">
+          <i class="fa-solid fa-building me-2"></i> Empresas
+        </a>
+
+        <div class="mt-3 small text-muted">Gerenciamento</div>
+        <a class="list-group-item list-group-item-action" href="{% url 'devedores_listar' %}"><i class="fa-solid fa-users me-2"></i> Devedores</a>
+        <a class="list-group-item list-group-item-action" href="{% url 'emitir_boletos' %}"><i class="fa-solid fa-file-invoice-dollar me-2"></i> Boletos a emitir</a>
+        <a class="list-group-item list-group-item-action" href="{% url 'boletos_listar_emitidos' %}"><i class="fa-solid fa-file-invoice me-2"></i> Boletos emitidos</a>
+        <a class="list-group-item list-group-item-action" href="{% url 'quitados_listar' %}"><i class="fa-solid fa-circle-check me-2"></i> Lista de Quitados</a>
+        <a class="list-group-item list-group-item-action" href="{% url 'honorarios' %}"><i class="fa-solid fa-money-bill-wave me-2"></i> Honorários</a>
+        <a class="list-group-item list-group-item-action" href="{% url 'listar_agendamentos' %}"><i class="fa-solid fa-calendar-days me-2"></i> Agendamentos</a>
+        <a class="list-group-item list-group-item-action" href="{% url 'acordos_listar' %}"><i class="fa-solid fa-handshake me-2"></i> Acordos & Pagamentos</a>
+        <a class="list-group-item list-group-item-action" href="{% url 'listar_logs' %}"><i class="fa-solid fa-clipboard-list me-2"></i> Logs de Acesso</a>
+        <a class="list-group-item list-group-item-action" href="{% url 'listar_mensagens' %}"><i class="fa-solid fa-message me-2"></i> Mensagens WhatsApp</a>
+
+        <div class="mt-3 small text-muted">Links</div>
+        <a class="list-group-item list-group-item-action" target="_blank" href="http://admin.negociarcobrancas.com.br/"><i class="fa-solid fa-user-shield me-2"></i> Admin</a>
+        <a class="list-group-item list-group-item-action" target="_blank" href="http://lojista.negociarcobrancas.com.br/"><i class="fa-solid fa-store me-2"></i> Lojista</a>
+        <a class="list-group-item list-group-item-action" target="_blank" href="http://consultor.negociarcobrancas.com.br/"><i class="fa-solid fa-chalkboard-user me-2"></i> Consultor</a>
+        <a class="list-group-item list-group-item-action" target="_blank" href="http://operador.negociarcobrancas.com.br/"><i class="fa-solid fa-headset me-2"></i> Operador</a>
+
+        <div class="mt-3 small text-muted">Configurações</div>
+        <a class="list-group-item list-group-item-action" href="{% url 'emails_envio_listar' %}"><i class="fa-solid fa-envelope me-2"></i> E-mails</a>
+        <a class="list-group-item list-group-item-action" href="{% url 'email_template_listar' %}"><i class="fa-solid fa-file-lines me-2"></i> Template de E-mails</a>
+
+        <div class="d-flex gap-2 mt-4">
+          <button class="btn btn-outline-secondary w-50" id="themeToggleMobile"><i class="fa-solid fa-circle-half-stroke me-1"></i> Tema</button>
+          {% if user.is_authenticated %}
+            <a class="btn btn-outline-danger w-50" href="{% url 'logout' %}"><i class="fa-solid fa-right-from-bracket me-1"></i> Sair</a>
+          {% else %}
+            <a class="btn btn-primary w-50" href="{% url 'login' %}"><i class="fa-solid fa-right-to-bracket me-1"></i> Login</a>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ====== Breadcrumb slot (opcional) ====== -->
+  {% block breadcrumb %}{% endblock %}
+
+  <!-- ====== MAIN ====== -->
+  <main class="container-xl container-page">
+    <section class="card-shell">
+      {% block content %}{% endblock %}
+    </section>
+  </main>
+
+  <!-- ====== Toasts (Django messages) ====== -->
+  <div id="toastContainer" class="toast-container">
+    {% if messages %}
+      {% for message in messages %}
+        <div class="toast align-items-center mb-2" role="alert" aria-live="assertive" aria-atomic="true" data-bs-delay="4500">
+          <div class="d-flex">
+            <div class="toast-body">
+              {% if "success" in message.tags %}<i class="fa-regular fa-circle-check me-2"></i>{% endif %}
+              {% if "warning" in message.tags %}<i class="fa-solid fa-triangle-exclamation me-2"></i>{% endif %}
+              {% if "error" in message.tags %}<i class="fa-regular fa-circle-xmark me-2"></i>{% endif %}
+              {{ message }}
+            </div>
+            <button type="button" class="btn-close me-2 m-auto" data-bs-dismiss="toast" aria-label="Fechar"></button>
+          </div>
+        </div>
+      {% endfor %}
+    {% endif %}
+  </div>
+
+  <!-- ====== FOOTER ====== -->
+  <footer>
+    <div class="container-xl d-flex flex-wrap justify-content-between align-items-center gap-2">
+      <span class="small">© 2024 Negociar Cobranças</span>
+      <span class="small">
+        <a href="https://www.negociarcobrancas.com.br">Site</a> ·
+        <a href="mailto:financeiroadv@negociarcobrancas.com.br">Contato</a>
+      </span>
+    </div>
+  </footer>
+
+  <!-- ====== Scripts ====== -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script>
+    // Toasts
+    (() => {
+      document.querySelectorAll('#toastContainer .toast').forEach(t => new bootstrap.Toast(t).show());
+    })();
+
+    // Tema com persistência
+    (() => {
+      const root = document.documentElement;
+      const KEY = 'adv-theme';
+      const setIcon = (btn) => {
+        if(!btn) return;
+        btn.innerHTML = root.getAttribute('data-theme') === 'dark'
+          ? '<i class="fa-solid fa-sun"></i>' : '<i class="fa-solid fa-moon"></i>';
+      };
+      const saved = localStorage.getItem(KEY);
+      if(saved) root.setAttribute('data-theme', saved);
+      setIcon(document.getElementById('themeToggle'));
+      setIcon(document.getElementById('themeToggleMobile'));
+
+      function toggle(){
+        const next = root.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+        root.setAttribute('data-theme', next);
+        localStorage.setItem(KEY, next);
+        setIcon(document.getElementById('themeToggle'));
+        setIcon(document.getElementById('themeToggleMobile'));
+      }
+      document.getElementById('themeToggle')?.addEventListener('click', toggle);
+      document.getElementById('themeToggleMobile')?.addEventListener('click', toggle);
+    })();
+  </script>
+
+  {% block extra_styles %}{% endblock %}
+  {% block extra_scripts %}{% endblock %}
+</body>
+</html>

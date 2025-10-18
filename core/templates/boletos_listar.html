@@ -1,0 +1,118 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-5">
+      <!-- Resumo com Cards -->
+    <div class="row mb-5 gx-4 gy-3">
+        <div class="col-md-4">
+            <div class="card text-white bg-primary shadow-lg border-0">
+                <div class="card-body text-center">
+                    <h6 class="card-title fw-semibold">Valor em Aberto</h6>
+                    <h2 class="display-6 fw-bold">R$ {{ valor_aberto|floatformat:2 }}</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card text-white bg-success shadow-lg border-0">
+                <div class="card-body text-center">
+                    <h6 class="card-title fw-semibold">Valor Quitado</h6>
+                    <h2 class="display-6 fw-bold">R$ {{ valor_quitado|floatformat:2 }}</h2>
+                    <p class="small mt-2">Hoje: <strong>R$ {{ valor_quitado_hoje|floatformat:2 }}</strong></p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card text-white bg-warning shadow-lg border-0">
+                <div class="card-body text-center">
+                    <h6 class="card-title fw-semibold">Valor Negociado</h6>
+                    <h2 class="display-6 fw-bold">R$ {{ valor_negociado|floatformat:2 }}</h2>
+                    <p class="small mt-2">Hoje: <strong>R$ {{ valor_negociado_hoje|floatformat:2 }}</strong></p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tabela de Boletos -->
+    <h2 class="mb-4 text-center">Boletos</h2>
+    <div class="table-responsive rounded shadow-sm">
+        <table class="table table-bordered align-middle">
+            <thead class="table-light text-center">
+                <tr>
+                    <th>Pagador</th>
+                    <th>Origem</th>
+                    <th>Vencimento</th>
+                    <th>Situação</th>
+                    <th>Valor Recebido</th>
+                    <th>Valor Nominal</th>
+                    <th>Status</th>
+                    <th>Ações</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for boleto in boletos %}
+                <tr>
+                    <td>{{ boleto.pagador_nome }}</td>
+                    <td class="text-center">{{ boleto.origem_recebimento }}</td>
+                    <td class="text-center">{{ boleto.data_vencimento|date:"d/m/Y" }}</td>
+                    <td class="text-center">
+                        {% if boleto.data_situacao %}
+                            {{ boleto.data_situacao|date:"d/m/Y" }}
+                        {% else %}
+                            <span class="text-muted">---</span>
+                        {% endif %}
+                    </td>
+                    <td class="text-end">R$ {{ boleto.valor_total_recebido|floatformat:2 }}</td>
+                    <td class="text-end">R$ {{ boleto.valor_nominal|floatformat:2 }}</td>
+                    <td class="text-center">
+                        <span class="badge 
+                            {% if boleto.situacao == 'A_RECEBER' %} bg-info text-dark 
+                            {% elif boleto.situacao == 'ATRASADO' %} bg-danger 
+                            {% elif boleto.situacao == 'RECEBIDO' %} bg-success 
+                            {% else %} bg-secondary {% endif %}">
+                            {{ boleto.situacao }}
+                        </span>
+                    </td>
+                    <td class="text-center">
+                        {% if boleto.situacao in 'A_RECEBER, ATRASADO' %}
+                            <a href="https://advassessoria.appone.com.br/arquivos/boleto_{{ boleto.codigo_solicitacao }}.pdf" 
+                               class="btn btn-outline-primary btn-sm" target="_blank">
+                                <i class="bi bi-download"></i> Baixar
+                            </a>
+                        {% else %}
+                            <span class="text-muted">---</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="8" class="text-center text-muted">Nenhum boleto encontrado.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Paginação -->
+    <nav class="mt-4 d-flex justify-content-center">
+        <ul class="pagination">
+            {% if boletos.has_previous %}
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ boletos.previous_page_number }}">
+                        <i class="bi bi-chevron-left"></i> Anterior
+                    </a>
+                </li>
+            {% endif %}
+            <li class="page-item disabled">
+                <span class="page-link">Página {{ boletos.number }} de {{ boletos.paginator.num_pages }}</span>
+            </li>
+            {% if boletos.has_next %}
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ boletos.next_page_number }}">
+                        Próximo <i class="bi bi-chevron-right"></i>
+                    </a>
+                </li>
+            {% endif %}
+        </ul>
+    </nav>
+</div>
+{% endblock %}

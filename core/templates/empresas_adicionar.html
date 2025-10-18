@@ -1,0 +1,227 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-5">
+  <h3 class="text-center mb-4">Adicionar Empresa</h3>
+
+  <form method="post" action="{% url 'adicionar_empresa' %}" enctype="multipart/form-data">
+    {% csrf_token %}
+
+    <div class="row g-3">
+
+      <!-- Logo -->
+      <div class="col-md-12">
+        <label for="logo" class="form-label">Logo</label>
+        <input type="file" id="logo" name="logo" class="form-control" accept="image/*">
+      </div>
+
+      <!-- CNPJ, Nome Fantasia, Razão Social -->
+      <div class="col-md-6">
+        <label for="cnpj" class="form-label">CNPJ</label>
+        <input type="text" id="cnpj" name="cnpj" class="form-control" placeholder="00.000.000/0000-00" required>
+      </div>
+      <div class="col-md-6">
+        <label for="nome_fantasia" class="form-label">Nome Fantasia</label>
+        <input type="text" id="nome_fantasia" name="nome_fantasia" class="form-control" placeholder="Nome Fantasia" required>
+      </div>
+      <div class="col-md-6">
+        <label for="razao_social" class="form-label">Razão Social</label>
+        <input type="text" id="razao_social" name="razao_social" class="form-control" placeholder="Razão Social" required>
+      </div>
+
+      <!-- Contato -->
+      <div class="col-md-6">
+        <label for="nome_contato" class="form-label">Nome do Contato</label>
+        <input type="text" id="nome_contato" name="nome_contato" class="form-control" placeholder="Nome do Contato">
+      </div>
+      <div class="col-md-6">
+        <label for="cpf_contato" class="form-label">CPF do Contato</label>
+        <input type="text" id="cpf_contato" name="cpf_contato" class="form-control" placeholder="000.000.000-00">
+      </div>
+
+      <!-- DADOS BANCÁRIOS PARA DEPÓSITO -->
+      <div class="col-12 mt-3">
+        <h5 class="mb-2">Dados Bancários para Depósito</h5>
+      </div>
+      <div class="col-md-3">
+        <label for="banco_nome" class="form-label">Banco</label>
+        <input type="text" id="banco_nome" name="banco_nome" class="form-control" placeholder="Nome do banco">
+      </div>
+      <div class="col-md-3">
+        <label for="agencia" class="form-label">Agência</label>
+        <input type="text" id="agencia" name="agencia" class="form-control" placeholder="0000-0">
+      </div>
+      <div class="col-md-3">
+        <label for="conta" class="form-label">Conta</label>
+        <input type="text" id="conta" name="conta" class="form-control" placeholder="000000-0">
+      </div>
+      <div class="col-md-3">
+        <label for="chave_pix" class="form-label">Chave PIX</label>
+        <input type="text" id="chave_pix" name="chave_pix" class="form-control" placeholder="Sua chave PIX">
+      </div>
+
+      <!-- PIX (opcionalmente manter tipo + favorecido) -->
+      <div class="col-md-6">
+        <label for="nome_favorecido_pix" class="form-label">Nome Favorecido PIX</label>
+        <input type="text" id="nome_favorecido_pix" name="nome_favorecido_pix" class="form-control" placeholder="Nome do favorecido">
+      </div>
+      <div class="col-md-6">
+        <label for="tipo_pix" class="form-label">Tipo de Chave PIX</label>
+        <select id="tipo_pix" name="tipo_pix" class="form-select">
+          <option value="">Selecione</option>
+          <option value="cnpj">CNPJ</option>
+          <option value="cpf">CPF</option>
+          <option value="email">Email</option>
+          <option value="telefone">Telefone</option>
+          <option value="chave_aleatoria">Chave Aleatória</option>
+          <option value="agencia_conta">Agência e conta</option>
+        </select>
+      </div>
+
+      <!-- IE e Telefones -->
+      <div class="col-md-4">
+        <label for="ie" class="form-label">Inscrição Estadual</label>
+        <input type="text" id="ie" name="ie" class="form-control" placeholder="Inscrição Estadual">
+      </div>
+      <div class="col-md-4">
+        <label for="telefone" class="form-label">Telefone</label>
+        <input type="text" id="telefone" name="telefone" class="form-control" placeholder="(00) 0000-0000">
+      </div>
+      <div class="col-md-4">
+        <label for="celular" class="form-label">Celular</label>
+        <input type="text" id="celular" name="celular" class="form-control" placeholder="(00) 00000-0000">
+      </div>
+      <div class="col-md-6">
+        <label for="whatsapp_financeiro" class="form-label">WhatsApp Financeiro</label>
+        <input type="text" id="whatsapp_financeiro" name="whatsapp_financeiro" class="form-control" placeholder="(00) 00000-0000">
+      </div>
+
+      <!-- Responsáveis -->
+      <div class="col-md-4">
+        <label for="operador" class="form-label">Operador</label>
+        <input type="text" id="operador" name="operador" class="form-control" placeholder="Operador">
+      </div>
+      <div class="col-md-4">
+        <label for="supervisor" class="form-label">Supervisor</label>
+        <input type="text" id="supervisor" name="supervisor" class="form-control" placeholder="Supervisor">
+      </div>
+      <div class="col-md-4">
+        <label for="gerente" class="form-label">Gerente</label>
+        <input type="text" id="gerente" name="gerente" class="form-control" placeholder="Gerente">
+      </div>
+
+      <!-- Endereço -->
+      <div class="col-md-3">
+        <label for="cep" class="form-label">CEP</label>
+        <input type="text" id="cep" name="cep" class="form-control" placeholder="00000-000">
+      </div>
+      <div class="col-md-6">
+        <label for="endereco" class="form-label">Endereço</label>
+        <input type="text" id="endereco" name="endereco" class="form-control" placeholder="Rua, número">
+      </div>
+      <div class="col-md-3">
+        <label for="numero" class="form-label">Número</label>
+        <input type="text" id="numero" name="numero" class="form-control" placeholder="Número">
+      </div>
+      <div class="col-md-4">
+        <label for="bairro" class="form-label">Bairro</label>
+        <input type="text" id="bairro" name="bairro" class="form-control" placeholder="Bairro">
+      </div>
+      <div class="col-md-2">
+        <label for="uf" class="form-label">UF</label>
+        <input type="text" id="uf" name="uf" class="form-control" maxlength="2" placeholder="UF">
+      </div>
+      <div class="col-md-6">
+        <label for="cidade" class="form-label">Cidade</label>
+        <input type="text" id="cidade" name="cidade" class="form-control" placeholder="Cidade">
+      </div>
+
+      <!-- E-mails -->
+      <div class="col-md-6">
+        <label for="email" class="form-label">Email</label>
+        <input type="email" id="email" name="email" class="form-control" placeholder="email@empresa.com">
+      </div>
+      <div class="col-md-6">
+        <label for="email_financeiro" class="form-label">Email Financeiro</label>
+        <input type="email" id="email_financeiro" name="email_financeiro" class="form-control" placeholder="email_financeiro@empresa.com">
+      </div>
+
+      <!-- TAXAS E CONDIÇÕES CONTRATUAIS -->
+      <div class="col-12 mt-3">
+        <h5 class="mb-2">Taxas e Condições Contratuais</h5>
+      </div>
+      <div class="col-md-6">
+        <label for="valor_adesao" class="form-label">Implantação</label>
+        <input type="text" id="valor_adesao" name="valor_adesao" class="form-control" placeholder="0,00">
+      </div>
+
+      <!-- CONDIÇÕES DE NEGOCIAÇÃO AOS DEVEDORES -->
+      <div class="col-12 mt-3">
+        <h5 class="mb-2">Condições de Negociação junto aos Clientes Devedores</h5>
+      </div>
+      <div class="col-md-4">
+        <label for="qtd_parcelas" class="form-label">Quantidade de parcelas</label>
+        <input type="number" id="qtd_parcelas" name="qtd_parcelas" class="form-control" min="0" placeholder="0">
+      </div>
+      <div class="col-md-4">
+        <label for="desconto_total_avista" class="form-label">Total de descontos (à vista) %</label>
+        <input type="text" id="desconto_total_avista" name="desconto_total_avista" class="form-control" placeholder="ex.: 10,00">
+      </div>
+      <div class="col-md-4">
+        <label for="desconto_total_aprazo" class="form-label">Total de descontos (a prazo) %</label>
+        <input type="text" id="desconto_total_aprazo" name="desconto_total_aprazo" class="form-control" placeholder="ex.: 5,00">
+      </div>
+
+      <!-- Plano -->
+      <div class="col-md-6">
+        <label for="plano" class="form-label">Plano</label>
+        <select name="plano" id="plano" class="form-select" required>
+          <option value="">Selecione um plano</option>
+          {% for tabela in tabelas %}
+            <option value="{{ tabela.id }}">{{ tabela.nome }}</option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <!-- Botão -->
+      <div class="col-12 text-center mt-4">
+        <button type="submit" class="btn btn-success btn-lg">Salvar</button>
+      </div>
+    </div>
+  </form>
+</div>
+
+<script>
+  function aplicarMascara(input, func){ setTimeout(()=>{input.value = func(input.value)},1); }
+  const mascaras = {
+    cnpj:v=>v.replace(/\D/g,'').replace(/^(\d{2})(\d)/,'$1.$2').replace(/\.(\d{3})(\d)/,'.$1/$2').replace(/(\d{4})(\d)/,'$1-$2'),
+    cpf_contato:v=>v.replace(/\D/g,'').replace(/(\d{3})(\d)/g,'$1.$2').replace(/(\d{3})-(\d{2})/,'$1-$2'),
+    telefone:v=>v.replace(/\D/g,'').replace(/(\d{2})(\d)/,'($1) $2').replace(/(\d{4,5})(\d)/,'$1-$2'),
+    celular:v=>v.replace(/\D/g,'').replace(/(\d{2})(\d)/,'($1) $2').replace(/(\d{5})(\d)/,'$1-$2'),
+    whatsapp_financeiro:v=>v.replace(/\D/g,'').replace(/(\d{2})(\d)/,'($1) $2').replace(/(\d{5})(\d)/,'$1-$2'),
+    cep:v=>v.replace(/\D/g,'').replace(/(\d{5})(\d)/,'$1-$2'),
+  };
+  Object.keys(mascaras).forEach(id=>{const el=document.getElementById(id); if(el) el.addEventListener('input',e=>aplicarMascara(e.target, mascaras[id]))});
+
+  document.getElementById('cnpj').addEventListener('blur', async function(){
+    const cnpj = this.value.replace(/\D/g,''); if(cnpj.length!==14){return;}
+    try{
+      const r = await fetch(`https://publica.cnpj.ws/cnpj/${cnpj}`);
+      if(!r.ok) return;
+      const data = await r.json();
+      document.getElementById('razao_social').value   = data.razao_social || '';
+      document.getElementById('nome_fantasia').value  = data.estabelecimento?.nome_fantasia || '';
+      document.getElementById('telefone').value       = data.estabelecimento?.telefone1 || '';
+      document.getElementById('email').value          = data.estabelecimento?.email || '';
+      document.getElementById('cep').value            = data.estabelecimento?.cep || '';
+      document.getElementById('endereco').value       = data.estabelecimento?.logradouro || '';
+      document.getElementById('bairro').value         = data.estabelecimento?.bairro || '';
+      document.getElementById('cidade').value         = data.estabelecimento?.cidade?.nome || '';
+      document.getElementById('uf').value             = data.estabelecimento?.estado?.sigla || '';
+      document.getElementById('numero').value         = data.estabelecimento?.numero || '';
+      document.getElementById('ie').value             = data.estabelecimento?.inscricoes_estaduais?.[0]?.inscricao_estadual || '';
+      document.getElementById('nome_contato').value   = data.socios?.[0]?.nome || '';
+    }catch(e){ console.error(e); }
+  });
+</script>
+{% endblock %}

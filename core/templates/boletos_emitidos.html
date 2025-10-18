@@ -1,0 +1,307 @@
+{% extends "base.html" %}
+{% load humanize %}
+
+{% block content %}
+<div class="container-fluid py-3">
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <h4 class="mb-0">Boletos emitidos (PIX / Inter)</h4>
+    {% if wa_open_url %}
+      <a href="{{ wa_open_url }}" target="_blank" rel="noopener" class="btn btn-success">Abrir WhatsApp</a>
+    {% endif %}
+  </div>
+
+  <div class="row g-3 mb-3">
+    <div class="col-md-4">
+      <div class="card shadow-sm"><div class="card-body d-flex justify-content-between">
+        <span class="text-muted">Recebidos</span><strong>R$ {{ valor_quitado|floatformat:2 }}</strong>
+      </div></div>
+    </div>
+    <div class="col-md-4">
+      <div class="card shadow-sm"><div class="card-body d-flex justify-content-between">
+        <span class="text-muted">A receber</span><strong>R$ {{ valor_aberto|floatformat:2 }}</strong>
+      </div></div>
+    </div>
+    <div class="col-md-4">
+      <div class="card shadow-sm"><div class="card-body d-flex justify-content-between">
+        <span class="text-muted">Atrasados</span><strong>R$ {{ valor_atrasado|floatformat:2 }}</strong>
+      </div></div>
+    </div>
+  </div>
+
+  <form method="get" class="card shadow-sm mb-3">
+    <div class="card-body row g-2 align-items-end">
+      <div class="col-md-4">
+        <label class="form-label">Busca</label>
+        <input type="text" name="q" class="form-control" value="{{ search_query }}" placeholder="Situação, nome, CPF/CNPJ, código...">
+      </div>
+      <div class="col-md-3">
+        <label class="form-label">Início (emissão)</label>
+        <input type="date" name="data_inicio" class="form-control" value="{{ data_inicio }}">
+      </div>
+      <div class="col-md-3">
+        <label class="form-label">Fim (emissão)</label>
+        <input type="date" name="data_fim" class="form-control" value="{{ data_fim }}">
+      </div>
+      <div class="col-md-2">
+        <button class="btn btn-primary w-100" type="submit"><i class="bi bi-search"></i></button>
+      </div>
+    </div>
+  </form>
+
+  <div class="card shadow-sm">
+    <div class="table-responsive">
+      <table class="table table-sm table-hover align-middle mb-0">
+        <thead class="table-light">
+          <tr>
+            <th style="width:90px;">ID</th>
+            <th style="width:120px;">Situação</th>
+            <th style="width:120px;">Emissão</th>
+            <th style="width:120px;">Vencimento</th>
+            <th class="text-end" style="width:150px;">Valor</th>
+            <th>Pagador</th>
+            <th class="text-center" style="width:260px;">Ações</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for b in page_obj.boletos %}
+            {% with txid=b.txid_effective %}
+            <tr>
+              <td>{{ b.id }}</td>
+              <td>
+                <span class="badge
+                  {% if b.situacao == 'A_RECEBER' %} bg-info text-dark
+                  {% elif b.situacao == 'ATRASADO' %} bg-danger
+                  {% elif b.situacao == 'RECEBIDO' %} bg-success
+                  {% else %} bg-secondary {% endif %}">
+                  {{ b.situacao|default:"—" }}
+                </span>
+              </td>
+              <td>{{ b.data_emissao|default:"—" }}</td>
+              <td>{{ b.data_vencimento|default:"—" }}</td>
+              <td class="text-end">R$ {{ b.valor_nominal|floatformat:2 }}</td>
+              <td class="text-truncate" style="max-width:320px;">{{ b.pagador_nome|default:"—" }}</td>
+              <td class="text-center">
+                <div class="btn-group btn-group-sm">
+                  <button class="btn btn-outline-secondary"
+                          data-bs-toggle="modal" data-bs-target="#detModal-{{ b.id }}">
+                    Detalhes
+                  </button>
+
+                  {% if txid and pix_public_base %}
+                    <a class="btn btn-outline-primary"
+                       href="{{ pix_public_base }}/pix/qr/{{ txid }}/"
+                       target="_blank" rel="noopener">
+                      QR
+                    </a>
+                  {% else %}
+                    <button class="btn btn-outline-secondary" disabled>QR</button>
+                  {% endif %}
+
+                  {% if b.brcode %}
+                    <button type="button" class="btn btn-outline-secondary"
+                            data-bs-toggle="modal" data-bs-target="#brcodeModal-{{ b.id }}">
+                      Copiar
+                    </button>
+                  {% else %}
+                    <button class="btn btn-outline-secondary" disabled>Copiar</button>
+                  {% endif %}
+
+                  {% if txid and pix_public_base %}
+                    <button type="button" class="btn btn-success"
+                            data-bs-toggle="modal" data-bs-target="#waModal-{{ b.id }}">
+                      WhatsApp
+                    </button>
+                  {% else %}
+                    <button class="btn btn-success" disabled>WhatsApp</button>
+                  {% endif %}
+                </div>
+              </td>
+            </tr>
+            {% endwith %}
+          {% empty %}
+            <tr><td colspan="7" class="text-center text-muted py-4">Nenhuma cobrança PIX/Inter encontrada.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    <div class="card-footer">
+      <nav>
+        <ul class="pagination pagination-sm mb-0">
+          <li class="page-item {% if not page_obj.has_previous %}disabled{% endif %}">
+            <a class="page-link"
+               href="?page={{ page_obj.previous_page_number }}&q={{ search_query }}&data_inicio={{ data_inicio }}&data_fim={{ data_fim }}">«</a>
+          </li>
+          <li class="page-item active"><span class="page-link">{{ page_obj.number }}</span></li>
+          <li class="page-item {% if not page_obj.has_next %}disabled{% endif %}">
+            <a class="page-link"
+               href="?page={{ page_obj.next_page_number }}&q={{ search_query }}&data_inicio={{ data_inicio }}&data_fim={{ data_fim }}">»</a>
+          </li>
+        </ul>
+      </nav>
+    </div>
+  </div>
+</div>
+
+<!-- ===== MODAIS (fora da tabela) ===== -->
+<div id="modals-root">
+  {% for b in page_obj.boletos %}
+    {% with txid=b.txid_effective %}
+    <!-- Detalhes -->
+    <div class="modal fade" id="detModal-{{ b.id }}" tabindex="-1" aria-hidden="true">
+      <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h6 class="modal-title">Detalhes da cobrança — ID {{ b.id }}</h6>
+            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+          </div>
+          <div class="modal-body">
+            <div class="row g-3">
+              <div class="col-md-6">
+                <small class="text-muted d-block">Credor (empresa)</small>
+                <div><strong>{{ b.empresa_nome|default:"—" }}</strong></div>
+              </div>
+              <div class="col-md-6">
+                <small class="text-muted d-block">Pagador</small>
+                <div>{{ b.pagador_nome|default:"—" }}</div>
+              </div>
+              <div class="col-md-6">
+                <small class="text-muted d-block">CPF/CNPJ (pagador)</small>
+                <div class="text-monospace">{{ b.pagador_cpf_cnpj|default:"—" }}</div>
+              </div>
+              <div class="col-md-6">
+                <small class="text-muted d-block">Txid</small>
+                <div class="text-monospace">{{ txid|default:"—" }}</div>
+              </div>
+            </div>
+
+            <hr class="my-3">
+
+            <div class="table-responsive">
+              <table class="table table-sm table-striped table-bordered align-middle mb-0">
+                <thead class="table-light">
+                  <tr>
+                    <th style="width:100px;">ID Título</th>
+                    <th>Devedor</th>
+                    <th style="width:110px;">Nº Título</th>
+                    <th style="width:130px;" class="text-end">Valor Recebido</th>
+                    <th style="width:120px;">Vencimento</th>
+                    <th style="width:110px;">Status</th>
+                    <th style="width:120px;">Baixa</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {% if b.detalhes and b.detalhes|length > 0 %}
+                    {% for d in b.detalhes %}
+                      <tr>
+                        <td><b>{{ d.titulo_id }}</b></td>
+                        <td class="text-start">{{ d.devedor }}</td>
+                        <td>{{ d.num_titulo }}</td>
+                        <td class="text-end">R$ {{ d.valor|floatformat:2 }}</td>
+                        <td>{{ d.vencimento }}</td>
+                        <td>
+                          {% if d.status == "Pendente" %}<span class="badge bg-warning text-dark">Pendente</span>
+                          {% elif d.status == "Quitado" %}<span class="badge bg-success">Quitado</span>
+                          {% elif d.status == "Negociado" %}<span class="badge bg-info text-dark">Negociado</span>
+                          {% else %}<span class="badge bg-secondary">—</span>{% endif %}
+                        </td>
+                        <td>{{ d.data_baixa }}</td>
+                      </tr>
+                    {% endfor %}
+                  {% else %}
+                    <tr><td colspan="7" class="text-center text-muted">Sem itens vinculados.</td></tr>
+                  {% endif %}
+                </tbody>
+              </table>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button class="btn btn-outline-secondary" data-bs-dismiss="modal">Fechar</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Pix Copia-e-Cola -->
+    <div class="modal fade" id="brcodeModal-{{ b.id }}" tabindex="-1" aria-hidden="true">
+      <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h6 class="modal-title">PIX Copia-e-Cola — ID {{ b.id }}</h6>
+            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+          </div>
+          <div class="modal-body">
+            {% if b.brcode %}
+              <textarea id="brcode-{{ b.id }}" class="form-control" rows="6" readonly>{{ b.brcode }}</textarea>
+              <button type="button" class="btn btn-outline-secondary mt-2" onclick="copyBrcode('{{ b.id }}')">Copiar</button>
+            {% else %}
+              <div class="text-muted">Não há Pix Copia-e-Cola salvo para esta cobrança.</div>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- WhatsApp -->
+    <div class="modal fade" id="waModal-{{ b.id }}" tabindex="-1" aria-hidden="true">
+      <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+          <form method="post" class="needs-validation" novalidate>
+            {% csrf_token %}
+            <input type="hidden" name="reenviar_wa" value="1">
+            <div class="modal-header">
+              <h6 class="modal-title">Reenviar cobrança por WhatsApp — ID {{ b.id }}</h6>
+              <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+              <div class="mb-2">
+                <label class="form-label">Número (WhatsApp)</label>
+                <input type="tel" name="numero_whatsapp" class="form-control"
+                       placeholder="(DDD) 9xxxx-xxxx" required>
+                <div class="form-text">Será normalizado para o formato internacional (+55...)</div>
+              </div>
+
+              {% if txid and pix_public_base %}
+                {% with link=pix_public_base|add:"/pix/qr/"|add:txid|add:"/" %}
+                  <div class="mb-2">
+                    <label class="form-label">Mensagem</label>
+                    <textarea name="wa_msg" class="form-control" rows="6">
+Olá, {{ b.pagador_nome|default:"" }}
+
+Segue o link para pagamento via PIX (QR Code + copia e cola):
+{{ link }}
+
+Valor: R$ {{ b.valor_nominal|floatformat:2 }}
+
+Atenciosamente,
+Negociar Cobranças
+                    </textarea>
+                    <div class="form-text">Você pode ajustar a mensagem antes de enviar.</div>
+                  </div>
+                {% endwith %}
+              {% else %}
+                <div class="text-danger">Não foi possível montar o link do QR (sem TXID).</div>
+              {% endif %}
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Fechar</button>
+              <button type="submit" class="btn btn-success">Preparar WhatsApp</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+    {% endwith %}
+  {% endfor %}
+</div>
+
+<script>
+function copyBrcode(id){
+  const ta = document.getElementById('brcode-' + id);
+  if(!ta) return;
+  ta.select(); ta.setSelectionRange(0, ta.value.length);
+  try { document.execCommand('copy'); alert('Código PIX copiado!'); }
+  catch(e){ alert('Não foi possível copiar automaticamente. Copie manualmente.'); }
+}
+</script>
+{% endblock %}

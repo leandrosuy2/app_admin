@@ -1,0 +1,225 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container py-5">
+  <div class="text-center mb-5">
+    <h3 class="fw-bold text-uppercase" style="color:#2c3e50;letter-spacing:1.5px;">
+      <i class="fas fa-check-circle me-2" style="color:#27ae60;"></i> Lista de Quitados
+    </h3>
+    <p class="text-muted">Consulte e gerencie os títulos quitados com filtros avançados</p>
+  </div>
+
+  <div class="card shadow-sm mb-5 border-0">
+    <div class="card-body p-4">
+      <form method="GET" class="row g-3 align-items-end">
+        <div class="col-md-3">
+          <label class="form-label fw-bold text-muted">Data Início</label>
+          <input type="date" name="data_inicio" class="form-control shadow-sm" value="{{ data_inicio }}">
+        </div>
+        <div class="col-md-3">
+          <label class="form-label fw-bold text-muted">Data Fim</label>
+          <input type="date" name="data_fim" class="form-control shadow-sm" value="{{ data_fim }}">
+        </div>
+        <div class="col-md-2">
+          <label class="form-label fw-bold text-muted">Tipo</label>
+          <select name="tipo" class="form-select shadow-sm">
+            <option value="">Todos</option>
+            <option value="parcela"  {% if tipo == 'parcela' %}selected{% endif %}>Parcela</option>
+            <option value="quitacao" {% if tipo == 'quitacao' %}selected{% endif %}>Quitação</option>
+          </select>
+        </div>
+
+        <div class="col-md-4">
+          <label class="form-label fw-bold text-muted">Devedor</label>
+          <input type="text" name="devedor" class="form-control shadow-sm" value="{{ devedor }}" placeholder="Nome do devedor">
+        </div>
+        <div class="col-md-4">
+          <label class="form-label fw-bold text-muted">Empresa</label>
+          <input type="text" name="empresa" class="form-control shadow-sm" value="{{ empresa }}" placeholder="Nome da empresa">
+        </div>
+
+        {% if request.user.is_staff or request.user.is_superuser %}
+          <div class="col-md-4">
+            <label class="form-label fw-bold text-muted">Operador</label>
+            <select name="operador" class="form-select shadow-sm">
+              <option value="">Todos</option>
+              {% for op in operadores %}
+                <option value="{{ op }}" {% if op == operador %}selected{% endif %}>{{ op }}</option>
+              {% endfor %}
+            </select>
+          </div>
+        {% else %}
+          <div class="col-md-4">
+            <label class="form-label fw-bold text-muted">Operador</label>
+            <div class="form-control shadow-sm bg-light">{{ operador }}</div>
+            <input type="hidden" name="operador" value="{{ operador }}">
+          </div>
+        {% endif %}
+
+        <div class="col-md-4">
+          <label class="form-label fw-bold text-muted">Supervisor</label>
+          <select name="supervisor" class="form-select shadow-sm">
+            <option value="">Todos</option>
+            {% for sup in supervisores %}
+              <option value="{{ sup }}" {% if sup == supervisor %}selected{% endif %}>{{ sup }}</option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <div class="col-md-4">
+          <label class="form-label fw-bold text-muted">Valor Mínimo</label>
+          <input type="number" step="0.01" name="valor_min" class="form-control shadow-sm" value="{{ valor_min }}" placeholder="R$ mínimo">
+        </div>
+        <div class="col-md-4">
+          <label class="form-label fw-bold text-muted">Valor Máximo</label>
+          <input type="number" step="0.01" name="valor_max" class="form-control shadow-sm" value="{{ valor_max }}" placeholder="R$ máximo">
+        </div>
+
+        <div class="col-md-12 text-end mt-3">
+          <button type="submit" class="btn btn-primary px-4 fw-bold shadow-sm">
+            <i class="fas fa-filter me-2"></i>Filtrar Resultados
+          </button>
+          <a href="{% url 'quitados_listar' %}" class="btn btn-outline-secondary px-4 fw-bold shadow-sm">Limpar</a>
+        </div>
+
+        {% if trava_operador %}
+          <div class="col-12 small text-muted">
+            * Exibindo somente registros do operador/supervisor <strong>{{ operador }}</strong>.
+          </div>
+        {% endif %}
+      </form>
+    </div>
+  </div>
+
+  <!-- Card Soma Total -->
+  <div class="row justify-content-center mb-5">
+    <div class="col-md-6">
+      <div class="card text-white bg-gradient-success shadow border-0">
+        <div class="card-body text-center py-4">
+          <h5 class="card-title fw-bold mb-3" style="color:#27ae60;">Soma Total dos Quitados</h5>
+          <p class="card-text display-5 fw-bold" style="color:#27ae60;">R$ {{ soma_total|floatformat:2 }}</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tabela -->
+  <!-- Tabela -->
+<div class="card shadow-sm border-0">
+  <div class="card-body p-0">
+    <table class="table table-striped align-middle table-sm responsive-table m-0">
+      <thead class="bg-light">
+        <tr>
+          <th class="py-3 px-3">Tipo</th>
+          <th class="py-3 px-3">Data de Baixa</th>
+          <th class="py-3 px-3">Data de Vencimento</th>
+          <th class="py-3 px-3 text-end">Valor Recebido</th>
+          <th class="py-3 px-3">Devedor</th>
+          <th class="py-3 px-3">CPF / CNPJ</th>
+          <th class="py-3 px-3">Empresa</th>
+          <th class="py-3 px-3">Operador</th>
+          <th class="py-3 px-3">Supervisor</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for quitado in page_obj %}
+          <tr>
+            <td class="px-3 py-2" data-label="Tipo">
+              <span class="badge {% if quitado.idTituloRef %}bg-info{% else %}bg-success{% endif %}">
+                {% if quitado.idTituloRef %}Parcela{% else %}Quitação{% endif %}
+              </span>
+            </td>
+            <td class="px-3 py-2" data-label="Data de Baixa">{{ quitado.data_baixa }}</td>
+            <td class="px-3 py-2" data-label="Data de Vencimento">{{ quitado.data_vencimento }}</td>
+            <td class="px-3 py-2 text-end" data-label="Valor Recebido">R$ {{ quitado.valor_recebido|floatformat:2 }}</td>
+            <td class="px-3 py-2" data-label="Devedor">{{ quitado.nome }}</td>
+            <td class="px-3 py-2" data-label="CPF / CNPJ">{{ quitado.cpf|default:'' }} {{ quitado.cnpj|default:'' }}</td>
+            <td class="px-3 py-2" data-label="Empresa">{{ quitado.empresa }}</td>
+            <td class="px-3 py-2" data-label="Operador">{{ quitado.operador }}</td>
+            <td class="px-3 py-2" data-label="Supervisor">{{ quitado.supervisor }}</td>
+          </tr>
+        {% empty %}
+          <tr><td colspan="9" class="text-center py-4 text-muted">Nenhum registro encontrado</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+
+  <!-- Paginação -->
+  <nav class="mt-4">
+    <ul class="pagination justify-content-center">
+      {% if page_obj.has_previous %}
+        <li class="page-item"><a class="page-link" href="?page=1{% if request.GET.urlencode %}&{{ request.GET.urlencode }}{% endif %}">Primeira</a></li>
+        <li class="page-item"><a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if request.GET.urlencode %}&{{ request.GET.urlencode }}{% endif %}">Anterior</a></li>
+      {% endif %}
+      <li class="page-item disabled"><span class="page-link">Página {{ page_obj.number }} de {{ page_obj.paginator.num_pages }}</span></li>
+      {% if page_obj.has_next %}
+        <li class="page-item"><a class="page-link" href="?page={{ page_obj.next_page_number }}{% if request.GET.urlencode %}&{{ request.GET.urlencode }}{% endif %}">Próxima</a></li>
+        <li class="page-item"><a class="page-link" href="?page={{ page_obj.paginator.num_pages }}{% if request.GET.urlencode %}&{{ request.GET.urlencode }}{% endif %}">Última</a></li>
+      {% endif %}
+    </ul>
+  </nav>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+  /* estilo geral */
+  .responsive-table { font-size: .92rem; }
+  .responsive-table td, .responsive-table th { vertical-align: middle; }
+
+  /* Modo "cards" em telas menores: tudo visível, sem scroll horizontal */
+  @media (max-width: 992px) {
+    .responsive-table thead {
+      display: none; /* esconde cabeçalho */
+    }
+    .responsive-table, 
+    .responsive-table tbody, 
+    .responsive-table tr, 
+    .responsive-table td {
+      display: block;
+      width: 100%;
+    }
+    .responsive-table tr {
+      margin: .75rem 0;
+      border: 1px solid #dee2e6;
+      border-radius: .6rem;
+      padding: .35rem .6rem;
+      background: #fff;
+    }
+    .responsive-table td {
+      border: 0;
+      padding: .45rem .2rem;
+      display: flex;
+      gap: .5rem;
+      justify-content: space-between;
+      align-items: center;
+      white-space: normal;       /* permite quebra de linhas */
+      word-break: break-word;    /* garante visibilidade de textos longos */
+    }
+    .responsive-table td::before {
+      content: attr(data-label);
+      font-weight: 600;
+      color: #6c757d;
+      flex: 0 0 48%;
+      max-width: 48%;
+    }
+    .responsive-table td > * {
+      flex: 1 1 52%;
+      text-align: right;         /* valores à direita */
+    }
+    .responsive-table td .badge { margin-left: auto; }
+  }
+
+  /* cartão verde do total (se você estiver usando) */
+  .bg-gradient-success{background:linear-gradient(45deg,#27ae60,#2ecc71)}
+  .card{border-radius:15px;transition:transform .2s}
+  .card:hover{transform:translateY(-5px)}
+  .table th{border-top:none;font-weight:600;color:#2c3e50}
+  .btn-primary{background-color:#2980b9;border-color:#2980b9;transition:all .3s}
+  .btn-primary:hover{background-color:#3498db;border-color:#3498db}
+</style>
+{% endblock %}
+

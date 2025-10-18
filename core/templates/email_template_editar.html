@@ -1,0 +1,28 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-5">
+    <h1 class="text-center mb-4 fw-bold" style="font-size: 26px; color: #2c3e50; text-transform: uppercase; letter-spacing: 1px;">
+        <i class="fas fa-edit me-2" style="color: #34495e;"></i> Editar Template de E-mail
+    </h1>
+    
+    <form method="POST">
+        {% csrf_token %}
+        <div class="form-group">
+            <label for="tipo_envio">Tipo de Envio</label>
+            <select name="tipo_envio" id="tipo_envio" class="form-control">
+                <option value="Quitação Parcela" {% if template.tipo_envio == 'Quitação Parcela' %}selected{% endif %}>Quitação Parcela</option>
+                <option value="Quitação Contrato" {% if template.tipo_envio == 'Quitação Contrato' %}selected{% endif %}>Quitação Contrato</option>
+                <option value="Nova Empresa" {% if template.tipo_envio == 'Nova Empresa' %}selected{% endif %}>Nova Empresa</option>
+                <option value="Negociação" {% if template.tipo_envio == 'Negociação' %}selected{% endif %}>Negociação</option>
+				<option value="Boleto" {% if template.tipo_envio == 'Boleto' %}selected{% endif %}>Boleto</option>
+            </select>
+        </div>
+        <div class="form-group mt-3">
+            <label for="mensagem">Mensagem</label>
+            <textarea name="mensagem" id="mensagem" class="form-control" rows="6">{{ template.mensagem }}</textarea>
+        </div>
+        <button type="submit" class="btn btn-primary mt-3">Atualizar</button>
+    </form>
+</div>
+{% endblock %}

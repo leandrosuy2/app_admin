@@ -1,0 +1,142 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-5">
+    <h1 class="text-center">Criar Novo Agendamento</h1>
+
+    <!-- Mensagem de erro caso nenhum devedor seja selecionado -->
+    {% if messages %}
+        <div class="mt-3">
+            {% for message in messages %}
+                <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+
+    <!-- Campo de busca -->
+    <div class="form-group mb-3">
+        <label for="pesquisa_devedor">Pesquisar Devedor</label>
+        <input type="text" id="pesquisa_devedor" class="form-control" placeholder="Digite o nome do devedor">
+    </div>
+
+    <!-- Lista dinâmica de devedores -->
+    <div class="form-group mb-3">
+        <ul id="lista_devedores" class="list-group"></ul>
+    </div>
+
+    <!-- Formulário -->
+    <form method="POST">
+        {% csrf_token %}
+        <input type="hidden" name="devedor_id" id="devedor_id">
+        <input type="hidden" name="empresa_id" id="empresa_id">
+
+        <!-- Campo Nome Fantasia -->
+        <div class="form-group">
+            <label for="empresa_nome_fantasia">Nome Fantasia da Empresa</label>
+            <input type="text" id="empresa_nome_fantasia" class="form-control" readonly>
+        </div>
+
+        <!-- Campo Telefone -->
+        <div class="form-group">
+            <label for="telefone">Telefone</label>
+            <input type="text" id="telefone" name="telefone" class="form-control" placeholder="Digite o telefone">
+        </div>
+
+        <!-- Campos Data de Retorno e Abertura na mesma linha -->
+        <div class="row">
+            <div class="col-md-6">
+                <label for="data_retorno">Data de Retorno</label>
+                <input type="datetime-local" name="data_retorno" id="data_retorno" class="form-control" required>
+            </div>
+            <div class="col-md-6">
+                <label for="data_abertura">Data de Abertura</label>
+                <input type="datetime-local" name="data_abertura" id="data_abertura" class="form-control" required>
+            </div>
+        </div>
+
+        <!-- Campo Assunto -->
+        <div class="form-group mt-3">
+            <label for="assunto">Assunto</label>
+            <textarea name="assunto" id="assunto" class="form-control" required></textarea>
+        </div>
+
+        <!-- Campo Operador -->
+       <!-- Campo Operador -->
+        <div class="form-group">
+            <label for="operador">Operador</label>
+           
+			 <input type="text" name="operador" id="operador" class="form-control"  value="{{ user.get_full_name|default:user.username }}" readonly>
+        </div>
+	</li>
+
+
+        <!-- Botão Salvar -->
+        <button type="submit" class="btn btn-primary mt-3">Salvar</button>
+    </form>
+</div>
+
+<!-- Script para Busca e Seleção de Devedores -->
+<script>
+    const pesquisaInput = document.getElementById('pesquisa_devedor');
+    const listaDevedores = document.getElementById('lista_devedores');
+    const devedorIdInput = document.getElementById('devedor_id');
+    const empresaIdInput = document.getElementById('empresa_id');
+    const empresaFantasiaInput = document.getElementById('empresa_nome_fantasia');
+    const telefoneInput = document.getElementById('telefone');
+
+    // Lista de devedores com empresas
+    const devedores = [
+        {% for devedor in devedores %}
+            {
+                "id": "{{ devedor.id }}",
+                "nome": "{{ devedor.nome|escapejs }}",
+                "empresa_id": "{{ devedor.empresa_id|default:'' }}",
+                "nome_fantasia": "{{ devedor.nome_fantasia|default:'N/A'|escapejs }}",
+                "telefone": "{{ devedor.telefone|default:'' }}"
+            },
+        {% endfor %}
+    ];
+
+    // Lógica de busca dinâmica
+    pesquisaInput.addEventListener('input', function () {
+        const termo = this.value.toLowerCase();
+        listaDevedores.innerHTML = '';
+
+        devedores
+            .filter(devedor => devedor.nome.toLowerCase().includes(termo))
+            .forEach(devedor => {
+                const li = document.createElement('li');
+                li.classList.add('list-group-item', 'd-flex', 'justify-content-between', 'align-items-center');
+                li.textContent = devedor.nome;
+
+                // Botão de Seleção
+                const botao = document.createElement('button');
+                botao.textContent = "Selecionar";
+                botao.classList.add('btn', 'btn-success', 'btn-sm');
+                botao.addEventListener('click', function () {
+                    // Preenche os campos do formulário
+                    pesquisaInput.value = devedor.nome;
+                    devedorIdInput.value = devedor.id;
+                    empresaIdInput.value = devedor.empresa_id || '';
+                    empresaFantasiaInput.value = devedor.nome_fantasia || 'N/A';
+                    telefoneInput.value = devedor.telefone || '';
+                    listaDevedores.innerHTML = '';
+                });
+
+                li.appendChild(botao);
+                listaDevedores.appendChild(li);
+            });
+    });
+
+    // Validação do formulário antes do envio
+    document.querySelector('form').addEventListener('submit', function (event) {
+        if (!devedorIdInput.value) {
+            event.preventDefault();
+            alert('Por favor, selecione um devedor antes de salvar o agendamento.');
+        }
+    });
+</script>
+{% endblock %}

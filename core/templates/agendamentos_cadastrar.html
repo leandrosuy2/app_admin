@@ -1,0 +1,9 @@
+{% extends 'base.html' %}
+{% block content %}
+<h1>Cadastrar Agendamento</h1>
+<form method="POST">
+    {% csrf_token %}
+    <!-- Campos do formulário -->
+    <button type="submit">Cadastrar</button>
+</form>
+{% endblock %}

@@ -1,0 +1,876 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<script>
+.card-equal {
+    height: 100%; /* Faz todos os cartões preencherem a altura máxima disponível */
+}
+
+.card-body {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between; /* Alinha os itens dentro do cartão */
+    height: 100%; /* Garante o preenchimento do conteúdo */
+}
+
+.row.g-3 {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px; /* Espaço entre os cartões */
+}
+</script>
+
+<div class="container mt-4">
+    <div class="row g-3">
+        <!-- Card Pendentes -->
+        <div class="col-lg-3 col-md-6">
+            <div class="card shadow border-0 card-equal" style="background: linear-gradient(135deg, #1abb9c, #16a085);">
+                <div class="card-body text-white d-flex flex-column justify-content-between align-items-center">
+                    <div>
+                        <h5 class="fw-bold">Pendentes</h5>
+                        <p class="fs-2 mb-0 count-number" data-count="{{ titulos_pendentes }}">0</p>
+                    </div>
+                    <i class="fas fa-file-alt fa-4x opacity-75"></i>
+                </div>
+            </div>
+        </div>
+
+        <!-- Card Quitados -->
+        <div class="col-lg-3 col-md-6">
+            <div class="card shadow border-0 card-equal" style="background: linear-gradient(135deg, #3498db, #2980b9);">
+                <div class="card-body text-white d-flex flex-column justify-content-between align-items-center">
+                    <div>
+                        <h5 class="fw-bold">Quitados</h5>
+                        <p class="fs-2 mb-0 count-number" data-count="{{ titulos_quitados }}">0</p>
+                    </div>
+                    <i class="fas fa-check-circle fa-4x opacity-75"></i>
+                </div>
+            </div>
+        </div>
+
+        <!-- Card Negociados -->
+        <div class="col-lg-3 col-md-6">
+            <div class="card shadow border-0 card-equal" style="background: linear-gradient(135deg, #f39c12, #e67e22);">
+                <div class="card-body text-white d-flex flex-column justify-content-between align-items-center">
+                    <div>
+                        <h5 class="fw-bold">Negociados</h5>
+                        <p class="fs-2 mb-0 count-number" data-count="{{ titulos_negociados }}">0</p>
+                    </div>
+                    <i class="fas fa-handshake fa-4x opacity-75"></i>
+                </div>
+            </div>
+        </div>
+
+        <!-- Card Total de Clientes -->
+        <div class="col-lg-3 col-md-6">
+            <div class="card shadow border-0 card-equal" style="background: linear-gradient(135deg, #e74c3c, #c0392b);">
+                <div class="card-body text-white d-flex flex-column justify-content-between align-items-center">
+                    <div>
+                        <h5 class="fw-bold">Total de Clientes</h5>
+                        <p class="fs-2 mb-0 count-number" data-count="{{ total_clientes }}">0</p>
+                    </div>
+                    <i class="fas fa-users fa-4x opacity-75"></i>
+                </div>
+            </div>
+        </div>
+
+        <!-- Card Negociados em Atraso -->
+        <div class="col-lg-3 col-md-6">
+            <div class="card shadow border-0 card-equal" style="background: linear-gradient(135deg, #ff6f61, #d9534f);">
+                <div class="card-body text-white d-flex flex-column justify-content-between align-items-center">
+                    <div>
+                        <h5 class="fw-bold">Negociados em Atraso</h5>
+                        <p class="fs-2 mb-0 count-number" data-count="{{ negociados_em_atraso_count }}">0</p>
+                    </div>
+                    <i class="fas fa-exclamation-circle fa-4x opacity-75"></i>
+                </div>
+            </div>
+        </div>
+
+        <!-- Card Quitados Hoje -->
+        <div class="col-lg-3 col-md-6">
+            <div class="card shadow border-0 card-equal" style="background: linear-gradient(135deg, #3498db, #2980b9);" data-bs-toggle="modal" data-bs-target="#modalQuitadosHoje">
+                <div class="card-body text-white d-flex flex-column justify-content-between align-items-center">
+                    <div>
+                        <h5 class="fw-bold">Quitados Hoje</h5>
+                        <p class="fs-2 mb-0">R$ {{ quitados_hoje|floatformat:2 }}</p>
+                    </div>
+                    <i class="fas fa-check-circle fa-4x opacity-75"></i>
+                </div>
+            </div>
+        </div>
+
+        <!-- Card Negociados Hoje -->
+        <div class="col-lg-3 col-md-6">
+            <div class="card shadow border-0 card-equal" style="background: linear-gradient(135deg, #34495e, #2c3e50);" data-bs-toggle="modal" data-bs-target="#modalNegociadosHoje">
+                <div class="card-body text-white d-flex flex-column justify-content-between align-items-center">
+                    <div>
+                        <h5 class="fw-bold">Negociados Hoje</h5>
+                        <p class="fs-2 mb-0">R$ {{ negociados_hoje|floatformat:2 }}</p>
+                    </div>
+                    <i class="fas fa-handshake fa-4x opacity-75"></i>
+                </div>
+            </div>
+        </div>
+
+        <!-- Card Ranking Operadores -->
+        <div class="col-lg-3 col-md-6">
+            <div class="card shadow border-0 card-equal" style="background: linear-gradient(135deg, #9b59b6, #8e44ad);" data-bs-toggle="modal" data-bs-target="#modalRankingOperadores">
+                <div class="card-body text-white d-flex flex-column justify-content-between align-items-center">
+                    <div>
+                        <h5 class="fw-bold">Ranking Operadores</h5>
+                        <p class="fs-2 mb-0">Clique para ver</p>
+                    </div>
+                    <i class="fas fa-trophy fa-4x opacity-75"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Script para contagem animada -->
+    <script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const counters = document.querySelectorAll('.count-number');
+        counters.forEach(counter => {
+            const target = counter.getAttribute('data-count');
+            if (target !== null) {
+                const updateCount = () => {
+                    const current = +counter.innerText;
+                    const increment = Math.ceil(target / 100);
+
+                    if (current < target) {
+                        counter.innerText = current + increment;
+                        setTimeout(updateCount, 20);
+                    } else {
+                        counter.innerText = target;
+                    }
+                };
+                updateCount();
+            }
+        });
+    });
+    </script>
+
+    <!-- Modal para Quitados Hoje -->
+    <div class="modal fade" id="modalQuitadosHoje" tabindex="-1" aria-labelledby="modalQuitadosHojeLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="modalQuitadosHojeLabel">Detalhes dos Quitados Hoje</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    {% if quitados_hoje_detalhes %}
+                        <table class="table table-striped">
+                            <thead>
+                                <tr>
+                                    <th>Nome</th>
+                                    <th>CPF/CNPJ</th>
+                                    <th>Empresa</th>
+                                    <th>Data de Baixa</th>
+                                    <th>Valor Recebido</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for item in quitados_hoje_detalhes %}
+                                    <tr>
+                                        <td>{{ item.nome }}</td>
+                                        <td>{{ item.cpf_cnpj }}</td>
+                                        <td>{{ item.nome_fantasia }}</td>
+                                        <td>{{ item.data_baixa }}</td>
+                                        <td>{{ item.valorRecebido }}</td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    {% else %}
+                        <p>Não há títulos quitados hoje.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const modal = document.getElementById('modalQuitadosHoje');
+
+        modal.addEventListener('show.bs.modal', function () {
+            const modalBody = modal.querySelector('.modal-body');
+            modalBody.innerHTML = '<div class="text-center"><div class="spinner-border text-primary" role="status"><span class="visually-hidden">Carregando...</span></div></div>';
+
+            const quitadosHojeDetalhes = JSON.parse('{{ quitados_hoje_detalhes|safe }}');
+
+            if (quitadosHojeDetalhes.length > 0) {
+                let htmlContent = `
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th>Nome</th>
+                                <th>CPF/CNPJ</th>
+                                <th>Empresa</th>
+                                <th>Data de Baixa</th>
+                                <th>Valor Recebido</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                `;
+
+                quitadosHojeDetalhes.forEach(item => {
+                    htmlContent += `
+                        <tr>
+                            <td>${item.nome}</td>
+                            <td>${item.cpf_cnpj || 'Não informado'}</td>
+                            <td>${item.nome_fantasia}</td>
+                            <td>${item.data_baixa}</td>
+                            <td>${item.valorRecebido}</td>
+                        </tr>
+                    `;
+                });
+
+                htmlContent += '</tbody></table>';
+                modalBody.innerHTML = htmlContent;
+            } else {
+                modalBody.innerHTML = '<p>Não há títulos quitados hoje.</p>';
+            }
+        });
+    });
+    </script>
+
+    <!-- Modal para Negociados Hoje -->
+    <div class="modal fade" id="modalNegociadosHoje" tabindex="-1" aria-labelledby="modalNegociadosHojeLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="modalNegociadosHojeLabel">Detalhes dos Negociados Hoje</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    {% if negociados_hoje_detalhes %}
+                        <table class="table table-striped">
+                            <thead>
+                                <tr>
+                                    <th>Nome</th>
+                                    <th>CPF/CNPJ</th>
+                                    <th>Empresa</th>
+                                    <th>Data de Negociação</th>
+                                    <th>Valor</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for item in negociados_hoje_detalhes %}
+                                    <tr>
+                                        <td>{{ item.nome }}</td>
+                                        <td>{{ item.cpf_cnpj }}</td>
+                                        <td>{{ item.nome_fantasia }}</td>
+                                        <td>{{ item.data_negociacao }}</td>
+                                        <td>{{ item.valor }}</td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    {% else %}
+                        <p>Não há títulos negociados hoje.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const modalNegociadosHoje = document.getElementById('modalNegociadosHoje');
+        modalNegociadosHoje.addEventListener('show.bs.modal', function () {
+            const modalBody = modalNegociadosHoje.querySelector('.modal-body');
+            modalBody.innerHTML = '<div class="text-center"><div class="spinner-border text-primary" role="status"><span class="visually-hidden">Carregando...</span></div></div>';
+
+            const negociadosHojeDetalhes = JSON.parse('{{ negociados_hoje_detalhes|safe }}');
+            if (negociadosHojeDetalhes.length > 0) {
+                let htmlContent = `
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th>Nome</th>
+                                <th>CPF/CNPJ</th>
+                                <th>Empresa</th>
+                                <th>Data de Negociação</th>
+                                <th>Valor</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                `;
+
+                negociadosHojeDetalhes.forEach(item => {
+                    htmlContent += `
+                        <tr>
+                            <td>${item.nome}</td>
+                            <td>${item.cpf_cnpj || 'Não informado'}</td>
+                            <td>${item.nome_fantasia}</td>
+                            <td>${item.data_negociacao}</td>
+                            <td>${item.valor}</td>
+                        </tr>
+                    `;
+                });
+
+                htmlContent += '</tbody></table>';
+                modalBody.innerHTML = htmlContent;
+            } else {
+                modalBody.innerHTML = '<p>Não há títulos negociados hoje.</p>';
+            }
+        });
+    });
+    </script>
+
+    <!-- Modal para Ranking Operadores -->
+<div class="modal fade" id="modalRankingOperadores" tabindex="-1" aria-labelledby="modalRankingOperadoresLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title" id="modalRankingOperadoresLabel">Ranking Operadores - Títulos Quitados</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <!-- Filtros -->
+                <form id="filtroRankingForm" class="mb-3">
+                    <div class="row">
+                        <div class="col-md-4">
+                            <label for="dataBaixaInicio" class="form-label">Data de Baixa (Início)</label>
+                            <input type="date" class="form-control" id="dataBaixaInicio" name="data_inicio">
+                        </div>
+                        <div class="col-md-4">
+                            <label for="dataBaixaFim" class="form-label">Data de Baixa (Fim)</label>
+                            <input type="date" class="form-control" id="dataBaixaFim" name="data_fim">
+                        </div>
+                        <div class="col-md-4">
+                            <label for="operadorFiltro" class="form-label">Operador</label>
+                            <select class="form-select" id="operadorFiltro" name="operador">
+                                <option value="">Todos</option>
+                                {% for usuario in usuarios %}
+                                    <option value="{{ usuario.username }}">{{ usuario.username }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-primary mt-3">Filtrar</button>
+                </form>
+
+                <!-- Total destacado -->
+                <div id="totalRanking" class="alert alert-success text-center mb-3" style="display: none;">
+                    <h4 class="alert-heading">Total Recebido</h4>
+                    <p class="fs-2 mb-0" id="valorTotal">R$ 0,00</p>
+                </div>
+
+                <!-- Resultados -->
+                <div id="rankingResultados">
+                    <div class="text-center"><div class="spinner-border text-primary" role="status"><span class="visually-hidden">Carregando...</span></div></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    const modalRanking = document.getElementById('modalRankingOperadores');
+    const formFiltro = document.getElementById('filtroRankingForm');
+    const resultadosDiv = document.getElementById('rankingResultados');
+    const totalDiv = document.getElementById('totalRanking');
+    const valorTotalSpan = document.getElementById('valorTotal');
+
+    function carregarRanking(dataInicio = '', dataFim = '', operador = '') {
+        resultadosDiv.innerHTML = '<div class="text-center"><div class="spinner-border text-primary" role="status"><span class="visually-hidden">Carregando...</span></div></div>';
+        totalDiv.style.display = 'none';
+
+        fetch('/ranking-operadores/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': '{{ csrf_token }}'
+            },
+            body: JSON.stringify({
+                data_inicio: dataInicio,
+                data_fim: dataFim,
+                operador: operador
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.resultados && data.resultados.length > 0) {
+                let htmlContent = `
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>Operador</th>
+                                <th>Total de Títulos Quitados</th>
+                                <th>Valor Total Recebido</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                `;
+
+                data.resultados.forEach(item => {
+                    htmlContent += `
+                        <tr>
+                            <td>${item.posicao}</td>
+                            <td>${item.operador}</td>
+                            <td>${item.total_titulos}</td>
+                            <td>R$ ${item.total_valor_recebido.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+                        </tr>
+                    `;
+                });
+
+                htmlContent += '</tbody></table>';
+                resultadosDiv.innerHTML = htmlContent;
+
+                // Exibe o total
+                totalDiv.style.display = 'block';
+                valorTotalSpan.textContent = `R$ ${data.total.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+            } else {
+                resultadosDiv.innerHTML = '<p>Nenhum operador encontrado para os filtros selecionados.</p>';
+                totalDiv.style.display = 'none';
+            }
+        })
+        .catch(error => {
+            console.error('Erro:', error);
+            resultadosDiv.innerHTML = '<p>Erro ao carregar os dados.</p>';
+            totalDiv.style.display = 'none';
+        });
+    }
+
+    modalRanking.addEventListener('show.bs.modal', function () {
+        carregarRanking();
+    });
+
+    formFiltro.addEventListener('submit', function (e) {
+        e.preventDefault();
+        const dataInicio = document.getElementById('dataBaixaInicio').value;
+        const dataFim = document.getElementById('dataBaixaFim').value;
+        const operador = document.getElementById('operadorFiltro').value;
+        carregarRanking(dataInicio, dataFim, operador);
+    });
+});
+</script>
+
+    <!-- Agenda de trabalho do dia - Pendentes -->
+    <form method="get" action="{% url 'dashboard' %}" class="mb-4 p-3 shadow rounded bg-light">
+        <div class="input-group">
+            <input type="text" name="query" class="form-control border-primary fs-5" placeholder="🔍 Buscar por nome, CPF, CNPJ, Nome Fantasia,  etc." value="{{ query }}" style="box-shadow: 0 0 10px rgba(0, 123, 255, 0.5);">
+            <button type="submit" class="btn btn-primary fs-5 px-4" style="background: linear-gradient(135deg, #007bff, #0056b3); box-shadow: 0 4px 10px rgba(0, 123, 255, 0.5);">
+                Buscar
+            </button>
+        </div>
+    </form>
+
+    <h2 class="mt-4 text-center fw-bold" style="font-size: 24px; color: #e67e22; text-transform: uppercase; letter-spacing: 1px;">
+        <i class="fas fa-calendar-alt me-2" style="color: #d35400;"></i> Agenda de Trabalho do Dia - Pendentes
+    </h2>
+
+    <table class="table table-hover table-bordered mt-3" style="font-size: 0.8rem;">
+        <thead class="table-dark">
+            <tr>
+                <th>Devedor</th>
+                <th>Credor</th>
+                <th>Nome da Mãe</th>
+                <th>Operador</th>
+                <th>CPF/CNPJ</th>
+                <th class="text-center">Ações</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in agenda_pendentes_paginated %}
+            <tr>
+                <td><b>
+                    {% if item.nome and item.razao_social %}
+                        {{ item.nome }} {{ item.razao_social }}
+                    {% elif item.nome %}
+                        {{ item.nome }}
+                    {% elif item.razao_social %}
+                        {{ item.razao_social }}
+                    {% else %}
+                        <!-- Fica vazio -->
+                    {% endif %}
+                </b></td>
+                <td><b>{{ item.nome_fantasia_credor }}</b></td>
+                <td><b>{{ item.nome_mae|default:'' }}</b></td>
+                <td><b>{{ item.operador|default:'' }}</b></td>
+                <td><b>
+                    {% if item.cpf %}
+                        {{ item.cpf }}
+                    {% elif item.cnpj %}
+                        {{ item.cnpj }}
+                    {% else %}
+                        Não informado
+                    {% endif %}
+                </b></td>
+                <td class="text-center">
+                    <a href="{% url 'detalhes_devedor' item.id %}" target="_blank" class="btn btn-sm btn-info">Visualizar</a>
+                    <button class="btn btn-sm btn-success finalizar-btn" data-id="{{ item.id }}">Finalizar</button>
+                    <a href="{% url 'realizar_baixa' item.id %}" class="btn btn-success btn-sm">Baixar</a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <!-- Agenda de trabalho do dia - Pendentes -->
+    <h2 class="mt-4 text-center fw-bold" style="font-size: 24px; color: #3498db; text-transform: uppercase; letter-spacing: 1px;">
+        <i class="fas fa-tasks me-2" style="color: #2980b9;"></i> Agendamentos Pendentes
+    </h2>
+
+    {% if agendamentos_hoje %}
+    <table class="table table-hover table-bordered align-middle mt-3" style="font-size: 0.8rem;">
+        <thead class="table-dark">
+            <tr>
+                <th>Devedor</th>
+                <th>CPF / CNPJ</th>
+                <th>Empresa</th>
+                <th>Telefone</th>
+                <th>Data de Retorno</th>
+                <th>Operador</th>
+                <th class="text-center">Ações</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for agendamento in agendamentos_hoje %}
+            <tr>
+                <td><b>{{ agendamento.devedor__nome }}</b></td>
+                <td><b>
+                    {% if agendamento.devedor__cpf %}
+                        {{ agendamento.devedor__cpf }}
+                    {% elif agendamento.devedor__cnpj %}
+                        {{ agendamento.devedor__cnpj }}
+                    {% else %}
+                        Não informado
+                    {% endif %}
+                </td>
+                <td>{{ agendamento.empresa__nome_fantasia }}</b></td>
+                <td class="text-center"><b>
+                    {% if agendamento.telefone_formatado %}
+                        <a href="https://wa.me/{{ agendamento.telefone_formatado }}" target="_blank" class="btn btn-success d-flex align-items-center">
+                            <i class="fab fa-whatsapp me-2"></i>
+                            {{ agendamento.telefone_formatado }}
+                        </a>
+                    {% endif %}
+                </td>
+                <td><b>{{ agendamento.data_retorno|date:"d/m/Y H:i" }}</b></td>
+                <td><b>{{ agendamento.operador }}</b></td>
+                <td class="text-center">
+                    <button type="button" class="btn btn-sm btn-info" data-bs-toggle="modal" data-bs-target="#modalAgendamento{{ agendamento.id }}">
+                        Visualizar
+                    </button>
+                    <form method="POST" action="{% url 'finalizar_agendamento' agendamento.id %}" style="display:inline;">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-sm btn-success">Finalizar</button>
+                    </form>
+                </td>
+            </tr>
+            <!-- Modal -->
+            <div class="modal fade" id="modalAgendamento{{ agendamento.id }}" tabindex="-1" aria-labelledby="modalLabel{{ agendamento.id }}" aria-hidden="true">
+                <div class="modal-dialog modal-dialog-centered">
+                    <div class="modal-content">
+                        <div class="modal-header bg-primary text-white">
+                            <h5 class="modal-title" id="modalLabel{{ agendamento.id }}">Detalhes do Agendamento</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body">
+                            <p><strong>Devedor:</strong> {{ agendamento.devedor__nome }}</p>
+                            <p><strong>CPF:</strong> {{ agendamento.devedor__cpf|default:"Não informado" }}</p>
+                            <p><strong>Empresa:</strong> {{ agendamento.empresa__nome_fantasia }}</p>
+                            <p><strong>Telefone:</strong> {{ agendamento.telefone|default:"Não informado" }}</p>
+                            <p><strong>Data de Abertura:</strong> {{ agendamento.data_abertura|date:"d/m/Y H:i" }}</p>
+                            <p><strong>Data de Retorno:</strong> {{ agendamento.data_retorno|date:"d/m/Y H:i" }}</p>
+                            <p><strong>Operador:</strong> {{ agendamento.operador }}</p>
+                            <p><strong>Status:</strong>
+                                <span class="badge {% if agendamento.status == 'Finalizado' %} bg-success {% else %} bg-warning text-dark {% endif %}">{{ agendamento.status }}</span>
+                            </p>
+                            <p><strong>Assunto:</strong> {{ agendamento.assunto|default:"Não informado" }}</p>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fechar</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <p class="text-muted small">Nenhum agendamento para hoje.</p>
+    {% endif %}
+
+    <h2 class="mt-4 text-center fw-bold" style="font-size: 24px; color: #e74c3c; text-transform: uppercase; letter-spacing: 1px;">
+        <i class="fas fa-exclamation-circle me-2" style="color: #c0392b;"></i> Negociados em Atraso
+    </h2>
+
+    {% if negociados_paginated %}
+    <table class="table table-bordered table-striped">
+        <thead>
+            <tr>
+                <th>Devedor</th>
+                <th>Empresa</th>
+                <th>Operador</th>
+                <th>Data de Vencimento</th>
+                <th>Valor</th>
+                <th>Status</th>
+                <th class="text-center">Ações</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for titulo in negociados_paginated %}
+            <tr>
+                <td>{{ titulo.devedor_nome }}</td>
+                <td>{{ titulo.empresa_nome }}</td>
+                <td>{{ titulo.operador }}</td>
+                <td>{{ titulo.data_vencimento|date:"d/m/Y" }}</td>
+                <td>R$ {{ titulo.valor_total|floatformat:2 }}</td>
+                <td>
+                    <span class="badge bg-warning">Negociado em atraso</span>
+                </td>
+                <td class="text-center">
+                    <button class="btn btn-sm btn-primary alterar-operador-btn" data-id="{{ titulo.id }}" data-bs-toggle="modal" data-bs-target="#modalAlterarOperador">
+                        Mudar Operador
+                    </button>
+                    <a href="{% url 'detalhes_devedor' titulo.id %}" target="_blank" class="btn btn-sm btn-info">Visualizar</a>
+                    <button class="btn btn-sm btn-success finalizar-btn" data-id="{{ titulo.id }}">Finalizar</button>
+                </td>
+            </tr>
+            <!-- Modal de Seleção de Operador -->
+            <div class="modal fade" id="modalAlterarOperador" tabindex="-1" aria-labelledby="modalAlterarOperadorLabel" aria-hidden="true">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <div class="modal-header bg-primary text-white">
+                            <h5 class="modal-title" id="modalAlterarOperadorLabel">Selecionar Novo Operador</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body">
+                            <form id="alterar-operador-form">
+                                {% csrf_token %}
+                                <input type="hidden" id="titulo-id" name="titulo_id">
+                                <label for="operador" class="form-label">Escolha um operador:</label>
+                                <select class="form-select" id="operador" name="operador" required>
+                                    <option value="" disabled selected>Selecione um operador</option>
+                                    {% for usuario in usuarios %}
+                                        <option value="{{ usuario.username }}">{{ usuario.username }}</option>
+                                    {% endfor %}
+                                </select>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                                    <button type="submit" class="btn btn-success">Salvar</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </tbody>
+    </table>
+    <script>
+    document.addEventListener("DOMContentLoaded", function () {
+        document.querySelectorAll(".alterar-operador-btn").forEach(button => {
+            button.addEventListener("click", function () {
+                let tituloId = this.getAttribute("data-id");
+                document.getElementById("titulo-id").value = tituloId;
+            });
+        });
+
+        document.getElementById("alterar-operador-form").addEventListener("submit", function (event) {
+            event.preventDefault();
+            let tituloId = document.getElementById("titulo-id").value;
+            let operador = document.getElementById("operador").value;
+            let csrfToken = document.querySelector("[name=csrfmiddlewaretoken]").value;
+
+            if (!operador) {
+                alert("Por favor, selecione um operador.");
+                return;
+            }
+
+            fetch(`/alterar-operador/${tituloId}/`, {
+                method: "POST",
+                headers: {
+                    "X-CSRFToken": csrfToken,
+                    "Content-Type": "application/x-www-form-urlencoded"
+                },
+                body: `operador=${operador}`
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === "success") {
+                    alert(data.message);
+                    location.reload();
+                } else {
+                    alert(`Erro: ${data.message}`);
+                }
+            })
+            .catch(error => {
+                console.error("Erro na requisição:", error);
+                alert("Ocorreu um erro ao atualizar o operador.");
+            });
+        });
+    });
+    </script>
+
+    <!-- Paginação -->
+    <div class="mt-3">
+        <nav>
+            <ul class="pagination justify-content-center">
+                {% if negociados_paginated.has_previous %}
+                <li class="page-item">
+                    <a class="page-link" href="?page_negociados={{ negociados_paginated.previous_page_number }}">Anterior</a>
+                </li>
+                {% endif %}
+                <li class="page-item">
+                    <a class="page-link" href="#">Página {{ negociados_paginated.number }} de {{ negociados_paginated.paginator.num_pages }}</a>
+                </li>
+                {% if negociados_paginated.has_next %}
+                <li class="page-item">
+                    <a class="page-link" href="?page_negociados={{ negociados_paginated.next_page_number }}">Próxima</a>
+                </li>
+                {% endif %}
+            </ul>
+        </nav>
+    </div>
+    {% else %}
+    <p class="text-muted">Nenhum título negociado em atraso encontrado.</p>
+    {% endif %}
+
+    <!-- Modal para Detalhes -->
+    <div class="modal fade" id="modalParcelamento{{ parcelamento.id }}" tabindex="-1" aria-labelledby="modalLabelParcelamento{{ parcelamento.id }}" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header bg-primary text-white">
+                    <h5 class="modal-title" id="modalLabelParcelamento{{ parcelamento.id }}">Detalhes da Parcela</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p><strong>Parcela:</strong> {{ parcelamento.parcela_numero }}</p>
+                    <p><strong>Valor:</strong> R$ {{ parcelamento.valor|floatformat:2 }}</p>
+                    <p><strong>Data de Vencimento:</strong> {{ parcelamento.data_vencimento|date:"d/m/Y" }}</p>
+                    <p><strong>Status:</strong> {{ parcelamento.status }}</p>
+                    <p><strong>Devedor:</strong> {{ parcelamento.acordo.titulo.devedor.nome }}</p>
+                    <p><strong>Empresa:</strong> {{ parcelamento.acordo.titulo.devedor.empresa.nome_fantasia }}</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fechar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal para Baixar -->
+    <div class="modal fade" id="modalBaixarParcelamento{{ parcelamento.id }}" tabindex="-1" aria-labelledby="modalLabelBaixarParcelamento{{ parcelamento.id }}" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header" style="background-color: #39ff14;">
+                    <h5 class="modal-title fw-bold text-dark" id="modalLabelBaixarParcelamento{{ parcelamento.id }}">
+                        Baixar Parcela {{ parcelamento.parcela_numero }} / {{ parcelamento.qtde_prc }}
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    {% if parcelamento.id %}
+                    <form method="post" action="{% url 'pagar_parcela' parcelamento.id %}">
+                    {% else %}
+                    <p class="text-danger">ID da parcela não encontrado.</p>
+                    {% endif %}
+                        {% csrf_token %}
+                        <div class="mb-3">
+                            <label for="valorPago{{ parcelamento.id }}" class="form-label">Valor recebido</label>
+                            <input type="number" step="0.01" class="form-control"
+                                   id="valorPago{{ parcelamento.id }}"
+                                   name="valor_pago"
+                                   min="{{ parcelamento.valor|floatformat:2 }}"
+                                   required>
+                            <small class="text-muted">
+                                <b>Valor mínimo permitido: R$ {{ parcelamento.valor|floatformat:2 }}</b>
+                            </small>
+                        </div>
+                        <div class="mb-3">
+                            <label for="dataBaixa{{ parcelamento.id }}" class="form-label">Data de Baixa</label>
+                            <input type="date" class="form-control" id="dataBaixa{{ parcelamento.id }}" name="data_baixa" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="formaPagamento{{ parcelamento.id }}" class="form-label">Forma de Pagamento</label>
+                            <select class="form-select" id="formaPagamento{{ parcelamento.id }}" name="forma_pagamento" required>
+                                <option value="">Selecione</option>
+                                <option value="PIX">Pix</option>
+                                <option value="BOLETO">Boleto</option>
+                                <option value="DINHEIRO">Dinheiro</option>
+                                <option value="CARTAO_CREDITO">Cartão de Crédito</option>
+                                <option value="CARTAO_DEBITO">Cartão de Débito</option>
+                                <option value="CHEQUE">Cheque</option>
+                                <option value="PAGAMENTO_LOJA">Pagamento na Loja</option>
+                            </select>
+                        </div>
+                        <button type="submit" class="btn btn-success">Confirmar Baixa</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Últimos clientes cadastrados -->
+    <h2 class="mt-4 text-center fw-bold" style="font-size: 24px; color: #3498db; text-transform: uppercase; letter-spacing: 1px;">
+        <i class="fas fa-users me-2" style="color: #2980b9;"></i> Últimos Clientes Cadastrados
+    </h2>
+
+    <table class="table table-striped table-bordered mt-3" style="font-size: 0.8rem;">
+        <thead class="table-dark">
+            <tr>
+                <th>ID</th>
+                <th>Nome</th>
+                <th>CPF/CNPJ</th>
+                <th>Data de Cadastro</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for cliente in ultimos_clientes %}
+            <tr>
+                <td><b>{{ cliente.id }}</b></td>
+                <td><b>{{ cliente.nome }}{{ cliente.nome_fantasia }}</b></td>
+                <td><b>{% if cliente.cpf %}{{ cliente.cpf }}{% elif cliente.cnpj %}{{ cliente.cnpj }}{% else %}Não informado{% endif %}</b></td>
+                <td><b>{{ cliente.created_at|date:"d/m/Y" }}</b></td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    const finalizeButtons = document.querySelectorAll(".finalizar-btn");
+
+    finalizeButtons.forEach(button => {
+        button.addEventListener("click", function() {
+            const tituloId = this.getAttribute("data-id");
+            const url = `/finalizar-titulo/${tituloId}/`;
+
+            if (confirm("Você tem certeza que deseja finalizar este título?")) {
+                fetch(url, {
+                    method: "POST",
+                    headers: {
+                        "X-CSRFToken": "{{ csrf_token }}",
+                        "Content-Type": "application/json",
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === "success") {
+                        alert(data.message);
+                        location.reload();
+                    } else {
+                        alert(data.message);
+                    }
+                })
+                .catch(error => {
+                    console.error("Erro:", error);
+                    alert("Ocorreu um erro ao finalizar o título.");
+                });
+            }
+        });
+    });
+});
+</script>
+
+{% endblock %}

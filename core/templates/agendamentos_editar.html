@@ -1,0 +1,57 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-5">
+    <h1 class="text-center">Editar Agendamento</h1>
+
+    <!-- Display Devedor Name as Static or Read-only -->
+    <div class="form-group mb-3">
+        <label for="devedor_nome">Nome do Devedor</label>
+        <input type="text" id="devedor_nome" class="form-control" value="{{ agendamento.devedor.nome }}" readonly>
+    </div>
+
+    <!-- Formulário -->
+    <form method="POST">
+        {% csrf_token %}
+        <input type="hidden" name="devedor_id" id="devedor_id" value="{{ agendamento.devedor.id }}">
+        <input type="hidden" name="empresa_id" id="empresa_id" value="{{ agendamento.empresa.id }}">
+
+        <!-- Campo Nome Fantasia -->
+        <div class="form-group">
+            <label for="empresa_nome_fantasia">Nome Fantasia da Empresa</label>
+            <input type="text" id="empresa_nome_fantasia" class="form-control" readonly value="{{ agendamento.empresa.nome_fantasia }}">
+        </div>
+
+        <!-- Campo Telefone -->
+        <div class="form-group">
+            <label for="telefone">Telefone</label>
+            <input type="text" id="telefone" name="telefone" class="form-control" placeholder="Digite o telefone" value="{{ agendamento.devedor.telefone1 }}">
+        </div>
+
+        <!-- Campos Data de Abertura e Retorno -->
+        <div class="form-group">
+            <label for="data_abertura">Data de Abertura</label>
+            <input type="datetime-local" name="data_abertura" id="data_abertura" class="form-control" required value="{{ agendamento.data_abertura|date:"Y-m-d\TH:i" }}">
+        </div>
+        <div class="form-group">
+            <label for="data_retorno">Data de Retorno</label>
+            <input type="datetime-local" name="data_retorno" id="data_retorno" class="form-control" required value="{{ agendamento.data_retorno|date:"Y-m-d\TH:i" }}">
+        </div>
+
+        <!-- Campo Assunto -->
+        <div class="form-group">
+            <label for="assunto">Assunto</label>
+            <textarea name="assunto" id="assunto" class="form-control" required>{{ agendamento.assunto }}</textarea>
+        </div>
+
+        <!-- Campo Operador -->
+        <div class="form-group">
+            <label for="operador">Operador</label>
+            <input type="text" name="operador" id="operador" class="form-control" placeholder="Digite o operador" value="{{ agendamento.operador }}">
+        </div>
+
+        <!-- Botão Salvar -->
+        <button type="submit" class="btn btn-primary">Salvar</button>
+    </form>
+</div>
+{% endblock %}

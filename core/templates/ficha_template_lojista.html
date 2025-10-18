@@ -1,0 +1,209 @@
+{% block content %}
+{% load custom_filters %}
+{% load humanize %}
+
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>FICHA CADASTRAL SISTEMA  DE COBRANÇA.</title>
+
+  <!-- Bootstrap -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+
+  <style>
+    :root{
+      --nc-primary:#1e3a8a;
+      --nc-ink:#111827;
+      --nc-body:#222;
+      --nc-border:#d1d5db;
+      --nc-soft:#f8fafc;
+    }
+    body{ font-family: Arial, sans-serif; color:var(--nc-body); background:#f4f6f9; margin:0; padding:24px 12px; }
+    .doc{ max-width:900px; margin:0 auto; background:#fff; border-radius:12px; box-shadow:0 12px 30px rgba(0,0,0,.12); padding:28px 24px; }
+    h2.title{ text-align:center; font-size:18px; letter-spacing:.2px; color:var(--nc-primary); margin:0 0 18px; text-transform:uppercase; }
+    .tbl{ width:100%; border-collapse:separate; border-spacing:0; }
+    .tbl td{ padding:8px 10px; vertical-align:top; border:1px solid var(--nc-border); background:#fff; }
+    .tbl tr:nth-child(even) td{ background:var(--nc-soft); }
+    .label{ white-space:nowrap; font-weight:600; color:var(--nc-ink); width:160px; }
+    .no-wrap{ white-space:nowrap; }
+    .kv{ width:100%; }
+    .kv td{ border:1px solid var(--nc-border); }
+    .line{ display:block; width:100%; height:1.4em; border-bottom:1px solid #000; }
+    .sig{ text-align:center; margin-top:26px; }
+    .sig p{ margin:6px 0 0; font-weight:600; }
+    .muted{ font-size:12px; color:#111; margin-top:14px; }
+    .section-title{ font-weight:700; margin-top:14px; }
+    .print-btn{ text-align:right; margin-bottom:8px; }
+    @media print{
+      body{ background:#fff; padding:0; }
+      .doc{ box-shadow:none; border-radius:0; padding:18mm 14mm; }
+      .print-btn{ display:none !important; }
+      .tbl td{ border:1px solid #000 !important; background:#fff !important; }
+      .section-title{ margin-top:8px; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="print-btn d-print-none">
+  <button class="btn btn-sm btn-primary" onclick="window.print()">
+    <i class="bi bi-printer"></i> Imprimir
+  </button>
+</div>
+
+<div class="doc">
+  <h2 class="title">FICHA CADASTRAL SISTEMA  DE COBRANÇA.</h2>
+
+  <!-- Bloco de dados da empresa -->
+  <table class="tbl mb-3">
+    <tr>
+      <td class="label">Razão social:</td>
+      <td colspan="5">{{ empresa.razao_social }}</td>
+    </tr>
+    <tr>
+      <td class="label">CNPJ:</td>
+      <td style="width:28%">{{ empresa.cnpj }}</td>
+      <td class="label no-wrap" style="width:12%">Insc.:</td>
+      <td colspan="3">{{ empresa.inscricao_estadual|default:"" }}</td>
+    </tr>
+    <tr>
+      <td class="label">Fantasia:</td>
+      <td colspan="5">{{ empresa.nome_fantasia }}</td>
+    </tr>
+    <tr>
+      <td class="label">Endereço:</td>
+      <td>{{ empresa.endereco }}</td>
+      <td class="label no-wrap" style="width:7%">Nº</td>
+      <td style="width:14%">{{ empresa.numero|default:"" }}</td>
+      <td class="label no-wrap" style="width:10%">Bairro:</td>
+      <td>{{ empresa.bairro|default:"" }}</td>
+    </tr>
+    <tr>
+      <td class="label">CEP:</td>
+      <td>{{ empresa.cep }}</td>
+      <td class="label">Cidade:</td>
+      <td>{{ empresa.cidade }}</td>
+      <td class="label">Estado:</td>
+      <td>{{ empresa.uf }}</td>
+    </tr>
+    <tr>
+      <td class="label">Fone/fax:</td>
+      <td>{{ empresa.telefone }}</td>
+      <td class="label">e-mail:</td>
+      <td colspan="3">{{ empresa.email }}</td>
+    </tr>
+    <tr>
+      <td class="label">Contratante:</td>
+      <td>{{ empresa.contratante_nome }}</td>
+      <td class="label">CPF:</td>
+      <td colspan="3">{{ empresa.contratante_cpf }}</td>
+    </tr>
+  </table>
+
+  <!-- Valor mensal + site + fidelidade (como no DOC) -->
+  <table class="tbl kv mb-3">
+    <tr>
+      <td class="label">Valor Mensal do Sistema Cobrança</td>
+      <td>R$ isento</td>
+    </tr>
+  </table>
+
+  <p class="mb-2">
+    <strong>Fidelidade:</strong> Os títulos deverão permanecer no sistema de cobrança por no mínimo (30) Trinta  dias, para solicitação de cancelamento, após a data de inclusão. A exclusão neste período será considerada como baixa e aplicado o Percentual de Cobrança por Títulos.
+  </p>
+
+  <p class="mb-3">Site - www.nortecheck.com.br</p>
+
+  <p class="section-title">Valor Mensal do Sistema Cobrança pacote R$ 69,00</p>
+  <p class="mb-2">Consultas; localiza CPF/CNPJ , Telefone. Nome e Credito SPC Serasa, Scpc</p>
+
+  <!-- Tabela com os itens e valores -->
+  <table class="tbl mb-3">
+    <tr><td>Localiza CPF/CNPJ Base plus1</td><td class="text-end" style="width:22%">R$ 2,70</td></tr>
+    <tr><td>Localiza CPF/CNPJ Base 2</td><td class="text-end">R$ 2,80</td></tr>
+    <tr><td>Localiza CPF/CNPJ Base 3</td><td class="text-end">R$ 2,90</td></tr>
+    <tr><td>Localiza Telefone</td><td class="text-end">R$ 1,90</td></tr>
+    <tr><td>Localiza Nome</td><td class="text-end">R$ 1,80</td></tr>
+    <tr><td>Consulta (Vínculos Societários)</td><td class="text-end">R$ 3,60</td></tr>
+    <tr><td>Dossiê Jurídico</td><td class="text-end">R$ 18,00</td></tr>
+    <tr><td>Consulta completa SPC. SCPC, SERASA</td><td class="text-end">R$ 19,20</td></tr>
+  </table>
+
+  <p class="mb-3">
+    Os clientes cadastrados no Sistema NorteCheck terão o prazo de carência de 03 (três) dias corridos, contados da data do respectivo lançamento no sistema, para solicitar a baixa sem qualquer custo. A solicitação deverá ser formalizada por escrito, por meio de e-mail ou protocolo registrado no próprio sistema. Findo o prazo mencionado, a baixa somente poderá ser realizada mediante o pagamento da taxa administrativa prevista neste contrato. Ressalta-se que a carência será válida apenas se, durante o referido período, não houver qualquer tentativa de contato por parte da Contratada, seja por telefone, SMS ou WhatsApp.
+  </p>
+
+  <p class="mb-3">
+    Após a confirmação, pela Loja Credora, do efetivo recebimento do valor devido pelo Devedor, a Contratada procederá à emissão e encaminhamento ao Contratante do respectivo boleto bancário, referente aos honorários previamente pactuados, calculados sobre o montante líquido efetivamente recebido, garantindo-se, assim, plena transparência e rastreabilidade da operação.
+  </p>
+
+  <!-- Linhas para preenchimento manual -->
+    <!-- PIX (preenche automático se existir) -->
+  <div class="row g-3 mb-2">
+    <div class="col-12">
+      <strong>Beneficiário do Pagamento:</strong><br>
+      {% if empresa.nome_favorecido_pix %}
+        {{ empresa.nome_favorecido_pix }}
+      {% else %}
+        <span class="line"></span>
+      {% endif %}
+    </div>
+
+    <div class="col-md-6">
+      <strong>Tipo de Chave PIX:</strong><br>
+      {% with tp=empresa.tipo_pix %}
+        {% if tp %}
+          {% if tp == "cnpj" %}CNPJ
+          {% elif tp == "cpf" %}CPF
+          {% elif tp == "email" %}E-mail
+          {% elif tp == "telefone" %}Telefone
+          {% elif tp == "chave_aleatoria" %}Chave Aleatória
+          {% elif tp == "agencia_conta" %}Agência e conta
+          {% else %}{{ tp|capfirst }}
+          {% endif %}
+        {% else %}
+          <span class="line"></span>
+        {% endif %}
+      {% endwith %}
+    </div>
+
+    <div class="col-md-6">
+      <strong>Chave PIX:</strong><br>
+      {% if empresa.banco %}
+        {{ empresa.banco }}
+      {% else %}
+        <span class="line"></span>
+      {% endif %}
+    </div>
+  </div>
+
+
+  <!-- Data (usa cidade_data se vier pronta; senão monta com empresa.*) -->
+  <p class="mt-3">
+    {% if cidade_data %}
+      {{ cidade_data }}
+    {% else %}
+      {{ empresa.cidade|upper }} /{{ empresa.uf|upper }} , {{ empresa.data_cadastro }}
+    {% endif %}
+  </p>
+
+  <div class="sig">
+    <p>_____________________________________________</p>
+    <p>Contratante</p>
+  </div>
+<p class="small">
+  {% if empresa.endereco %}{{ empresa.endereco }}{% endif %}
+  {% if empresa.numero %}, {{ empresa.numero }}{% endif %}
+  {% if empresa.bairro %} – {{ empresa.bairro }}{% endif %}
+  {% if empresa.cidade %} – {{ empresa.cidade }}{% endif %}
+  {% if empresa.uf %}/{{ empresa.uf }}{% endif %}
+  {% if empresa.cep %} – CEP: {{ empresa.cep }}{% endif %}
+</p>
+</div>
+
+</body>
+</html>
+
+{% endblock %}

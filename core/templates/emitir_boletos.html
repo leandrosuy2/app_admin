@@ -1,0 +1,93 @@
+{% extends "core/base.html" %}
+{% block content %}
+<h2>Emitir Boletos</h2>
+
+{% if messages %}
+    <div class="alert alert-info">
+        <ul>
+            {% for message in messages %}
+                <li class="{{ message.tags }}">{{ message }}</li>
+            {% endfor %}
+        </ul>
+    </div>
+{% endif %}
+
+<form method="post" id="emitirBoletoForm">
+    {% csrf_token %}
+    <!-- Campos ocultos para enviar os dados adicionais -->
+    <input type="hidden" name="emitir" id="emitir">  <!-- Razão Social -->
+    <input type="hidden" name="row10" id="row10">    <!-- Dias de Atraso -->
+    <input type="hidden" name="row11" id="row11">    <!-- Valor Recebido -->
+    <input type="hidden" name="row12" id="row12">    <!-- Comissão -->
+    <table class="table table-striped table-bordered text-center">
+        <thead>
+            <tr>
+                {% for header in headers %}
+                    <th>{{ header }}</th>
+                {% endfor %}
+                <th>Ações</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for row in results %}
+                <tr>
+                    {% for col in row %}
+                        <td>{{ col }}</td>
+                    {% endfor %}
+                    <td>
+                        <button 
+							type="button" 
+							class="btn btn-success btn-sm emitirBoletoButton" 
+							data-emitir="{{ row.1 }}"
+							data-row-10="{{ row.10 }}" 
+							data-row-11="{{ row.11 }}" 
+							data-row-12="{{ row.12 }}">
+							Emitir
+						</button>
+                        {% if row.0 %}
+                            <!-- Sanitizing the codigo_solicitacao for safe usage in the URL -->
+                            <a href="{% url 'baixar_boleto' row.1|slugify %}" class="btn btn-primary btn-sm" target="_blank">
+                                Baixar Boleto
+                            </a>
+                            <span class="badge bg-success">Emitido</span>
+                        {% endif %}
+                    </td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</form>
+
+<!-- JavaScript para enviar os dados corretamente -->
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+    const buttons = document.querySelectorAll(".emitirBoletoButton");
+
+    buttons.forEach(button => {
+        button.addEventListener("click", function () {
+            // Captura os valores dos atributos data-*
+            const emitir = button.getAttribute("data-emitir");
+            const row10 = button.getAttribute("data-row-10");
+            const row11 = button.getAttribute("data-row-11");
+            const row12 = button.getAttribute("data-row-12");
+
+            // Log para depuração
+            console.log("Dados capturados:");
+            console.log("Emitir:", emitir);
+            console.log("Dias de Atraso (row10):", row10);
+            console.log("Valor Recebido (row11):", row11);
+            console.log("Comissão (row12):", row12);
+
+            // Define os valores nos campos ocultos do formulário
+            document.getElementById("emitir").value = emitir;
+            document.getElementById("row10").value = row10;
+            document.getElementById("row11").value = row11;
+            document.getElementById("row12").value = row12;
+
+            // Submete o formulário
+            document.getElementById("emitirBoletoForm").submit();
+        });
+    });
+});
+</script>
+{% endblock %}

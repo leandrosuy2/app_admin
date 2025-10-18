@@ -1,0 +1,35 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-5">
+    <h1 class="text-center">Editar Usuário Lojista</h1>
+    <form method="POST">
+    {% csrf_token %}
+    <div class="mb-3">
+        <label for="name" class="form-label">Nome</label>
+        <input type="text" name="name" id="name" class="form-control" value="{{ user.name }}" required>
+    </div>
+    <div class="mb-3">
+        <label for="email" class="form-label">Email</label>
+        <input type="email" name="email" id="email" class="form-control" value="{{ user.email }}" required>
+    </div>
+    <div class="mb-3">
+        <label for="password" class="form-label">Senha</label>
+        <input type="password" name="password" id="password" class="form-control">
+        <small class="text-muted">Deixe em branco para manter a senha atual.</small>
+    </div>
+    <div class="mb-3">
+        <label for="empresa_id" class="form-label">Empresa</label>
+        <select name="empresa_id" id="empresa_id" class="form-control" required>
+            {% for empresa in empresas %}
+            <option value="{{ empresa.id }}" {% if empresa.id == user.empresa.id %}selected{% endif %}>
+                {{ empresa.nome_fantasia }}
+            </option>
+            {% endfor %}
+        </select>
+    </div>
+    <button type="submit" class="btn btn-primary">Salvar</button>
+    <a href="{% url 'usuarios_lojista_listar' %}" class="btn btn-secondary">Cancelar</a>
+    </form>
+</div>
+{% endblock %}
