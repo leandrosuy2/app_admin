@@ -1,6 +1,27 @@
 {% extends 'base.html' %}
 {% block content %}
 
+<style>
+.btn-group-vertical .btn {
+  margin-bottom: 2px;
+  font-size: 11px;
+  padding: 4px 8px;
+}
+
+.btn-group-vertical .btn:last-child {
+  margin-bottom: 0;
+}
+
+.btn-group-vertical .btn i {
+  margin-right: 4px;
+}
+
+/* Melhora a aparência dos botões na tabela */
+.table td {
+  vertical-align: middle;
+}
+</style>
+
 <div class="container mt-5">
   <h3 class="text-center mb-4" style="font-size: 18px;"><b>Lista de Títulos / Acordos</b></h3>
 
@@ -79,12 +100,24 @@
         <td>{{ titulo.dataVencimentoPrimeira|default:"-" }}</td>
         <td>{{ titulo.contato }}</td>
         <td>
-          <button class="btn btn-sm btn-info" onclick="toggleParcelas({{ titulo.titulo_id }})">Ver Parcelas</button>
-          <a href="{% url 'gerar_contrato' titulo.titulo_id %}" class="btn btn-sm btn-success" target="_blank">Gerar Contrato</a>
-          <button class="btn btn-sm btn-warning" data-bs-toggle="modal" data-bs-target="#modalAlterarOperador" 
-                  data-titulo-id="{{ titulo.titulo_id }}" data-operador-atual="{{ titulo.operador|default:'Sem operador' }}">
-            Alterar Operador
-          </button>
+          <div class="btn-group-vertical" role="group" style="gap: 2px;">
+            <button class="btn btn-sm btn-info" onclick="toggleParcelas({{ titulo.titulo_id }})" title="Ver Parcelas">
+              <i class="fas fa-list"></i> Parcelas
+            </button>
+            <a href="{% url 'gerar_contrato' titulo.titulo_id %}" class="btn btn-sm btn-success" target="_blank" title="Gerar Contrato">
+              <i class="fas fa-file-contract"></i> Contrato
+            </a>
+            <button class="btn btn-sm btn-warning" data-bs-toggle="modal" data-bs-target="#modalAlterarOperador" 
+                    data-titulo-id="{{ titulo.titulo_id }}" data-operador-atual="{{ titulo.operador|default:'Sem operador' }}" title="Alterar Operador">
+              <i class="fas fa-user-edit"></i> Operador
+            </button>
+            <button class="btn btn-sm btn-primary" onclick="imprimirAcordo({{ titulo.titulo_id }})" title="Imprimir Acordo">
+              <i class="fas fa-print"></i> Imprimir
+            </button>
+            <a href="{% url 'gerar_pdf' titulo.titulo_id %}" class="btn btn-sm btn-secondary" target="_blank" title="Baixar PDF">
+              <i class="fas fa-file-pdf"></i> PDF
+            </a>
+          </div>
         </td>
       </tr>
 
@@ -361,6 +394,19 @@
   function toggleParcelas(tituloId){
     const row = document.getElementById(`parcelas-${tituloId}`);
     row.classList.toggle('d-none');
+  }
+
+  function imprimirAcordo(tituloId) {
+    // Abre uma nova janela com os dados do acordo para impressão
+    const url = `{% url 'gerar_pdf' 0 %}`.replace('0', tituloId);
+    const printWindow = window.open(url, '_blank', 'width=800,height=600');
+    
+    // Aguarda o carregamento da página e executa a impressão
+    printWindow.onload = function() {
+      setTimeout(function() {
+        printWindow.print();
+      }, 1000);
+    };
   }
 
   (function(){
