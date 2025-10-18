@@ -353,10 +353,24 @@
           </div>
           <div class="modal-footer">
             <button class="btn btn-secondary" type="button" data-bs-dismiss="modal">Cancelar</button>
-            <button class="btn btn-warning" type="submit">Alterar Operador</button>
+            <button class="btn btn-warning" type="submit" id="btnAlterarOperador">Alterar Operador</button>
           </div>
         </div>
       </form>
+    </div>
+  </div>
+
+  <!-- Toast de Sucesso -->
+  <div class="toast-container position-fixed top-0 end-0 p-3">
+    <div id="toastSucesso" class="toast" role="alert" aria-live="assertive" aria-atomic="true">
+      <div class="toast-header bg-success text-white">
+        <i class="fas fa-check-circle me-2"></i>
+        <strong class="me-auto">Sucesso!</strong>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="toast" aria-label="Fechar"></button>
+      </div>
+      <div class="toast-body" id="toastMensagem">
+        Operador alterado com sucesso!
+      </div>
     </div>
   </div>
 
@@ -477,6 +491,46 @@
       const form = document.getElementById('formAlterarOperador');
       form.action = form.action.replace(/\/\d+\/$/, '/0/');
       form.reset();
+    });
+
+    // Interceptar envio do formulário de alterar operador
+    document.getElementById('formAlterarOperador').addEventListener('submit', function(e) {
+      e.preventDefault();
+      
+      const formData = new FormData(this);
+      const url = this.action;
+      
+      fetch(url, {
+        method: 'POST',
+        body: formData,
+        headers: {
+          'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+        }
+      })
+      .then(response => response.json())
+      .then(data => {
+        if (data.status === 'success') {
+          // Mostrar toast de sucesso
+          const toast = new bootstrap.Toast(document.getElementById('toastSucesso'));
+          document.getElementById('toastMensagem').textContent = data.message;
+          toast.show();
+          
+          // Fechar modal
+          const modal = bootstrap.Modal.getInstance(modalAlterarOperador);
+          modal.hide();
+          
+          // Recarregar a página após 2 segundos
+          setTimeout(() => {
+            window.location.reload();
+          }, 2000);
+        } else {
+          alert('Erro: ' + data.message);
+        }
+      })
+      .catch(error => {
+        console.error('Erro:', error);
+        alert('Erro ao alterar operador. Tente novamente.');
+      });
     });
   })();
 </script>

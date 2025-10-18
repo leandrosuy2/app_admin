@@ -3070,26 +3070,26 @@ def gerar_pdf(request, titulo_id):
         with connection.cursor() as cursor:
             cursor.execute("""
                 SELECT 
-                    devedores.nome AS devedor_nome,
-                    devedores.cpf,
-                    devedores.cnpj,
-                    titulo.valor AS valor_titulo,
-                    titulo.juros,
-                    core_empresa.nome_fantasia AS empresa_nome_fantasia,
-                    core_empresa.cnpj AS empresa_cnpj,
-                    core_acordo.valor_total_negociacao,
-                    core_acordo.entrada,
-                    core_acordo.qtde_prc,
-                    core_acordo.data_entrada,
-                    core_acordo.venc_primeira_parcela,
-                    core_acordo.contato,
-                    core_acordo.id AS acordo_id
-                FROM 
-                    devedores
-                INNER JOIN core_empresa ON devedores.empresa_id = core_empresa.id
-                INNER JOIN titulo ON titulo.devedor_id = devedores.id
-                INNER JOIN core_acordo ON core_acordo.titulo_id = titulo.id
-                WHERE titulo.id = %s
+                    COALESCE(NULLIF(d.nome,''), NULLIF(d.nome_fantasia,''), d.razao_social) AS devedor_nome,
+                    d.cpf,
+                    d.cnpj,
+                    t.valor AS valor_titulo,
+                    t.juros,
+                    e.nome_fantasia AS empresa_nome_fantasia,
+                    e.cnpj AS empresa_cnpj,
+                    t.total_acordo AS valor_total_negociacao,
+                    t.valorRecebido AS entrada,
+                    t.qtde_parcelas AS qtde_prc,
+                    t.data_baixa AS data_entrada,
+                    t.dataVencimentoPrimeira AS venc_primeira_parcela,
+                    d.telefone1 AS contato,
+                    t.id AS acordo_id
+                FROM titulo t
+                INNER JOIN devedores d ON t.devedor_id = d.id
+                INNER JOIN core_empresa e ON d.empresa_id = e.id
+                WHERE t.id = %s
+                  AND t.idTituloRef IS NULL
+                  AND (t.statusBaixa = 2 OR t.statusBaixa = 3)
             """, [titulo_id])
             acordo_data = cursor.fetchone()
 
@@ -3117,9 +3117,13 @@ def gerar_pdf(request, titulo_id):
         # Obter as parcelas do acordo
         with connection.cursor() as cursor:
             cursor.execute("""
-                SELECT parcela_numero, data_vencimento, valor
-                FROM core_parcelamento
-                WHERE acordo_id = %s
+                SELECT 
+                    ROW_NUMBER() OVER (ORDER BY t.dataVencimento ASC) as parcela_numero,
+                    t.dataVencimento as data_vencimento,
+                    t.valor
+                FROM titulo t
+                WHERE t.idTituloRef = %s
+                ORDER BY t.dataVencimento ASC
             """, [acordo['acordo_id']])
             parcelas = cursor.fetchall()
 
