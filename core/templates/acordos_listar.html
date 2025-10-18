@@ -4,11 +4,48 @@
 <div class="container mt-5">
   <h3 class="text-center mb-4" style="font-size: 18px;"><b>Lista de Títulos / Acordos</b></h3>
 
-  <!-- Busca -->
-  <form method="get" action="{% url 'acordos_listar' %}" class="mb-3 d-flex gap-2" style="font-size: 12px;">
-    <input type="text" name="q" value="{{ query }}" class="form-control form-control-sm"
-           placeholder="Pesquisar por devedor, empresa, CPF, CNPJ, etc.">
-    <button type="submit" class="btn btn-sm btn-primary" style="font-size: 12px;">Pesquisar</button>
+  <!-- Filtros -->
+  <div class="row mb-3">
+    <div class="col-md-12">
+      <h6 class="mb-2" style="font-size: 14px; font-weight: bold;">Filtros</h6>
+    </div>
+  </div>
+  
+  <form method="get" action="{% url 'acordos_listar' %}" class="mb-3" style="font-size: 12px;">
+    <div class="row g-2 mb-2">
+      <div class="col-md-3">
+        <label class="form-label" style="font-size: 11px;">CPF/CNPJ</label>
+        <input type="text" name="cpf_cnpj" value="{{ cpf_cnpj }}" class="form-control form-control-sm"
+               placeholder="Digite CPF ou CNPJ">
+      </div>
+      <div class="col-md-3">
+        <label class="form-label" style="font-size: 11px;">Nome do Devedor</label>
+        <input type="text" name="nome_devedor" value="{{ nome_devedor }}" class="form-control form-control-sm"
+               placeholder="Digite o nome do devedor">
+      </div>
+      <div class="col-md-2">
+        <label class="form-label" style="font-size: 11px;">Data Início</label>
+        <input type="date" name="data_inicio" value="{{ data_inicio }}" class="form-control form-control-sm">
+      </div>
+      <div class="col-md-2">
+        <label class="form-label" style="font-size: 11px;">Data Fim</label>
+        <input type="date" name="data_fim" value="{{ data_fim }}" class="form-control form-control-sm">
+      </div>
+      <div class="col-md-2 d-flex align-items-end">
+        <button type="submit" class="btn btn-sm btn-primary" style="font-size: 12px;">Filtrar</button>
+      </div>
+    </div>
+    
+    <!-- Busca geral -->
+    <div class="row">
+      <div class="col-md-10">
+        <input type="text" name="q" value="{{ query }}" class="form-control form-control-sm"
+               placeholder="Pesquisar por devedor, empresa, CPF, CNPJ, etc.">
+      </div>
+      <div class="col-md-2">
+        <button type="submit" class="btn btn-sm btn-secondary" style="font-size: 12px;">Pesquisar</button>
+      </div>
+    </div>
   </form>
 
   <!-- Tabela -->
@@ -44,6 +81,10 @@
         <td>
           <button class="btn btn-sm btn-info" onclick="toggleParcelas({{ titulo.titulo_id }})">Ver Parcelas</button>
           <a href="{% url 'gerar_contrato' titulo.titulo_id %}" class="btn btn-sm btn-success" target="_blank">Gerar Contrato</a>
+          <button class="btn btn-sm btn-warning" data-bs-toggle="modal" data-bs-target="#modalAlterarOperador" 
+                  data-titulo-id="{{ titulo.titulo_id }}" data-operador-atual="{{ titulo.operador|default:'Sem operador' }}">
+            Alterar Operador
+          </button>
         </td>
       </tr>
 
@@ -249,6 +290,43 @@
     </div>
   </div>
 
+  <!-- === MODAL ALTERAR OPERADOR (novo) === -->
+  <div class="modal fade" id="modalAlterarOperador" tabindex="-1" aria-labelledby="modalAlterarOperadorLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <form id="formAlterarOperador" method="post" action="{% url 'alterar_operador' 0 %}">
+        {% csrf_token %}
+        <div class="modal-content">
+          <div class="modal-header bg-warning">
+            <h5 class="modal-title" id="modalAlterarOperadorLabel">Alterar Operador</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
+          </div>
+          <div class="modal-body">
+            <div class="mb-3">
+              <label class="form-label">Operador Atual:</label>
+              <input type="text" id="operador-atual" class="form-control" readonly>
+            </div>
+            <div class="mb-3">
+              <label class="form-label">Novo Operador:</label>
+              <select class="form-select" name="operador" id="novo-operador" required>
+                <option value="">Selecione um operador</option>
+                {% for user in operadores %}
+                  <option value="{{ user.username }}">{{ user.get_full_name|default:user.username }}</option>
+                {% endfor %}
+              </select>
+            </div>
+            <div class="alert alert-info">
+              <small><strong>Importante:</strong> Esta alteração afetará o controle de honorários e a visibilidade do acordo.</small>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button class="btn btn-secondary" type="button" data-bs-dismiss="modal">Cancelar</button>
+            <button class="btn btn-warning" type="submit">Alterar Operador</button>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+
   <!-- Paginação -->
   <div class="d-flex justify-content-between align-items-center mt-3" style="font-size: 12px;">
     <div>
@@ -334,6 +412,25 @@
     modalExcluir.addEventListener('hidden.bs.modal', function(){
       const form = document.getElementById('formExcluirParcela');
       form.action = form.action.replace(/\/\d+\/$/, '/0/');
+    });
+
+    // ALTERAR OPERADOR
+    const modalAlterarOperador = document.getElementById('modalAlterarOperador');
+    modalAlterarOperador.addEventListener('show.bs.modal', function(ev){
+      const btn = ev.relatedTarget;
+      const tituloId = btn.getAttribute('data-titulo-id');
+      const operadorAtual = btn.getAttribute('data-operador-atual');
+
+      const form = document.getElementById('formAlterarOperador');
+      form.action = form.action.replace(/\/0\/$/, `/${tituloId}/`);
+
+      document.getElementById('operador-atual').value = operadorAtual;
+      document.getElementById('novo-operador').value = '';
+    });
+    modalAlterarOperador.addEventListener('hidden.bs.modal', function(){
+      const form = document.getElementById('formAlterarOperador');
+      form.action = form.action.replace(/\/\d+\/$/, '/0/');
+      form.reset();
     });
   })();
 </script>

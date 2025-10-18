@@ -3412,6 +3412,12 @@ def listar_acordos(request):
     q = (request.GET.get('q') or '').strip()
     operador_f = (request.GET.get('operador') or '').strip()
     supervisor_f = (request.GET.get('supervisor') or '').strip()
+    
+    # Novos filtros
+    cpf_cnpj_f = (request.GET.get('cpf_cnpj') or '').strip()
+    nome_devedor_f = (request.GET.get('nome_devedor') or '').strip()
+    data_inicio_f = (request.GET.get('data_inicio') or '').strip()
+    data_fim_f = (request.GET.get('data_fim') or '').strip()
 
     # Nome do usuário para travar a visibilidade
     usuario_nome = (request.user.get_full_name() or request.user.username).strip()
@@ -3452,6 +3458,24 @@ def listar_acordos(request):
           )
         """
         params += [f'%{q}%'] * 6
+    
+    # Filtro por CPF/CNPJ
+    if cpf_cnpj_f:
+        sql += " AND (d.cpf LIKE %s OR d.cnpj LIKE %s)"
+        params += [f'%{cpf_cnpj_f}%', f'%{cpf_cnpj_f}%']
+    
+    # Filtro por nome do devedor
+    if nome_devedor_f:
+        sql += " AND (d.nome LIKE %s OR d.nome_fantasia LIKE %s OR d.razao_social LIKE %s)"
+        params += [f'%{nome_devedor_f}%', f'%{nome_devedor_f}%', f'%{nome_devedor_f}%']
+    
+    # Filtro por intervalo de data
+    if data_inicio_f:
+        sql += " AND t.data_baixa >= %s"
+        params.append(data_inicio_f)
+    if data_fim_f:
+        sql += " AND t.data_baixa <= %s"
+        params.append(data_fim_f)
 
     # Visibilidade por operador/supervisor
     if not (request.user.is_staff or request.user.is_superuser):
@@ -3523,6 +3547,9 @@ def listar_acordos(request):
     paginator = Paginator(acordos, 10)
     page_obj = paginator.get_page(request.GET.get('page'))
 
+    # Lista de operadores para o modal
+    operadores = User.objects.filter(is_active=True).order_by('first_name', 'username')
+
     return render(
         request,
         'acordos_listar.html',
@@ -3531,6 +3558,11 @@ def listar_acordos(request):
             'query': q,
             'operador': operador_f,
             'supervisor': supervisor_f,
+            'cpf_cnpj': cpf_cnpj_f,
+            'nome_devedor': nome_devedor_f,
+            'data_inicio': data_inicio_f,
+            'data_fim': data_fim_f,
+            'operadores': operadores,
             'trava_operador': not (request.user.is_staff or request.user.is_superuser),
         }
     )
@@ -6286,6 +6318,11 @@ def alterar_operador(request, titulo_id):
     # Atualiza o operador do título
     titulo.operador = operador_username
     titulo.save()
+
+    # Atualiza também o operador da empresa relacionada
+    if titulo.empresa:
+        titulo.empresa.operador = operador_username
+        titulo.empresa.save()
 
     return JsonResponse({
         "status": "success",
