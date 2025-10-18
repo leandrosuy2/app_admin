@@ -3452,6 +3452,7 @@ def listar_acordos(request):
     nome_devedor_f = (request.GET.get('nome_devedor') or '').strip()
     data_inicio_f = (request.GET.get('data_inicio') or '').strip()
     data_fim_f = (request.GET.get('data_fim') or '').strip()
+    operador_filtro_f = (request.GET.get('operador_filtro') or '').strip()
 
     # Nome do usuário para travar a visibilidade
     usuario_nome = (request.user.get_full_name() or request.user.username).strip()
@@ -3510,6 +3511,11 @@ def listar_acordos(request):
     if data_fim_f:
         sql += " AND t.data_baixa <= %s"
         params.append(data_fim_f)
+    
+    # Filtro por operador
+    if operador_filtro_f:
+        sql += " AND LOWER(e.operador) = LOWER(%s)"
+        params.append(operador_filtro_f)
 
     # Visibilidade por operador/supervisor
     if not (request.user.is_staff or request.user.is_superuser):
@@ -3596,6 +3602,7 @@ def listar_acordos(request):
             'nome_devedor': nome_devedor_f,
             'data_inicio': data_inicio_f,
             'data_fim': data_fim_f,
+            'operador_filtro': operador_filtro_f,
             'operadores': operadores,
             'trava_operador': not (request.user.is_staff or request.user.is_superuser),
         }
