@@ -3158,11 +3158,29 @@ def gerar_pdf(request, titulo_id):
             50, height - 110,
             f"De CNPJ {acordo['empresa_cnpj']}. Firmo este Contrato de Confissão e Renegociação de Dívida."
         )
-        pdf.drawString(50, height - 130, f"Valor Total da Negociação: R$ {acordo['valor_total_negociacao']:.2f}")
-        pdf.drawString(50, height - 150 , f"Entrada: R$ {acordo['entrada']:.2f}")
-        pdf.drawString(50, height - 170, f"Quantidade de Parcelas: {acordo['qtde_prc']}")
-        data_entrada_formatada = datetime.strptime(str(acordo['data_entrada']), '%Y-%m-%d').strftime('%d/%m/%Y')
-        venc_primeira_parcela_formatada = datetime.strptime(str(acordo['venc_primeira_parcela']), '%Y-%m-%d').strftime('%d/%m/%Y')
+        # Tratar valores numéricos nulos
+        valor_total = acordo['valor_total_negociacao'] or 0
+        entrada = acordo['entrada'] or 0
+        qtde_parcelas = acordo['qtde_prc'] or 0
+        
+        pdf.drawString(50, height - 130, f"Valor Total da Negociação: R$ {valor_total:.2f}")
+        pdf.drawString(50, height - 150 , f"Entrada: R$ {entrada:.2f}")
+        pdf.drawString(50, height - 170, f"Quantidade de Parcelas: {qtde_parcelas}")
+        
+        # Tratar datas nulas
+        data_entrada_formatada = "Não informado"
+        if acordo['data_entrada']:
+            try:
+                data_entrada_formatada = datetime.strptime(str(acordo['data_entrada']), '%Y-%m-%d').strftime('%d/%m/%Y')
+            except (ValueError, TypeError):
+                data_entrada_formatada = "Data inválida"
+        
+        venc_primeira_parcela_formatada = "Não informado"
+        if acordo['venc_primeira_parcela']:
+            try:
+                venc_primeira_parcela_formatada = datetime.strptime(str(acordo['venc_primeira_parcela']), '%Y-%m-%d').strftime('%d/%m/%Y')
+            except (ValueError, TypeError):
+                venc_primeira_parcela_formatada = "Data inválida"
 
         pdf.drawString(50, height - 190, f"Data da Entrada: {data_entrada_formatada}")
         pdf.drawString(50, height - 210, f"Vencimento da Primeira Parcela: {venc_primeira_parcela_formatada}")
@@ -3183,8 +3201,20 @@ def gerar_pdf(request, titulo_id):
 
         for parcela in parcelas:
             pdf.drawString(50, y, str(parcela[0]))
-            pdf.drawString(150, y, parcela[1].strftime('%d/%m/%Y'))
-            pdf.drawString(300, y, f"R$ {parcela[2]:.2f}")
+            
+            # Tratar data de vencimento nula
+            data_vencimento = "Não informado"
+            if parcela[1]:
+                try:
+                    data_vencimento = parcela[1].strftime('%d/%m/%Y')
+                except (ValueError, TypeError, AttributeError):
+                    data_vencimento = "Data inválida"
+            
+            # Tratar valor nulo
+            valor_parcela = parcela[2] or 0
+            
+            pdf.drawString(150, y, data_vencimento)
+            pdf.drawString(300, y, f"R$ {valor_parcela:.2f}")
             y -= 20
 
         # Assinatura
