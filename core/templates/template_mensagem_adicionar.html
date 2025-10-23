@@ -96,38 +96,38 @@
                     <div class="col-md-6">
                         <h6>Informações do Devedor</h6>
                         <ul class="list-unstyled">
-                            <li><code>%Nome%</code> - Nome do devedor</li>
-                            <li><code>%CpfCnpj%</code> - CPF/CNPJ do devedor</li>
-                            <li><code>%CpfCnpjMascarado%</code> - CPF/CNPJ mascarado</li>
-                            <li><code>%LinkPortal%</code> - Link do portal do devedor</li>
+                            <li><span class="variavel-item badge badge-primary" style="cursor: pointer;" data-variavel="%Nome%">%Nome%</span> - Nome do devedor</li>
+                            <li><span class="variavel-item badge badge-primary" style="cursor: pointer;" data-variavel="%CpfCnpj%">%CpfCnpj%</span> - CPF/CNPJ do devedor</li>
+                            <li><span class="variavel-item badge badge-primary" style="cursor: pointer;" data-variavel="%CpfCnpjMascarado%">%CpfCnpjMascarado%</span> - CPF/CNPJ mascarado</li>
+                            <li><span class="variavel-item badge badge-primary" style="cursor: pointer;" data-variavel="%LinkPortal%">%LinkPortal%</span> - Link do portal do devedor</li>
                         </ul>
                         
                         <h6>Informações do Credor</h6>
                         <ul class="list-unstyled">
-                            <li><code>%NomeCredor%</code> - Nome do credor</li>
-                            <li><code>%CpfCnpjCredor%</code> - CPF/CNPJ do credor</li>
-                            <li><code>%LinkPortalCredor%</code> - Link do portal do credor</li>
+                            <li><span class="variavel-item badge badge-primary" style="cursor: pointer;" data-variavel="%NomeCredor%">%NomeCredor%</span> - Nome do credor</li>
+                            <li><span class="variavel-item badge badge-primary" style="cursor: pointer;" data-variavel="%CpfCnpjCredor%">%CpfCnpjCredor%</span> - CPF/CNPJ do credor</li>
+                            <li><span class="variavel-item badge badge-primary" style="cursor: pointer;" data-variavel="%LinkPortalCredor%">%LinkPortalCredor%</span> - Link do portal do credor</li>
                         </ul>
                     </div>
                     <div class="col-md-6">
                         <h6>Informações do Consultor</h6>
                         <ul class="list-unstyled">
-                            <li><code>%NomeConsultor%</code> - Nome do consultor logado</li>
+                            <li><span class="variavel-item badge badge-primary" style="cursor: pointer;" data-variavel="%NomeConsultor%">%NomeConsultor%</span> - Nome do consultor logado</li>
                         </ul>
                         
                         <h6>Informações de Dívidas</h6>
                         <ul class="list-unstyled">
-                            <li><code>%ListaVencimentosDividas%</code> - Datas de vencimento das dívidas</li>
-                            <li><code>%QtdeDividas%</code> - Quantidade de dívidas em aberto</li>
-                            <li><code>%ValorTotalDividas%</code> - Valor total das dívidas (sem R$)</li>
-                            <li><code>%ValorTotalCorrigidoDividas%</code> - Valor total corrigido (sem R$)</li>
+                            <li><span class="variavel-item badge badge-primary" style="cursor: pointer;" data-variavel="%ListaVencimentosDividas%">%ListaVencimentosDividas%</span> - Datas de vencimento das dívidas</li>
+                            <li><span class="variavel-item badge badge-primary" style="cursor: pointer;" data-variavel="%QtdeDividas%">%QtdeDividas%</span> - Quantidade de dívidas em aberto</li>
+                            <li><span class="variavel-item badge badge-primary" style="cursor: pointer;" data-variavel="%ValorTotalDividas%">%ValorTotalDividas%</span> - Valor total das dívidas (sem R$)</li>
+                            <li><span class="variavel-item badge badge-primary" style="cursor: pointer;" data-variavel="%ValorTotalCorrigidoDividas%">%ValorTotalCorrigidoDividas%</span> - Valor total corrigido (sem R$)</li>
                         </ul>
                         
                         <h6>Informações de Parcelas</h6>
                         <ul class="list-unstyled">
-                            <li><code>%ListaVencimentosParcelas%</code> - Datas de vencimento das parcelas</li>
-                            <li><code>%QtdeParcelas%</code> - Quantidade de parcelas em aberto</li>
-                            <li><code>%ValorTotalParcelas%</code> - Valor total das parcelas (sem R$)</li>
+                            <li><span class="variavel-item badge badge-primary" style="cursor: pointer;" data-variavel="%ListaVencimentosParcelas%">%ListaVencimentosParcelas%</span> - Datas de vencimento das parcelas</li>
+                            <li><span class="variavel-item badge badge-primary" style="cursor: pointer;" data-variavel="%QtdeParcelas%">%QtdeParcelas%</span> - Quantidade de parcelas em aberto</li>
+                            <li><span class="variavel-item badge badge-primary" style="cursor: pointer;" data-variavel="%ValorTotalParcelas%">%ValorTotalParcelas%</span> - Valor total das parcelas (sem R$)</li>
                         </ul>
                     </div>
                 </div>
@@ -151,4 +151,29 @@ CPF/CNPJ: %CpfCnpj%</code></pre>
         </div>
     </div>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+$(document).ready(function() {
+    // Garantir que o modal funcione
+    $('#variaveisModal').on('show.bs.modal', function (e) {
+        // Modal está funcionando
+    });
+    
+    // Adicionar funcionalidade para inserir variáveis no textarea
+    $('.variavel-item').on('click', function() {
+        var variavel = $(this).data('variavel');
+        var textarea = $('#id_template_mensagem');
+        var cursorPos = textarea.prop('selectionStart');
+        var textBefore = textarea.val().substring(0, cursorPos);
+        var textAfter = textarea.val().substring(cursorPos);
+        
+        textarea.val(textBefore + variavel + textAfter);
+        textarea.focus();
+        textarea.prop('selectionStart', cursorPos + variavel.length);
+        textarea.prop('selectionEnd', cursorPos + variavel.length);
+    });
+});
+</script>
 {% endblock %}
