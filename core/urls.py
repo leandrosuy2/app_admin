@@ -149,6 +149,12 @@ urlpatterns = [
     path("baixar-boleto/<str:codigo_solicitacao>/", baixar_boleto, name="baixar_boleto"),
     path('titulos/honorarios/', views.honorarios, name='honorarios'),
     path('ranking-operadores/', views.ranking_operadores, name='ranking_operadores'),
+    
+    # URLs para Templates de Mensagens WhatsApp
+    path('templates-mensagens/', views.listar_templates_mensagens, name='listar_templates_mensagens'),
+    path('templates-mensagens/adicionar/', views.adicionar_template_mensagem, name='adicionar_template_mensagem'),
+    path('templates-mensagens/editar/<int:pk>/', views.editar_template_mensagem, name='editar_template_mensagem'),
+    path('templates-mensagens/excluir/<int:pk>/', views.excluir_template_mensagem, name='excluir_template_mensagem'),
 
     
     

@@ -51,7 +51,7 @@ from django.contrib.auth.decorators import login_required, permission_required
 from num2words import num2words
 import os
 from django.conf import settings
-from .forms import MensagemWhatsappForm
+from .forms import MensagemWhatsappForm, TemplateMensagemWhatsappForm
 from django.core.exceptions import ValidationError
 from decimal import Decimal, InvalidOperation 
 
@@ -6614,3 +6614,38 @@ def honorarios(request):
         "empresas": empresas,
         "trava_operador": trava_operador,
     })
+
+
+# Views para Templates de Mensagens WhatsApp
+def listar_templates_mensagens(request):
+    templates = TemplateMensagemWhatsapp.objects.all().order_by('-created_at')
+    return render(request, 'templates_mensagens_listar.html', {'templates': templates})
+
+
+def adicionar_template_mensagem(request):
+    if request.method == 'POST':
+        form = TemplateMensagemWhatsappForm(request.POST)
+        if form.is_valid():
+            form.save()
+            return redirect('listar_templates_mensagens')
+    else:
+        form = TemplateMensagemWhatsappForm()
+    return render(request, 'template_mensagem_adicionar.html', {'form': form})
+
+
+def editar_template_mensagem(request, pk):
+    template = get_object_or_404(TemplateMensagemWhatsapp, pk=pk)
+    if request.method == 'POST':
+        form = TemplateMensagemWhatsappForm(request.POST, instance=template)
+        if form.is_valid():
+            form.save()
+            return redirect('listar_templates_mensagens')
+    else:
+        form = TemplateMensagemWhatsappForm(instance=template)
+    return render(request, 'template_mensagem_editar.html', {'form': form, 'template': template})
+
+
+def excluir_template_mensagem(request, pk):
+    template = get_object_or_404(TemplateMensagemWhatsapp, pk=pk)
+    template.delete()
+    return redirect('listar_templates_mensagens')

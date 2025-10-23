@@ -341,6 +341,33 @@ class MensagemWhatsapp(models.Model):
 
     def __str__(self):
         return f"{self.categoria} - {self.mensagem[:50]}"
+
+
+class TemplateMensagemWhatsapp(models.Model):
+    CATEGORIAS = [
+        ('Pendentes', 'Pendentes'),
+        ('Negociados', 'Negociados'),
+        ('Boletos', 'Boletos'),
+        ('Cobrança boleto atrasado', 'Cobrança boleto atrasado'),
+        ('Novo cliente', 'Novo cliente'),
+        ('Notificação Extrajudicial', 'Notificação Extrajudicial'),
+    ]
+
+    nome = models.CharField(max_length=255, help_text="Nome do template")
+    categoria = models.CharField(max_length=50, choices=CATEGORIAS)
+    template_mensagem = models.TextField(help_text="Template da mensagem com variáveis")
+    follow_up_automatico = models.BooleanField(default=True, help_text="Inserir follow-up automaticamente ao carregar o modelo")
+    ativo = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        db_table = 'template_mensagem_whatsapp'
+        verbose_name = "Template de Mensagem WhatsApp"
+        verbose_name_plural = "Templates de Mensagens WhatsApp"
+
+    def __str__(self):
+        return f"{self.nome} - {self.categoria}"
         
 class TabelaRemuneracao(models.Model):
     nome = models.CharField(max_length=255)

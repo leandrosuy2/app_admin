@@ -1,0 +1,154 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">
+                        <i class="fas fa-edit"></i>
+                        Editar Template de Mensagem WhatsApp
+                    </h3>
+                </div>
+                <div class="card-body">
+                    <form method="post">
+                        {% csrf_token %}
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="{{ form.nome.id_for_label }}">Nome do Template</label>
+                                    {{ form.nome }}
+                                    {% if form.nome.errors %}
+                                        <div class="text-danger">{{ form.nome.errors }}</div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="{{ form.categoria.id_for_label }}">Categoria</label>
+                                    {{ form.categoria }}
+                                    {% if form.categoria.errors %}
+                                        <div class="text-danger">{{ form.categoria.errors }}</div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="{{ form.template_mensagem.id_for_label }}">Template da Mensagem</label>
+                            {{ form.template_mensagem }}
+                            {% if form.template_mensagem.errors %}
+                                <div class="text-danger">{{ form.template_mensagem.errors }}</div>
+                            {% endif %}
+                            <small class="form-text text-muted">
+                                Use as variáveis disponíveis para personalizar a mensagem. 
+                                <a href="#" data-toggle="modal" data-target="#variaveisModal">Ver variáveis disponíveis</a>
+                            </small>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-check">
+                                    {{ form.follow_up_automatico }}
+                                    <label class="form-check-label" for="{{ form.follow_up_automatico.id_for_label }}">
+                                        Inserir follow-up automaticamente ao carregar o modelo
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-check">
+                                    {{ form.ativo }}
+                                    <label class="form-check-label" for="{{ form.ativo.id_for_label }}">
+                                        Template ativo
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="form-group mt-3">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save"></i> Salvar Alterações
+                            </button>
+                            <a href="{% url 'listar_templates_mensagens' %}" class="btn btn-secondary">
+                                <i class="fas fa-arrow-left"></i> Voltar
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal com variáveis disponíveis -->
+<div class="modal fade" id="variaveisModal" tabindex="-1" role="dialog">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Variáveis Disponíveis</h5>
+                <button type="button" class="close" data-dismiss="modal">
+                    <span>&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6>Informações do Devedor</h6>
+                        <ul class="list-unstyled">
+                            <li><code>%Nome%</code> - Nome do devedor</li>
+                            <li><code>%CpfCnpj%</code> - CPF/CNPJ do devedor</li>
+                            <li><code>%CpfCnpjMascarado%</code> - CPF/CNPJ mascarado</li>
+                            <li><code>%LinkPortal%</code> - Link do portal do devedor</li>
+                        </ul>
+                        
+                        <h6>Informações do Credor</h6>
+                        <ul class="list-unstyled">
+                            <li><code>%NomeCredor%</code> - Nome do credor</li>
+                            <li><code>%CpfCnpjCredor%</code> - CPF/CNPJ do credor</li>
+                            <li><code>%LinkPortalCredor%</code> - Link do portal do credor</li>
+                        </ul>
+                    </div>
+                    <div class="col-md-6">
+                        <h6>Informações do Consultor</h6>
+                        <ul class="list-unstyled">
+                            <li><code>%NomeConsultor%</code> - Nome do consultor logado</li>
+                        </ul>
+                        
+                        <h6>Informações de Dívidas</h6>
+                        <ul class="list-unstyled">
+                            <li><code>%ListaVencimentosDividas%</code> - Datas de vencimento das dívidas</li>
+                            <li><code>%QtdeDividas%</code> - Quantidade de dívidas em aberto</li>
+                            <li><code>%ValorTotalDividas%</code> - Valor total das dívidas (sem R$)</li>
+                            <li><code>%ValorTotalCorrigidoDividas%</code> - Valor total corrigido (sem R$)</li>
+                        </ul>
+                        
+                        <h6>Informações de Parcelas</h6>
+                        <ul class="list-unstyled">
+                            <li><code>%ListaVencimentosParcelas%</code> - Datas de vencimento das parcelas</li>
+                            <li><code>%QtdeParcelas%</code> - Quantidade de parcelas em aberto</li>
+                            <li><code>%ValorTotalParcelas%</code> - Valor total das parcelas (sem R$)</li>
+                        </ul>
+                    </div>
+                </div>
+                
+                <div class="mt-3">
+                    <h6>Exemplo de Uso:</h6>
+                    <pre class="bg-light p-3"><code>NOTIFICAÇÃO EXTRAJUDICIAL
+
+NOTIFICANTE:
+%NomeCredor%
+CNPJ: %CpfCnpjCredor%
+
+NOTIFICADO:
+%Nome%
+CPF/CNPJ: %CpfCnpj%</code></pre>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Fechar</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

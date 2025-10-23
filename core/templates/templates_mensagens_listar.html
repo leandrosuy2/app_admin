@@ -1,0 +1,89 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">
+                        <i class="fas fa-comment-dots"></i>
+                        Modelos de Mensagens WhatsApp
+                    </h3>
+                    <div class="card-tools">
+                        <a href="{% url 'adicionar_template_mensagem' %}" class="btn btn-primary">
+                            <i class="fas fa-plus"></i> Novo Template
+                        </a>
+                    </div>
+                </div>
+                <div class="card-body">
+                    {% if templates %}
+                        <div class="table-responsive">
+                            <table class="table table-striped table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Nome</th>
+                                        <th>Categoria</th>
+                                        <th>Status</th>
+                                        <th>Follow-up Automático</th>
+                                        <th>Data Criação</th>
+                                        <th>Ações</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for template in templates %}
+                                    <tr>
+                                        <td>
+                                            <strong>{{ template.nome }}</strong>
+                                        </td>
+                                        <td>
+                                            <span class="badge badge-info">{{ template.categoria }}</span>
+                                        </td>
+                                        <td>
+                                            {% if template.ativo %}
+                                                <span class="badge badge-success">Ativo</span>
+                                            {% else %}
+                                                <span class="badge badge-secondary">Inativo</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            {% if template.follow_up_automatico %}
+                                                <span class="badge badge-primary">Sim</span>
+                                            {% else %}
+                                                <span class="badge badge-light">Não</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>{{ template.created_at|date:"d/m/Y H:i" }}</td>
+                                        <td>
+                                            <div class="btn-group" role="group">
+                                                <a href="{% url 'editar_template_mensagem' template.pk %}" 
+                                                   class="btn btn-warning btn-sm" 
+                                                   title="Editar">
+                                                    <i class="fas fa-edit"></i>
+                                                </a>
+                                                <a href="{% url 'excluir_template_mensagem' template.pk %}" 
+                                                   class="btn btn-danger btn-sm" 
+                                                   title="Excluir"
+                                                   onclick="return confirm('Tem certeza que deseja excluir este template?')">
+                                                    <i class="fas fa-trash"></i>
+                                                </a>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <div class="alert alert-info">
+                            <i class="fas fa-info-circle"></i>
+                            Nenhum template de mensagem encontrado. 
+                            <a href="{% url 'adicionar_template_mensagem' %}">Clique aqui para criar o primeiro template.</a>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
