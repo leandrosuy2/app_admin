@@ -6786,7 +6786,7 @@ def honorarios(request):
     SELECT
       COALESCE(NULLIF(d.nome,''), NULLIF(d.nome_fantasia,''), d.razao_social) AS devedor_exib,
       COALESCE(NULLIF(d.cpf,''), d.cnpj)                                      AS doc_exib,
-      CONCAT(e.id, ' - ', e.nome_fantasia)                                    AS credor_exib,
+      COALESCE(e.nome_fantasia, e.razao_social)                              AS credor_exib,
       COALESCE(t.operador, e.operador, '')                                    AS operador_exib,
 
       COALESCE(t.dataVencimentoReal, t.dataVencimento, t.dataVencimentoPrimeira) AS dt_venc,
