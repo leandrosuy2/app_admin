@@ -2436,23 +2436,17 @@ def editar_empresa(request, id):
         empresa.gerente             = (request.POST.get('gerente') or '').strip()
 
         # Dados bancários / PIX
-        empresa.banco_nome          = (request.POST.get('banco_nome') or '').strip()
-        empresa.agencia             = _only_digits(request.POST.get('agencia')) or ''
-        empresa.conta               = _only_digits(request.POST.get('conta')) or ''
-        empresa.chave_pix           = (request.POST.get('chave_pix') or '').strip()
+        empresa.banco                = (request.POST.get('banco_nome') or '').strip()  # Mapeado para campo 'banco' do modelo
         empresa.nome_favorecido_pix = (request.POST.get('nome_favorecido_pix') or '').strip()
         empresa.tipo_pix            = (request.POST.get('tipo_pix') or '').strip()
 
         # Implantação / Negociação
         try:
-            empresa.valor_adesao            = _to_decimal(request.POST.get('valor_adesao'))
-            empresa.desconto_total_avista   = _to_decimal(request.POST.get('desconto_total_avista'))
-            empresa.desconto_total_aprazo   = _to_decimal(request.POST.get('desconto_total_aprazo'))
+            valor_adesao_val = _to_decimal(request.POST.get('valor_adesao'))
+            empresa.valor_adesao = str(valor_adesao_val) if valor_adesao_val else None  # Convertido para string conforme modelo
         except (InvalidOperation, ValueError):
             messages.error(request, 'Algum valor numérico está em formato inválido.')
             return render(request, 'empresas_editar.html', {'empresa': empresa, 'tabelas': tabelas})
-
-        empresa.qtd_parcelas = int(request.POST.get('qtd_parcelas') or 0)
 
         # Plano
         plano_id = request.POST.get('plano')
@@ -2657,10 +2651,7 @@ def adicionar_empresa(request):
             gerente             = (request.POST.get('gerente') or '').strip()
 
             # Bancários / PIX
-            banco_nome          = (request.POST.get('banco_nome') or '').strip()
-            agencia             = _only_digits(request.POST.get('agencia'))
-            conta               = _only_digits(request.POST.get('conta'))
-            chave_pix           = (request.POST.get('chave_pix') or '').strip()
+            banco                = (request.POST.get('banco_nome') or '').strip()  # Mapeado para campo 'banco' do modelo
             nome_favorecido_pix = (request.POST.get('nome_favorecido_pix') or '').strip()
             tipo_pix            = (request.POST.get('tipo_pix') or '').strip()
 
@@ -2670,10 +2661,6 @@ def adicionar_empresa(request):
             except (InvalidOperation, ValueError):
                 messages.error(request, 'O valor de Implantação está em formato inválido.')
                 return render(request, 'empresas_adicionar.html', {'tabelas': tabelas})
-
-            qtd_parcelas            = int(request.POST.get('qtd_parcelas') or 0)
-            desconto_total_avista   = _to_decimal(request.POST.get('desconto_total_avista'))
-            desconto_total_aprazo   = _to_decimal(request.POST.get('desconto_total_aprazo'))
 
             plano_id = request.POST.get('plano')
             logo_file = request.FILES.get('logo')
@@ -2716,18 +2703,12 @@ def adicionar_empresa(request):
                 gerente=gerente,
 
                 # Bancários
-                banco_nome=banco_nome,
-                agencia=agencia,
-                conta=conta,
-                chave_pix=chave_pix,
+                banco=banco,
                 nome_favorecido_pix=nome_favorecido_pix,
                 tipo_pix=tipo_pix,
 
                 # Taxas / negociação
-                valor_adesao=valor_adesao,                 # Implantação
-                qtd_parcelas=qtd_parcelas,
-                desconto_total_avista=desconto_total_avista,
-                desconto_total_aprazo=desconto_total_aprazo,
+                valor_adesao=str(valor_adesao) if valor_adesao else None,  # Implantação - convertido para string conforme modelo
 
                 plano=plano,
                 logo=logo_file,
