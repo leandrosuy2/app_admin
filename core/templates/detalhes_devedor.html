@@ -87,7 +87,18 @@
 
   <!-- =================== DADOS DO DEVEDOR =================== -->
   <div class="card mt-4">
-    <div class="card-header bg-primary text-white"><h3>Informações do Devedor</h3></div>
+    <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+      <h3 class="mb-0">Informações do Devedor</h3>
+      {% if operador_atual %}
+        <span class="badge bg-light text-dark">
+          <i class="fas fa-user"></i> Operador: <strong>{{ operador_atual.get_full_name|default:operador_atual.username }}</strong>
+        </span>
+      {% else %}
+        <span class="badge bg-secondary">
+          <i class="fas fa-user-slash"></i> Sem operador atribuído
+        </span>
+      {% endif %}
+    </div>
     <div class="card-body">
       <form method="post" action="">
         {% csrf_token %}
@@ -696,6 +707,7 @@
         <th>Juros</th>
         <th>Valor com juros</th>
         <th>Dias Atraso</th>
+        <th>Operador</th>
         <th>Ações</th>
       </tr>
     </thead>
@@ -718,6 +730,19 @@
         <td>R$ {{ titulo.juros|floatformat:2 }}</td>
         <td>R$ {{ titulo.valor_com_juros|floatformat:2 }}</td>
         <td>{{ titulo.dias_atraso }}</td>
+        <td>
+          {% if titulo.operador %}
+            {% with op=operadores_dict|get_item:titulo.operador %}
+              {% if op %}
+                <span class="badge bg-info">{{ op.get_full_name|default:op.username }}</span>
+              {% else %}
+                <span class="badge bg-secondary">{{ titulo.operador }}</span>
+              {% endif %}
+            {% endwith %}
+          {% else %}
+            <span class="badge bg-secondary">Sem operador</span>
+          {% endif %}
+        </td>
         <td>
           {% if titulo.statusBaixa == 0 or titulo.statusBaixa is none %}
             <a href="{% url 'realizar_acordo' titulo.id %}" class="btn btn-sm btn-success">
@@ -814,6 +839,7 @@
         <th>Juros</th>
         <th>Dias de atraso</th>
         <th>Status</th>
+        <th>Operador</th>
         <th>Ações</th>
       </tr>
     </thead>
@@ -838,6 +864,19 @@
               <span class="badge bg-success">Quitado</span>
             {% elif titulo.statusBaixa == 3 %}
               <span class="badge bg-info text-dark">Negociado</span>
+            {% endif %}
+          </td>
+          <td>
+            {% if titulo.operador %}
+              {% with op=operadores_dict|get_item:titulo.operador %}
+                {% if op %}
+                  <span class="badge bg-info">{{ op.get_full_name|default:op.username }}</span>
+                {% else %}
+                  <span class="badge bg-secondary">{{ titulo.operador }}</span>
+                {% endif %}
+              {% endwith %}
+            {% else %}
+              <span class="badge bg-secondary">Sem operador</span>
             {% endif %}
           </td>
           <td>

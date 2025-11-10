@@ -4491,6 +4491,18 @@ def detalhes_devedor(request, titulo_id):
     # Obter lista de operadores para o modal
     operadores = User.objects.filter(is_active=True).order_by('first_name', 'username')
     
+    # Criar dicionário de operadores por username para facilitar busca no template
+    operadores_dict = {op.username: op for op in operadores}
+    
+    # Obter operador atual do devedor (do primeiro título que tiver operador)
+    operador_atual = None
+    titulo_com_operador = titulos.filter(operador__isnull=False).exclude(operador='').first()
+    if titulo_com_operador and titulo_com_operador.operador:
+        try:
+            operador_atual = User.objects.get(username=titulo_com_operador.operador)
+        except User.DoesNotExist:
+            operador_atual = None
+    
     context = {
         'devedor': devedor,
         'titulos': titulos,
@@ -4524,6 +4536,8 @@ def detalhes_devedor(request, titulo_id):
         
         # operadores
         'operadores': operadores,
+        'operadores_dict': operadores_dict,
+        'operador_atual': operador_atual,
     }
     return render(request, 'detalhes_devedor.html', context)
 
