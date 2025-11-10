@@ -155,24 +155,31 @@ CPF/CNPJ: %CpfCnpj%</code></pre>
 
 {% block extra_js %}
 <script>
-$(document).ready(function() {
+document.addEventListener('DOMContentLoaded', function() {
     // Garantir que o modal funcione
-    $('#variaveisModal').on('show.bs.modal', function (e) {
-        // Modal está funcionando
-    });
+    var modal = document.getElementById('variaveisModal');
+    if (modal) {
+        modal.addEventListener('show.bs.modal', function (e) {
+            // Modal está funcionando
+        });
+    }
     
     // Adicionar funcionalidade para inserir variáveis no textarea
-    $('.variavel-item').on('click', function() {
-        var variavel = $(this).data('variavel');
-        var textarea = $('#id_template_mensagem');
-        var cursorPos = textarea.prop('selectionStart');
-        var textBefore = textarea.val().substring(0, cursorPos);
-        var textAfter = textarea.val().substring(cursorPos);
-        
-        textarea.val(textBefore + variavel + textAfter);
-        textarea.focus();
-        textarea.prop('selectionStart', cursorPos + variavel.length);
-        textarea.prop('selectionEnd', cursorPos + variavel.length);
+    var variavelItems = document.querySelectorAll('.variavel-item');
+    variavelItems.forEach(function(item) {
+        item.addEventListener('click', function() {
+            var variavel = this.getAttribute('data-variavel');
+            var textarea = document.getElementById('id_template_mensagem');
+            if (textarea) {
+                var cursorPos = textarea.selectionStart;
+                var textBefore = textarea.value.substring(0, cursorPos);
+                var textAfter = textarea.value.substring(cursorPos);
+                
+                textarea.value = textBefore + variavel + textAfter;
+                textarea.focus();
+                textarea.setSelectionRange(cursorPos + variavel.length, cursorPos + variavel.length);
+            }
+        });
     });
 });
 </script>

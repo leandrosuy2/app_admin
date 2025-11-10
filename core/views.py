@@ -1,7 +1,7 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required, permission_required
 from django.contrib.auth import authenticate, login  
-from .models import Devedor, Empresa, Titulo, Acordo, Parcelamento, UserAccessLog, MensagemWhatsapp, TabelaRemuneracao, TabelaRemuneracaoLista, EmailEnvio, EmailTemplate, Boleto
+from .models import Devedor, Empresa, Titulo, Acordo, Parcelamento, UserAccessLog, MensagemWhatsapp, TemplateMensagemWhatsapp, TabelaRemuneracao, TabelaRemuneracaoLista, EmailEnvio, EmailTemplate, Boleto
 from django.apps import AppConfig
 from django.core.paginator import Paginator
 import logging
@@ -6618,8 +6618,16 @@ def honorarios(request):
 
 # Views para Templates de Mensagens WhatsApp
 def listar_templates_mensagens(request):
-    templates = TemplateMensagemWhatsapp.objects.all().order_by('-created_at')
-    return render(request, 'templates_mensagens_listar.html', {'templates': templates})
+    try:
+        # Verificar se a tabela existe
+        templates = TemplateMensagemWhatsapp.objects.all().order_by('-created_at')
+        return render(request, 'templates_mensagens_listar.html', {'templates': templates})
+    except Exception as e:
+        # Se houver erro, mostrar mensagem de erro
+        return render(request, 'templates_mensagens_listar.html', {
+            'templates': [], 
+            'error': f'Erro ao carregar templates: {str(e)}. Verifique se a migração foi executada.'
+        })
 
 
 def adicionar_template_mensagem(request):

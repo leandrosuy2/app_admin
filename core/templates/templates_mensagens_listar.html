@@ -17,6 +17,11 @@
                     </div>
                 </div>
                 <div class="card-body">
+                    {% if error %}
+                        <div class="alert alert-danger">
+                            <strong>Erro:</strong> {{ error }}
+                        </div>
+                    {% endif %}
                     {% if templates %}
                         <div class="table-responsive">
                             <table class="table table-striped table-hover">
