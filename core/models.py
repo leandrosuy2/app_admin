@@ -492,7 +492,7 @@ class Cobranca(models.Model):
     
     empresa = models.ForeignKey('Empresa', on_delete=models.CASCADE, related_name='cobrancas')
     data_cobranca = models.DateField(verbose_name="Data da Cobrança")
-    valor_comissao = models.DecimalField(max_digits=10, decimal_places=2, verbose_name="Valor da Comissão")
+    valor_comissao = models.DecimalField(max_digits=10, decimal_places=2, default=Decimal('0.00'), verbose_name="Valor da Comissão")
     pago = models.BooleanField(default=False, verbose_name="Pago")
     tipo_anexo = models.CharField(max_length=20, choices=TIPO_ANEXO_CHOICES, verbose_name="Tipo de Anexo")
     documento = models.FileField(upload_to='cobrancas/', null=True, blank=True, verbose_name="Documento")
