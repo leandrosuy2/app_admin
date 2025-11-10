@@ -243,7 +243,8 @@
                       class="btn btn-outline-success btn-sm"
                       title="Gerar Cobrança"
                       data-bs-toggle="modal"
-                      data-bs-target="#cobrancaModal-{{ row.0 }}">
+                      data-bs-target="#cobrancaModal-{{ row.0 }}"
+                      data-valor-comissao="{{ row.12 }}">
                 GERAR COBRANÇA
               </button>
               <button
@@ -367,7 +368,7 @@
           {% csrf_token %}
           <input type="hidden" name="gerar_cobranca" value="1">
           <input type="hidden" name="empresa_id" value="{{ row.0 }}">
-          <input type="hidden" name="valor_comissao" value="{{ row.12 }}">
+          <input type="hidden" name="valor_comissao" id="valor_comissao-{{ row.0 }}" value="">
           
           <div class="modal-header">
             <h5 class="modal-title">Gerar Cobrança — {{ row.1 }}</h5>
@@ -563,6 +564,49 @@ document.addEventListener("DOMContentLoaded", function(){
 </script>
 
 <script>
+// Preencher valor da comissão quando o modal for aberto
+document.addEventListener('DOMContentLoaded', function() {
+  // Quando qualquer modal de cobrança for aberto
+  document.querySelectorAll('[data-bs-target^="#cobrancaModal-"]').forEach(button => {
+    button.addEventListener('click', function() {
+      const empresaId = this.getAttribute('data-bs-target').replace('#cobrancaModal-', '');
+      let valorComissao = this.getAttribute('data-valor-comissao') || '0';
+      
+      // Converter para string e limpar formatação
+      valorComissao = String(valorComissao);
+      // Remover tudo exceto números, vírgulas e pontos
+      valorComissao = valorComissao.replace(/[^\d.,]/g, '');
+      // Substituir vírgula por ponto (formato brasileiro para formato internacional)
+      valorComissao = valorComissao.replace(',', '.');
+      
+      const inputValor = document.getElementById('valor_comissao-' + empresaId);
+      if (inputValor) {
+        inputValor.value = valorComissao;
+        console.log('Valor da comissão preenchido:', valorComissao, 'para empresa', empresaId);
+      }
+    });
+  });
+  
+  // Também usar evento do Bootstrap para quando o modal realmente abrir
+  document.querySelectorAll('[id^="cobrancaModal-"]').forEach(modal => {
+    modal.addEventListener('show.bs.modal', function(event) {
+      const button = event.relatedTarget;
+      if (button) {
+        const empresaId = button.getAttribute('data-bs-target').replace('#cobrancaModal-', '');
+        let valorComissao = button.getAttribute('data-valor-comissao') || '0';
+        
+        // Converter e limpar
+        valorComissao = String(valorComissao).replace(/[^\d.,]/g, '').replace(',', '.');
+        
+        const inputValor = document.getElementById('valor_comissao-' + empresaId);
+        if (inputValor) {
+          inputValor.value = valorComissao;
+        }
+      }
+    });
+  });
+});
+
 // Função para alternar entre input de documento e link
 function toggleAnexoInput(empresaId, tipo) {
   const docContainer = document.getElementById('documento-container-' + empresaId);

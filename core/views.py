@@ -5874,10 +5874,35 @@ def emitir_boletos_view(request):
 
             # Obter o valor da comissão
             valor_comissao_str = (request.POST.get("valor_comissao") or "0").strip()
+            logger.info(f"Valor da comissão recebido do POST: '{valor_comissao_str}'")
+            
+            # Remover formatação (vírgulas, pontos, espaços, R$, etc)
+            valor_comissao_limpo = valor_comissao_str.replace("R$", "").replace(" ", "").replace(",", ".").strip()
+            
+            # Se estiver vazio após limpeza, tentar buscar do row
+            if not valor_comissao_limpo or valor_comissao_limpo == "0":
+                # Buscar o valor da comissão do row original
+                row = next((r for r in results if str(r[0]) == empresa_id), None)
+                if row and len(row) > 12:
+                    valor_comissao_limpo = str(row[12] or "0")
+                    logger.info(f"Valor da comissão obtido do row: '{valor_comissao_limpo}'")
+            
             try:
-                valor_comissao = Decimal(str(valor_comissao_str)).quantize(Decimal("0.01"))
-            except (ValueError, InvalidOperation):
-                valor_comissao = Decimal("0.00")
+                # Tentar converter para Decimal
+                valor_comissao = Decimal(str(valor_comissao_limpo)).quantize(Decimal("0.01"))
+                logger.info(f"Valor da comissão convertido com sucesso: {valor_comissao}")
+            except (ValueError, InvalidOperation) as e:
+                logger.warning(f"Erro ao converter valor_comissao '{valor_comissao_limpo}': {e}")
+                # Tentar buscar do row como fallback
+                row = next((r for r in results if str(r[0]) == empresa_id), None)
+                if row and len(row) > 12:
+                    try:
+                        valor_comissao = Decimal(str(row[12] or 0)).quantize(Decimal("0.01"))
+                        logger.info(f"Valor da comissão obtido do row (fallback): {valor_comissao}")
+                    except:
+                        valor_comissao = Decimal("0.00")
+                else:
+                    valor_comissao = Decimal("0.00")
 
             # Verificar se é documento ou link
             documento = request.FILES.get("documento")
