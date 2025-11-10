@@ -197,6 +197,14 @@
                                     title="Trocar Operador">
                                 <i class="fas fa-user-edit"></i> Operador
                             </button>
+                            
+                            <!-- Botão Trocar Consultor -->
+                            <button type="button" class="btn btn-sm btn-info" style="font-size: 10px; padding: 2px 6px;" 
+                                    data-bs-toggle="modal" 
+                                    data-bs-target="#modalTrocarConsultor{{ devedor.id }}"
+                                    title="Trocar Consultor">
+                                <i class="fas fa-user-tie"></i> Consultor
+                            </button>
                         </div>
                     </td>
                 </tr>
@@ -233,6 +241,46 @@
                                 <div class="modal-footer">
                                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
                                     <button type="submit" class="btn btn-warning">
+                                        <i class="fas fa-save"></i> Salvar
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Modal para Trocar Consultor -->
+                <div class="modal fade" id="modalTrocarConsultor{{ devedor.id }}" tabindex="-1" aria-labelledby="modalTrocarConsultorLabel{{ devedor.id }}" aria-hidden="true">
+                    <div class="modal-dialog">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title" id="modalTrocarConsultorLabel{{ devedor.id }}">
+                                    Trocar Consultor - Devedor #{{ devedor.id }}
+                                </h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                            </div>
+                            <form id="formTrocarConsultor{{ devedor.id }}" method="post" action="{% url 'alterar_consultor_devedor' devedor.id %}">
+                                {% csrf_token %}
+                                <div class="modal-body">
+                                    <div class="mb-3">
+                                        <label for="consultor{{ devedor.id }}" class="form-label">Selecione o Consultor:</label>
+                                        <select class="form-select" id="consultor{{ devedor.id }}" name="consultor" required>
+                                            <option value="">-- Selecione um consultor --</option>
+                                            {% for consultor in consultores %}
+                                                <option value="{{ consultor.username }}">
+                                                    {{ consultor.get_full_name|default:consultor.username }}
+                                                    {% if consultor.get_full_name %} ({{ consultor.username }}){% endif %}
+                                                </option>
+                                            {% endfor %}
+                                        </select>
+                                    </div>
+                                    <div class="alert alert-info">
+                                        <small><i class="fas fa-info-circle"></i> Esta ação alterará o consultor (supervisor) da empresa relacionada a este devedor.</small>
+                                    </div>
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                                    <button type="submit" class="btn btn-info">
                                         <i class="fas fa-save"></i> Salvar
                                     </button>
                                 </div>
@@ -359,6 +407,51 @@
             .catch(error => {
                 console.error('Error:', error);
                 alert('Erro ao alterar operador.');
+            });
+        });
+    });
+    
+    // Handler para formulários de trocar consultor
+    document.querySelectorAll('[id^="formTrocarConsultor"]').forEach(form => {
+        form.addEventListener('submit', function(e) {
+            e.preventDefault();
+            const formData = new FormData(this);
+            const devedorId = this.action.match(/devedor\/(\d+)\//)[1];
+            
+            fetch(this.action, {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-CSRFToken': formData.get('csrfmiddlewaretoken')
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    alert(data.message);
+                    // Fechar o modal usando Bootstrap 5
+                    const modalElement = document.getElementById('modalTrocarConsultor' + devedorId);
+                    if (modalElement) {
+                        const modal = bootstrap.Modal.getInstance(modalElement);
+                        if (modal) {
+                            modal.hide();
+                        } else {
+                            // Se não existe instância, criar e fechar
+                            const newModal = new bootstrap.Modal(modalElement);
+                            newModal.hide();
+                        }
+                    }
+                    // Recarregar a página para atualizar os dados
+                    setTimeout(() => {
+                        window.location.reload();
+                    }, 500);
+                } else {
+                    alert('Erro: ' + data.message);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Erro ao alterar consultor.');
             });
         });
     });

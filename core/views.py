@@ -1321,7 +1321,8 @@ def listar_devedores(request):
             "query": q, 
             "status": status_filter, 
             "totals": totals,
-            "operadores": operadores
+            "operadores": operadores,
+            "consultores": operadores,  # Mesma lista para consultores
         },
     )
 
@@ -1637,12 +1638,40 @@ def editar_devedor(request, id):
             'changes': changes
         }, status=200)
 
+    # Obter lista de operadores para o modal
+    operadores = User.objects.filter(is_active=True).order_by('first_name', 'username')
+    
+    # Criar dicionário de operadores por username para facilitar busca no template
+    operadores_dict = {op.username: op for op in operadores}
+    
+    # Obter operador atual do devedor (do primeiro título que tiver operador)
+    operador_atual = None
+    titulos = Titulo.objects.filter(devedor=devedor)
+    titulo_com_operador = titulos.filter(operador__isnull=False).exclude(operador='').first()
+    if titulo_com_operador and titulo_com_operador.operador:
+        try:
+            operador_atual = User.objects.get(username=titulo_com_operador.operador)
+        except User.DoesNotExist:
+            operador_atual = None
+    
+    # Obter consultor atual (supervisor da empresa)
+    consultor_atual = None
+    if devedor.empresa and devedor.empresa.supervisor:
+        try:
+            consultor_atual = User.objects.get(username=devedor.empresa.supervisor)
+        except User.DoesNotExist:
+            consultor_atual = None
+    
     # Inclui a lista de números no contexto
     return render(request, 'devedores_editar.html', {
         'devedor': devedor,
         'devedor_data': devedor_data,
         'empresas': empresas,
         'numeros_telefones': range(1, 11),  # Lista de números de 1 a 10
+        'operadores': operadores,
+        'operadores_dict': operadores_dict,
+        'operador_atual': operador_atual,
+        'consultor_atual': consultor_atual,
     })
 
 
@@ -4503,6 +4532,14 @@ def detalhes_devedor(request, titulo_id):
         except User.DoesNotExist:
             operador_atual = None
     
+    # Obter consultor atual (supervisor da empresa)
+    consultor_atual = None
+    if empresa and empresa.supervisor:
+        try:
+            consultor_atual = User.objects.get(username=empresa.supervisor)
+        except User.DoesNotExist:
+            consultor_atual = None
+    
     context = {
         'devedor': devedor,
         'titulos': titulos,
@@ -4538,6 +4575,7 @@ def detalhes_devedor(request, titulo_id):
         'operadores': operadores,
         'operadores_dict': operadores_dict,
         'operador_atual': operador_atual,
+        'consultor_atual': consultor_atual,
     }
     return render(request, 'detalhes_devedor.html', context)
 
@@ -6606,6 +6644,38 @@ def alterar_operador_devedor(request, devedor_id):
         "novo_operador": operador_username,
         "titulos_atualizados": titulos_atualizados
     })
+
+@login_required
+@group_required([2])
+def alterar_consultor_devedor(request, devedor_id):
+    """
+    Altera o consultor (supervisor) da empresa relacionada ao devedor.
+    """
+    if request.method != "POST":
+        return JsonResponse({"status": "error", "message": "Método não permitido"}, status=405)
+
+    consultor_username = request.POST.get("consultor")
+    if not consultor_username:
+        return JsonResponse({"status": "error", "message": "Consultor não selecionado!"}, status=400)
+
+    devedor = get_object_or_404(Devedor, id=devedor_id)
+    
+    # Verifica se o consultor existe
+    if not User.objects.filter(username=consultor_username).exists():
+        return JsonResponse({"status": "error", "message": "Consultor inválido!"}, status=400)
+
+    # Atualiza o supervisor (consultor) da empresa relacionada ao devedor
+    if devedor.empresa:
+        devedor.empresa.supervisor = consultor_username
+        devedor.empresa.save()
+        
+        return JsonResponse({
+            "status": "success",
+            "message": f"Consultor alterado para {consultor_username}!",
+            "novo_consultor": consultor_username
+        })
+    else:
+        return JsonResponse({"status": "error", "message": "Devedor não possui empresa associada!"}, status=400)
 
 @login_required
 @group_required([2])

@@ -1,6 +1,6 @@
 from django.urls import path, include
 from . import views
-from .views import listar_devedores, listar_titulos_por_devedor, adicionar_devedor, editar_devedor, excluir_devedor, realizar_acordo, listar_acordos, pagar_parcela, detalhar_parcela, listar_empresas, adicionar_empresa, editar_empresa, excluir_empresa, consultar_cnpj_view, adicionar_usuario, listar_usuarios, editar_usuario, excluir_usuario, listar_grupos, editar_grupo, atualizar_permissao, gerar_contrato, anexar_contrato, baixar_contrato_view, gerar_contrato_lojista, gerar_ficha_lojista, buscar_dados_api_cliente, editar_titulo, alterar_status_empresa, emails_envio_criar, emails_envio_editar, emails_envio_listar, email_template_listar, email_template_editar, email_template_criar, buscar_devedores, baixar_boleto, boletos_listar_emitidos, alterar_operador, alterar_operador_devedor, excluir_titulo_devedor, honorarios, ranking_operadores
+from .views import listar_devedores, listar_titulos_por_devedor, adicionar_devedor, editar_devedor, excluir_devedor, realizar_acordo, listar_acordos, pagar_parcela, detalhar_parcela, listar_empresas, adicionar_empresa, editar_empresa, excluir_empresa, consultar_cnpj_view, adicionar_usuario, listar_usuarios, editar_usuario, excluir_usuario, listar_grupos, editar_grupo, atualizar_permissao, gerar_contrato, anexar_contrato, baixar_contrato_view, gerar_contrato_lojista, gerar_ficha_lojista, buscar_dados_api_cliente, editar_titulo, alterar_status_empresa, emails_envio_criar, emails_envio_editar, emails_envio_listar, email_template_listar, email_template_editar, email_template_criar, buscar_devedores, baixar_boleto, boletos_listar_emitidos, alterar_operador, alterar_operador_devedor, alterar_consultor_devedor, excluir_titulo_devedor, honorarios, ranking_operadores
 from django.contrib.auth import views as auth_views
 from django.contrib.auth.views import LogoutView
 from django.conf.urls import handler403, static
@@ -145,6 +145,7 @@ urlpatterns = [
     path('boletos-emitidos/', boletos_listar_emitidos, name='boletos_listar_emitidos'),
     path('alterar-operador/<int:titulo_id>/', alterar_operador, name='alterar_operador'),
     path('alterar-operador-devedor/<int:devedor_id>/', alterar_operador_devedor, name='alterar_operador_devedor'),
+    path('alterar-consultor-devedor/<int:devedor_id>/', alterar_consultor_devedor, name='alterar_consultor_devedor'),
     path('excluir_titulo_devedor/<int:titulo_id>/', views.excluir_titulo_devedor, name='excluir_titulo_devedor'),
     path('usuarios/lojista/<int:usuario_id>/excluir/', views.usuarios_lojista_excluir, name='usuarios_lojista_excluir'),
     path("baixar-boleto/<str:codigo_solicitacao>/", baixar_boleto, name="baixar_boleto"),

@@ -3,7 +3,128 @@
 {% block content %}
 <div class="container mt-5">
 
-    <h1 class="text-center mb-4">Editar Devedor</h1>
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="text-center flex-grow-1">Editar Devedor</h1>
+        <div class="d-flex gap-2">
+            <!-- Botão Trocar Operador -->
+            <button type="button" class="btn btn-warning" 
+                    data-bs-toggle="modal" 
+                    data-bs-target="#modalTrocarOperador{{ devedor.id }}"
+                    title="Trocar Operador">
+                <i class="fas fa-user-edit"></i> Trocar Operador
+            </button>
+            <!-- Botão Trocar Consultor -->
+            <button type="button" class="btn btn-info" 
+                    data-bs-toggle="modal" 
+                    data-bs-target="#modalTrocarConsultor{{ devedor.id }}"
+                    title="Trocar Consultor">
+                <i class="fas fa-user-tie"></i> Trocar Consultor
+            </button>
+        </div>
+    </div>
+    
+    <!-- Badges do Operador e Consultor Atuais -->
+    <div class="d-flex gap-2 mb-3">
+        {% if operador_atual %}
+            <div class="alert alert-warning d-flex align-items-center mb-0 flex-grow-1">
+                <span><i class="fas fa-user"></i> <strong>Operador:</strong> {{ operador_atual.get_full_name|default:operador_atual.username }}</span>
+            </div>
+        {% else %}
+            <div class="alert alert-secondary d-flex align-items-center mb-0 flex-grow-1">
+                <span><i class="fas fa-user-slash"></i> <strong>Sem operador</strong></span>
+            </div>
+        {% endif %}
+        {% if consultor_atual %}
+            <div class="alert alert-info d-flex align-items-center mb-0 flex-grow-1">
+                <span><i class="fas fa-user-tie"></i> <strong>Consultor:</strong> {{ consultor_atual.get_full_name|default:consultor_atual.username }}</span>
+            </div>
+        {% else %}
+            <div class="alert alert-secondary d-flex align-items-center mb-0 flex-grow-1">
+                <span><i class="fas fa-user-slash"></i> <strong>Sem consultor</strong></span>
+            </div>
+        {% endif %}
+    </div>
+    
+    <!-- Modal para Trocar Operador -->
+    <div class="modal fade" id="modalTrocarOperador{{ devedor.id }}" tabindex="-1" aria-labelledby="modalTrocarOperadorLabel{{ devedor.id }}" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="modalTrocarOperadorLabel{{ devedor.id }}">
+                        Trocar Operador - Devedor #{{ devedor.id }}
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <form id="formTrocarOperador{{ devedor.id }}" method="post" action="{% url 'alterar_operador_devedor' devedor.id %}">
+                    {% csrf_token %}
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <label for="operador{{ devedor.id }}" class="form-label">Selecione o Operador:</label>
+                            <select class="form-select" id="operador{{ devedor.id }}" name="operador" required>
+                                <option value="">-- Selecione um operador --</option>
+                                {% for operador in operadores %}
+                                    <option value="{{ operador.username }}" {% if operador_atual and operador.username == operador_atual.username %}selected{% endif %}>
+                                        {{ operador.get_full_name|default:operador.username }}
+                                        {% if operador.get_full_name %} ({{ operador.username }}){% endif %}
+                                    </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="alert alert-info">
+                            <small><i class="fas fa-info-circle"></i> Esta ação alterará o operador de todos os títulos deste devedor.</small>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                        <button type="submit" class="btn btn-warning">
+                            <i class="fas fa-save"></i> Salvar
+                        </button>
+                    </div>
+                </form>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Modal para Trocar Consultor -->
+  <div class="modal fade" id="modalTrocarConsultor{{ devedor.id }}" tabindex="-1" aria-labelledby="modalTrocarConsultorLabel{{ devedor.id }}" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="modalTrocarConsultorLabel{{ devedor.id }}">
+            Trocar Consultor - Devedor #{{ devedor.id }}
+          </h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <form id="formTrocarConsultor{{ devedor.id }}" method="post" action="{% url 'alterar_consultor_devedor' devedor.id %}">
+          {% csrf_token %}
+          <div class="modal-body">
+            <div class="mb-3">
+              <label for="consultor{{ devedor.id }}" class="form-label">Selecione o Consultor:</label>
+              <select class="form-select" id="consultor{{ devedor.id }}" name="consultor" required>
+                <option value="">-- Selecione um consultor --</option>
+                {% for consultor in operadores %}
+                  <option value="{{ consultor.username }}" {% if consultor_atual and consultor.username == consultor_atual.username %}selected{% endif %}>
+                    {{ consultor.get_full_name|default:consultor.username }}
+                    {% if consultor.get_full_name %} ({{ consultor.username }}){% endif %}
+                  </option>
+                {% endfor %}
+              </select>
+            </div>
+            <div class="alert alert-info">
+              <small><i class="fas fa-info-circle"></i> Esta ação alterará o consultor (supervisor) da empresa relacionada a este devedor.</small>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+            <button type="submit" class="btn btn-info">
+              <i class="fas fa-save"></i> Salvar
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+    
     <form method="POST" id="editarDevedorForm" class="row g-3">
 
         {% csrf_token %}
@@ -666,7 +787,99 @@ document.getElementById('salvarDadosApi').addEventListener('click', function() {
         console.error('Erro:', error);
         alert('Erro ao salvar dados da API.');
     });
-});
+    });
+    
+    // Handler para formulário de trocar operador
+    document.addEventListener('DOMContentLoaded', function() {
+        const formTrocarOperador = document.getElementById('formTrocarOperador{{ devedor.id }}');
+        if (formTrocarOperador) {
+            formTrocarOperador.addEventListener('submit', function(e) {
+                e.preventDefault();
+                const formData = new FormData(this);
+                const devedorId = {{ devedor.id }};
+                
+                fetch(this.action, {
+                    method: 'POST',
+                    body: formData,
+                    headers: {
+                        'X-CSRFToken': formData.get('csrfmiddlewaretoken')
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === 'success') {
+                        alert(data.message);
+                        // Fechar o modal
+                        const modalElement = document.getElementById('modalTrocarOperador' + devedorId);
+                        if (modalElement) {
+                            const modal = bootstrap.Modal.getInstance(modalElement);
+                            if (modal) {
+                                modal.hide();
+                            } else {
+                                const newModal = new bootstrap.Modal(modalElement);
+                                newModal.hide();
+                            }
+                        }
+                        // Recarregar a página para atualizar os dados
+                        setTimeout(() => {
+                            window.location.reload();
+                        }, 500);
+                    } else {
+                        alert('Erro: ' + data.message);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Erro ao alterar operador.');
+                });
+            });
+        }
+        
+        // Handler para formulário de trocar consultor
+        const formTrocarConsultor = document.getElementById('formTrocarConsultor{{ devedor.id }}');
+        if (formTrocarConsultor) {
+            formTrocarConsultor.addEventListener('submit', function(e) {
+                e.preventDefault();
+                const formData = new FormData(this);
+                const devedorId = {{ devedor.id }};
+                
+                fetch(this.action, {
+                    method: 'POST',
+                    body: formData,
+                    headers: {
+                        'X-CSRFToken': formData.get('csrfmiddlewaretoken')
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === 'success') {
+                        alert(data.message);
+                        // Fechar o modal
+                        const modalElement = document.getElementById('modalTrocarConsultor' + devedorId);
+                        if (modalElement) {
+                            const modal = bootstrap.Modal.getInstance(modalElement);
+                            if (modal) {
+                                modal.hide();
+                            } else {
+                                const newModal = new bootstrap.Modal(modalElement);
+                                newModal.hide();
+                            }
+                        }
+                        // Recarregar a página para atualizar os dados
+                        setTimeout(() => {
+                            window.location.reload();
+                        }, 500);
+                    } else {
+                        alert('Erro: ' + data.message);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Erro ao alterar consultor.');
+                });
+            });
+        }
+    });
 </script>
 
 {% endblock %}
