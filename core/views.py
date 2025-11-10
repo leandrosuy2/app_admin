@@ -5924,6 +5924,64 @@ def emitir_boletos_view(request):
             messages.error(request, f"Falha ao gerar cobrança: {e}")
             return redirect(request.get_full_path())
 
+    # -------- POST 2: Confirmar número e abrir WhatsApp --------
+    if request.method == "POST" and request.POST.get("confirmar_wa"):
+        try:
+            numero_raw = (request.POST.get("numero_whatsapp") or "").strip()
+            empresa_id = (request.POST.get("empresa_id") or "").strip()
+            wa_msg = (request.POST.get("wa_msg") or "").strip()
+
+            numero = _clean_phone_to_e164_br(numero_raw)
+            if not numero:
+                messages.error(request, "Informe um número de WhatsApp válido.")
+                return redirect(request.get_full_path())
+
+            # (Opcional) atualizar telefone da empresa
+            if request.POST.get("salvar_tel_empresa") == "1" and empresa_id:
+                try:
+                    with connection.cursor() as cur:
+                        cur.execute("UPDATE core_empresa SET telefone=%s WHERE id=%s", [numero_raw, empresa_id])
+                except Exception:
+                    logger.warning("Não foi possível atualizar telefone da empresa %s", empresa_id)
+
+            wa_url = f"https://wa.me/{numero}?text={quote(wa_msg)}"
+            request.session["wa_open"] = wa_url
+            messages.success(request, "Número confirmado. Abriremos o WhatsApp em uma nova aba.")
+            return redirect(request.get_full_path())
+
+        except Exception as e:
+            logger.exception("Falha ao confirmar WhatsApp")
+            messages.error(request, f"Falha ao confirmar/enviar WhatsApp: {e}")
+            return redirect(request.get_full_path())
+
+    # -------- Contexto --------
+    wa_ctx = request.session.pop("wa_ctx", None)
+    wa_open_url = request.session.pop("wa_open", None)
+
+    context = {
+        "headers": ["ID Empresa","Razão Social","CNPJ","Endereço","Bairro","Cidade","UF","CEP",
+                    "Telefone","ID Devedor(es)","Dias de Atraso (máx.)","Valor Recebido","Comissão (R$)"],
+        "results": results,
+        "detalhes_por_empresa": detalhes_por_empresa,
+        "dt_from": dti_date,
+        "dt_to": dtf_date,
+        "tot_valor_recebido": tot_valor_recebido,
+        "tot_comissao": tot_comissao,
+        "tot_empresas": tot_empresas,
+
+        # Bloco de confirmação/whatsapp
+        "wa_razao": (wa_ctx or {}).get("wa_razao"),
+        "wa_valor": (wa_ctx or {}).get("valor"),
+        "boleto_url": (wa_ctx or {}).get("boleto_url"),
+        "linha_digitavel": (wa_ctx or {}).get("linha_digitavel"),
+        "pix_brcode": (wa_ctx or {}).get("pix_brcode"),
+        "wa_numero": (wa_ctx or {}).get("wa_numero") or "",
+        "wa_msg": (wa_ctx or {}).get("wa_msg") or "",
+        "wa_empresa_id": (wa_ctx or {}).get("empresa_id") or "",
+        "wa_open_url": wa_open_url,
+    }
+    return render(request, "boletos_emitir.html", context)
+
 
 @login_required
 @group_required([2])
@@ -6003,65 +6061,6 @@ def atualizar_status_pago(request, cobranca_id):
                 return redirect('listar_cobrancas')
     
     return redirect('listar_cobrancas')
-
-
-    # -------- POST 2: Confirmar número e abrir WhatsApp --------
-    if request.method == "POST" and request.POST.get("confirmar_wa"):
-        try:
-            numero_raw = (request.POST.get("numero_whatsapp") or "").strip()
-            empresa_id = (request.POST.get("empresa_id") or "").strip()
-            wa_msg = (request.POST.get("wa_msg") or "").strip()
-
-            numero = _clean_phone_to_e164_br(numero_raw)
-            if not numero:
-                messages.error(request, "Informe um número de WhatsApp válido.")
-                return redirect(request.get_full_path())
-
-            # (Opcional) atualizar telefone da empresa
-            if request.POST.get("salvar_tel_empresa") == "1" and empresa_id:
-                try:
-                    with connection.cursor() as cur:
-                        cur.execute("UPDATE core_empresa SET telefone=%s WHERE id=%s", [numero_raw, empresa_id])
-                except Exception:
-                    logger.warning("Não foi possível atualizar telefone da empresa %s", empresa_id)
-
-            wa_url = f"https://wa.me/{numero}?text={quote(wa_msg)}"
-            request.session["wa_open"] = wa_url
-            messages.success(request, "Número confirmado. Abriremos o WhatsApp em uma nova aba.")
-            return redirect(request.get_full_path())
-
-        except Exception as e:
-            logger.exception("Falha ao confirmar WhatsApp")
-            messages.error(request, f"Falha ao confirmar/enviar WhatsApp: {e}")
-            return redirect(request.get_full_path())
-
-    # -------- Contexto --------
-    wa_ctx = request.session.pop("wa_ctx", None)
-    wa_open_url = request.session.pop("wa_open", None)
-
-    context = {
-        "headers": ["ID Empresa","Razão Social","CNPJ","Endereço","Bairro","Cidade","UF","CEP",
-                    "Telefone","ID Devedor(es)","Dias de Atraso (máx.)","Valor Recebido","Comissão (R$)"],
-        "results": results,
-        "detalhes_por_empresa": detalhes_por_empresa,
-        "dt_from": dti_date,
-        "dt_to": dtf_date,
-        "tot_valor_recebido": tot_valor_recebido,
-        "tot_comissao": tot_comissao,
-        "tot_empresas": tot_empresas,
-
-        # Bloco de confirmação/whatsapp
-        "wa_razao": (wa_ctx or {}).get("wa_razao"),
-        "wa_valor": (wa_ctx or {}).get("valor"),
-        "boleto_url": (wa_ctx or {}).get("boleto_url"),
-        "linha_digitavel": (wa_ctx or {}).get("linha_digitavel"),
-        "pix_brcode": (wa_ctx or {}).get("pix_brcode"),
-        "wa_numero": (wa_ctx or {}).get("wa_numero") or "",
-        "wa_msg": (wa_ctx or {}).get("wa_msg") or "",
-        "wa_empresa_id": (wa_ctx or {}).get("empresa_id") or "",
-        "wa_open_url": wa_open_url,
-    }
-    return render(request, "boletos_emitir.html", context)
 
 
 # imports no topo (alguns você já tem)
