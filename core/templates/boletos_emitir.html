@@ -239,6 +239,13 @@
                       data-bs-target="#infoModal-{{ row.0 }}">
                 DETALHES
               </button>
+              <button type="button"
+                      class="btn btn-outline-success btn-sm"
+                      title="Gerar Cobrança"
+                      data-bs-toggle="modal"
+                      data-bs-target="#cobrancaModal-{{ row.0 }}">
+                GERAR COBRANÇA
+              </button>
               <button
                 type="button"
                 class="btn btn-outline-danger btn-sm excluirButton"
@@ -351,6 +358,87 @@
       </div>
     </div>
   </div>
+
+  {# ====== MODAL GERAR COBRANÇA ====== #}
+  <div class="modal fade" id="cobrancaModal-{{ row.0 }}" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+        <form method="post" enctype="multipart/form-data" id="cobrancaForm-{{ row.0 }}" onsubmit="return validarCobrancaForm({{ row.0 }})">
+          {% csrf_token %}
+          <input type="hidden" name="gerar_cobranca" value="1">
+          <input type="hidden" name="empresa_id" value="{{ row.0 }}">
+          
+          <div class="modal-header">
+            <h5 class="modal-title">Gerar Cobrança — {{ row.1 }}</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
+          </div>
+
+          <div class="modal-body">
+            <div class="mb-3">
+              <label for="data_cobranca-{{ row.0 }}" class="form-label">Data <span class="text-danger">*</span></label>
+              <input type="date" 
+                     class="form-control" 
+                     id="data_cobranca-{{ row.0 }}" 
+                     name="data_cobranca" 
+                     value="{% now 'Y-m-d' %}"
+                     required>
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label">Documento ou Link</label>
+              <div class="form-check mb-2">
+                <input class="form-check-input" 
+                       type="radio" 
+                       name="tipo_anexo-{{ row.0 }}" 
+                       id="tipo_documento-{{ row.0 }}" 
+                       value="documento" 
+                       checked
+                       onchange="toggleAnexoInput({{ row.0 }}, 'documento')">
+                <label class="form-check-label" for="tipo_documento-{{ row.0 }}">
+                  Upload de Documento
+                </label>
+              </div>
+              <div class="form-check mb-3">
+                <input class="form-check-input" 
+                       type="radio" 
+                       name="tipo_anexo-{{ row.0 }}" 
+                       id="tipo_link-{{ row.0 }}" 
+                       value="link"
+                       onchange="toggleAnexoInput({{ row.0 }}, 'link')">
+                <label class="form-check-label" for="tipo_link-{{ row.0 }}">
+                  Link
+                </label>
+              </div>
+
+              <div id="documento-container-{{ row.0 }}">
+                <input type="file" 
+                       class="form-control" 
+                       id="documento-{{ row.0 }}" 
+                       name="documento"
+                       accept=".pdf,.doc,.docx,.jpg,.jpeg,.png">
+                <div class="form-text">Formatos aceitos: PDF, DOC, DOCX, JPG, JPEG, PNG</div>
+              </div>
+
+              <div id="link-container-{{ row.0 }}" style="display: none;">
+                <input type="url" 
+                       class="form-control" 
+                       id="link-{{ row.0 }}" 
+                       name="link"
+                       placeholder="https://exemplo.com/documento">
+                <div class="form-text">Cole o link do documento</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="modal-footer">
+            <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
+            <button type="submit" class="btn btn-success">Gerar Cobrança</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+  {# ====== /MODAL GERAR COBRANÇA ====== #}
   {% endfor %}
   {# ====== /MODAIS ====== #}
 </form>
@@ -471,6 +559,72 @@ document.addEventListener("DOMContentLoaded", function(){
     });
   }
 });
+</script>
+
+<script>
+// Função para alternar entre input de documento e link
+function toggleAnexoInput(empresaId, tipo) {
+  const docContainer = document.getElementById('documento-container-' + empresaId);
+  const linkContainer = document.getElementById('link-container-' + empresaId);
+  const docInput = document.getElementById('documento-' + empresaId);
+  const linkInput = document.getElementById('link-' + empresaId);
+
+  if (tipo === 'documento') {
+    docContainer.style.display = 'block';
+    linkContainer.style.display = 'none';
+    if (docInput) docInput.required = true;
+    if (linkInput) {
+      linkInput.required = false;
+      linkInput.value = ''; // Limpa o valor do link
+    }
+  } else {
+    docContainer.style.display = 'none';
+    linkContainer.style.display = 'block';
+    if (docInput) {
+      docInput.required = false;
+      docInput.value = ''; // Limpa o valor do documento
+    }
+    if (linkInput) linkInput.required = true;
+  }
+}
+
+// Função de validação do formulário de cobrança
+function validarCobrancaForm(empresaId) {
+  const tipoAnexoRadio = document.querySelector('input[name="tipo_anexo-' + empresaId + '"]:checked');
+  if (!tipoAnexoRadio) {
+    alert('Por favor, selecione uma opção: documento ou link.');
+    return false;
+  }
+  
+  const tipoAnexo = tipoAnexoRadio.value;
+  const docInput = document.getElementById('documento-' + empresaId);
+  const linkInput = document.getElementById('link-' + empresaId);
+
+  if (tipoAnexo === 'documento') {
+    if (!docInput || !docInput.files || !docInput.files.length) {
+      alert('Por favor, selecione um documento para upload.');
+      return false;
+    }
+    // Desabilita o campo de link para não enviar
+    if (linkInput) {
+      linkInput.disabled = true;
+      linkInput.name = ''; // Remove o name para não enviar
+    }
+  } else if (tipoAnexo === 'link') {
+    if (!linkInput || !linkInput.value.trim()) {
+      alert('Por favor, informe um link válido.');
+      return false;
+    }
+    // Desabilita o campo de documento para não enviar
+    if (docInput) {
+      docInput.disabled = true;
+      docInput.name = ''; // Remove o name para não enviar
+    }
+  }
+  
+  return true;
+}
+
 </script>
 
 {% endblock %}

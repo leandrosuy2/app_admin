@@ -5842,6 +5842,78 @@ def emitir_boletos_view(request):
             messages.error(request, f"Falha ao emitir cobrança: {e}")
             return redirect(request.get_full_path())
 
+    # -------- POST: Gerar Cobrança --------
+    if request.method == "POST" and request.POST.get("gerar_cobranca"):
+        try:
+            empresa_id = (request.POST.get("empresa_id") or "").strip()
+            data_cobranca = (request.POST.get("data_cobranca") or "").strip()
+            
+            if not empresa_id:
+                messages.error(request, "Empresa não informada.")
+                return redirect(request.get_full_path())
+            
+            if not data_cobranca:
+                messages.error(request, "Data da cobrança não informada.")
+                return redirect(request.get_full_path())
+
+            # Buscar dados da empresa
+            row = next((r for r in results if str(r[0]) == empresa_id), None)
+            if not row:
+                messages.error(request, "Empresa não encontrada na lista atual.")
+                return redirect(request.get_full_path())
+
+            (emp_id, razao, cnpj, endereco, bairro, cidade, uf, cep,
+             telefone, devedor_ids, dias_max, valor_recebido, comissao_valor) = row
+
+            # Verificar se é documento ou link
+            documento = request.FILES.get("documento")
+            link = (request.POST.get("link") or "").strip()
+            
+            # Determinar qual tipo foi selecionado (verificar qual input foi preenchido)
+            tipo_anexo = None
+            anexo_valor = None
+            
+            if documento:
+                tipo_anexo = "documento"
+                # Salvar o arquivo
+                from django.core.files.storage import default_storage
+                from django.core.files.base import ContentFile
+                
+                # Criar diretório se não existir
+                cobrancas_dir = os.path.join(settings.MEDIA_ROOT, "cobrancas")
+                os.makedirs(cobrancas_dir, exist_ok=True)
+                
+                # Salvar arquivo
+                file_name = f"cobranca_{emp_id}_{data_cobranca}_{documento.name}"
+                file_path = os.path.join(cobrancas_dir, file_name)
+                
+                with open(file_path, 'wb+') as destination:
+                    for chunk in documento.chunks():
+                        destination.write(chunk)
+                
+                anexo_valor = os.path.join("cobrancas", file_name)
+                messages.success(request, f"Cobrança gerada com sucesso para {razao}. Documento salvo.")
+                
+            elif link:
+                tipo_anexo = "link"
+                anexo_valor = link
+                messages.success(request, f"Cobrança gerada com sucesso para {razao}. Link salvo.")
+            else:
+                messages.error(request, "Por favor, informe um documento ou link.")
+                return redirect(request.get_full_path())
+
+            # Aqui você pode salvar os dados no banco de dados se necessário
+            # Por exemplo, criar um registro em uma tabela de cobranças
+            # Por enquanto, apenas logamos a informação
+            logger.info(f"Cobrança gerada - Empresa: {razao} (ID: {emp_id}), Data: {data_cobranca}, Tipo: {tipo_anexo}, Valor: {anexo_valor}")
+            
+            return redirect(request.get_full_path())
+
+        except Exception as e:
+            logger.exception("Falha ao gerar cobrança")
+            messages.error(request, f"Falha ao gerar cobrança: {e}")
+            return redirect(request.get_full_path())
+
     # -------- POST 2: Confirmar número e abrir WhatsApp --------
     if request.method == "POST" and request.POST.get("confirmar_wa"):
         try:
