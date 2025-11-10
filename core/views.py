@@ -5930,28 +5930,44 @@ def emitir_boletos_view(request):
 def listar_cobrancas(request):
     """Lista todas as cobranças"""
     from django.db.models import Q
+    from django.db import OperationalError, ProgrammingError
     
-    cobrancas = Cobranca.objects.select_related('empresa').all().order_by('-data_cobranca', '-created_at')
-    
-    # Filtros
-    search_query = request.GET.get('q', '').strip()
-    if search_query:
-        cobrancas = cobrancas.filter(
-            Q(empresa__razao_social__icontains=search_query) |
-            Q(empresa__cnpj__icontains=search_query) |
-            Q(id__icontains=search_query)
-        )
-    
-    filtro_pago = request.GET.get('pago', '')
-    if filtro_pago == 'sim':
-        cobrancas = cobrancas.filter(pago=True)
-    elif filtro_pago == 'nao':
-        cobrancas = cobrancas.filter(pago=False)
-    
-    # Paginação
-    paginator = Paginator(cobrancas, 25)
-    page_number = request.GET.get('page')
-    page_obj = paginator.get_page(page_number)
+    try:
+        cobrancas = Cobranca.objects.select_related('empresa').all().order_by('-data_cobranca', '-created_at')
+        
+        # Filtros
+        search_query = request.GET.get('q', '').strip()
+        if search_query:
+            cobrancas = cobrancas.filter(
+                Q(empresa__razao_social__icontains=search_query) |
+                Q(empresa__cnpj__icontains=search_query) |
+                Q(id__icontains=search_query)
+            )
+        
+        filtro_pago = request.GET.get('pago', '')
+        if filtro_pago == 'sim':
+            cobrancas = cobrancas.filter(pago=True)
+        elif filtro_pago == 'nao':
+            cobrancas = cobrancas.filter(pago=False)
+        
+        # Paginação
+        paginator = Paginator(cobrancas, 25)
+        page_number = request.GET.get('page')
+        page_obj = paginator.get_page(page_number)
+        
+    except (OperationalError, ProgrammingError) as e:
+        # Tabela ainda não existe - migration não aplicada
+        logger.exception("Erro ao acessar tabela de cobranças")
+        messages.error(request, 'A tabela de cobranças ainda não foi criada. Por favor, execute as migrations: python3 manage.py migrate')
+        page_obj = None
+        search_query = ''
+        filtro_pago = ''
+    except Exception as e:
+        logger.exception("Erro inesperado ao listar cobranças")
+        messages.error(request, f'Erro ao carregar cobranças: {str(e)}')
+        page_obj = None
+        search_query = ''
+        filtro_pago = ''
     
     context = {
         'page_obj': page_obj,
@@ -5987,6 +6003,7 @@ def atualizar_status_pago(request, cobranca_id):
                 return redirect('listar_cobrancas')
     
     return redirect('listar_cobrancas')
+
 
     # -------- POST 2: Confirmar número e abrir WhatsApp --------
     if request.method == "POST" and request.POST.get("confirmar_wa"):

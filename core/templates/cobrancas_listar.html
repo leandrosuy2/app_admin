@@ -48,6 +48,7 @@
           </tr>
         </thead>
         <tbody>
+          {% if page_obj %}
           {% for cobranca in page_obj %}
           <tr {% if cobranca.pago %}class="table-success"{% endif %}>
             <td><strong>{{ cobranca.id }}</strong></td>
@@ -106,12 +107,20 @@
             </td>
           </tr>
           {% endfor %}
+          {% else %}
+          <tr>
+            <td colspan="8" class="text-center text-danger py-4">
+              <strong>Erro ao carregar cobranças.</strong><br>
+              <small>Verifique se as migrations foram aplicadas.</small>
+            </td>
+          </tr>
+          {% endif %}
         </tbody>
       </table>
     </div>
 
     <!-- Paginação -->
-    {% if page_obj.has_other_pages %}
+    {% if page_obj and page_obj.has_other_pages %}
     <div class="card-footer">
       <nav>
         <ul class="pagination pagination-sm mb-0 justify-content-center">
