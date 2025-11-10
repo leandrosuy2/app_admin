@@ -6709,7 +6709,7 @@ from openpyxl import Workbook
 def honorarios(request):
     """
     Relatório por TÍTULO:
-      Devedor | CPF/CNPJ | Credor | Consultor | Vencto. | Pagto. | Forma | Parc. |
+      Devedor | CPF/CNPJ | Credor | Operador | Vencto. | Pagto. | Forma | Parc. |
       Valor principal | Valor pago | Honorários Credor | Valor liq.
 
     Regra de remuneração (maior atraso HISTÓRICO do DEVEDOR):
@@ -6750,7 +6750,7 @@ def honorarios(request):
         where_parts.append("t.data_baixa < DATE_ADD(%s, INTERVAL 1 DAY)")
         params.append(data_fim)
     if operador_sel:
-        where_parts.append("LOWER(e.operador) = LOWER(%s)")
+        where_parts.append("(LOWER(COALESCE(t.operador, e.operador, '')) = LOWER(%s))")
         params.append(operador_sel)
     if empresa_filt:
         where_parts.append("(e.razao_social LIKE %s OR e.nome_fantasia LIKE %s)")
@@ -6787,7 +6787,7 @@ def honorarios(request):
       COALESCE(NULLIF(d.nome,''), NULLIF(d.nome_fantasia,''), d.razao_social) AS devedor_exib,
       COALESCE(NULLIF(d.cpf,''), d.cnpj)                                      AS doc_exib,
       CONCAT(e.id, ' - ', e.nome_fantasia)                                    AS credor_exib,
-      e.operador                                                               AS consultor_exib,
+      COALESCE(t.operador, e.operador, '')                                    AS operador_exib,
 
       COALESCE(t.dataVencimentoReal, t.dataVencimento, t.dataVencimentoPrimeira) AS dt_venc,
       t.data_baixa                                                                 AS dt_pagto,
@@ -6837,7 +6837,7 @@ def honorarios(request):
     tot_comissao        = Decimal('0.00')
     tot_liquido         = Decimal('0.00')
 
-    for (devedor_exib, doc_exib, credor_exib, consultor_exib,
+    for (devedor_exib, doc_exib, credor_exib, operador_exib,
          dt_venc, dt_pagto, forma_id, n_prc, qtde_prc,
          v_princ, v_pago, dias_atraso_hist, comissao_valor) in rows:
 
@@ -6850,7 +6850,7 @@ def honorarios(request):
             "devedor": devedor_exib or "-",
             "doc": doc_exib or "-",
             "credor": credor_exib or "-",
-            "consultor": consultor_exib or "-",
+            "operador": operador_exib or "-",
             "vencto": dt_venc,
             "pagto": dt_pagto,
             "forma": forma_map.get(forma_id, "Não informada"),
@@ -6873,12 +6873,12 @@ def honorarios(request):
     if export_excel:
         wb = Workbook(); ws = wb.active; ws.title = "Honorários"
         ws.append([
-            "Devedor","CPF/CNPJ","Credor","Consultor","Vencto.","Pagto.","Forma","Parc.",
+            "Devedor","CPF/CNPJ","Credor","Operador","Vencto.","Pagto.","Forma","Parc.",
             "Valor principal","Valor pago","Honorários Credor","Valor liq."
         ])
         for h in itens:
             ws.append([
-                h["devedor"], h["doc"], h["credor"], h["consultor"],
+                h["devedor"], h["doc"], h["credor"], h["operador"],
                 (h["vencto"].strftime("%d/%m/%Y") if h["vencto"] else ""),
                 (h["pagto"].strftime("%d/%m/%Y") if h["pagto"] else ""),
                 h["forma"], h["parc"],
