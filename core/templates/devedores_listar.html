@@ -189,9 +189,57 @@
                             <a href="{% url 'listar_titulos_por_devedor' devedor.id %}" class="btn btn-sm btn-info" style="font-size: 10px; padding: 2px 6px;">
                                 <i class="fas fa-eye"></i> Ver Títulos
                             </a>
+                            
+                            <!-- Botão Trocar Operador -->
+                            <button type="button" class="btn btn-sm btn-warning" style="font-size: 10px; padding: 2px 6px;" 
+                                    data-bs-toggle="modal" 
+                                    data-bs-target="#modalTrocarOperador{{ devedor.id }}"
+                                    title="Trocar Operador">
+                                <i class="fas fa-user-edit"></i> Operador
+                            </button>
                         </div>
                     </td>
                 </tr>
+                
+                <!-- Modal para Trocar Operador -->
+                <div class="modal fade" id="modalTrocarOperador{{ devedor.id }}" tabindex="-1" aria-labelledby="modalTrocarOperadorLabel{{ devedor.id }}" aria-hidden="true">
+                    <div class="modal-dialog">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title" id="modalTrocarOperadorLabel{{ devedor.id }}">
+                                    Trocar Operador - Devedor #{{ devedor.id }}
+                                </h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                            </div>
+                            <form id="formTrocarOperador{{ devedor.id }}" method="post" action="{% url 'alterar_operador_devedor' devedor.id %}">
+                                {% csrf_token %}
+                                <div class="modal-body">
+                                    <div class="mb-3">
+                                        <label for="operador{{ devedor.id }}" class="form-label">Selecione o Operador:</label>
+                                        <select class="form-select" id="operador{{ devedor.id }}" name="operador" required>
+                                            <option value="">-- Selecione um operador --</option>
+                                            {% for operador in operadores %}
+                                                <option value="{{ operador.username }}">
+                                                    {{ operador.get_full_name|default:operador.username }}
+                                                    {% if operador.get_full_name %} ({{ operador.username }}){% endif %}
+                                                </option>
+                                            {% endfor %}
+                                        </select>
+                                    </div>
+                                    <div class="alert alert-info">
+                                        <small><i class="fas fa-info-circle"></i> Esta ação alterará o operador de todos os títulos deste devedor.</small>
+                                    </div>
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                                    <button type="submit" class="btn btn-warning">
+                                        <i class="fas fa-save"></i> Salvar
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
                 {% endfor %}
             {% else %}
             <tr>
@@ -267,6 +315,51 @@
         .catch(error => {
             console.error('Error:', error);
             alert('Erro ao consultar a API.');
+        });
+    });
+    
+    // Handler para formulários de trocar operador
+    document.querySelectorAll('[id^="formTrocarOperador"]').forEach(form => {
+        form.addEventListener('submit', function(e) {
+            e.preventDefault();
+            const formData = new FormData(this);
+            const devedorId = this.action.match(/devedor\/(\d+)\//)[1];
+            
+            fetch(this.action, {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-CSRFToken': formData.get('csrfmiddlewaretoken')
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    alert(data.message);
+                    // Fechar o modal usando Bootstrap 5
+                    const modalElement = document.getElementById('modalTrocarOperador' + devedorId);
+                    if (modalElement) {
+                        const modal = bootstrap.Modal.getInstance(modalElement);
+                        if (modal) {
+                            modal.hide();
+                        } else {
+                            // Se não existe instância, criar e fechar
+                            const newModal = new bootstrap.Modal(modalElement);
+                            newModal.hide();
+                        }
+                    }
+                    // Recarregar a página para atualizar os dados
+                    setTimeout(() => {
+                        window.location.reload();
+                    }, 500);
+                } else {
+                    alert('Erro: ' + data.message);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Erro ao alterar operador.');
+            });
         });
     });
 </script>

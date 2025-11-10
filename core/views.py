@@ -1309,10 +1309,20 @@ def listar_devedores(request):
             totals["quitados"] = qtd
 
     page_obj = Paginator(devedores, 10).get_page(request.GET.get("page"))
+    
+    # Obter lista de operadores para o modal
+    operadores = User.objects.filter(is_active=True).order_by('first_name', 'username')
+    
     return render(
         request,
         "devedores_listar.html",
-        {"page_obj": page_obj, "query": q, "status": status_filter, "totals": totals},
+        {
+            "page_obj": page_obj, 
+            "query": q, 
+            "status": status_filter, 
+            "totals": totals,
+            "operadores": operadores
+        },
     )
 
 
@@ -4478,6 +4488,9 @@ def detalhes_devedor(request, titulo_id):
         return redirect('detalhes_devedor', titulo_id=titulo.id)
 
     # -------------------- Contexto --------------------
+    # Obter lista de operadores para o modal
+    operadores = User.objects.filter(is_active=True).order_by('first_name', 'username')
+    
     context = {
         'devedor': devedor,
         'titulos': titulos,
@@ -4508,6 +4521,9 @@ def detalhes_devedor(request, titulo_id):
 
         # óbito
         'obito_info': obito_info,
+        
+        # operadores
+        'operadores': operadores,
     }
     return render(request, 'detalhes_devedor.html', context)
 
@@ -6539,6 +6555,44 @@ def alterar_operador(request, titulo_id):
         "novo_operador": titulo.operador
     })
     
+from .decorators import group_required
+
+@login_required
+@group_required([2])
+def alterar_operador_devedor(request, devedor_id):
+    """
+    Altera o operador de todos os títulos de um devedor.
+    """
+    if request.method != "POST":
+        return JsonResponse({"status": "error", "message": "Método não permitido"}, status=405)
+
+    operador_username = request.POST.get("operador")
+    if not operador_username:
+        return JsonResponse({"status": "error", "message": "Operador não selecionado!"}, status=400)
+
+    devedor = get_object_or_404(Devedor, id=devedor_id)
+    
+    # Verifica se o operador existe
+    if not User.objects.filter(username=operador_username).exists():
+        return JsonResponse({"status": "error", "message": "Operador inválido!"}, status=400)
+
+    # Atualiza o operador de todos os títulos do devedor
+    titulos_atualizados = Titulo.objects.filter(devedor=devedor).update(operador=operador_username)
+    
+    # Atualiza também o operador da empresa relacionada (se houver títulos)
+    if titulos_atualizados > 0:
+        titulo_exemplo = Titulo.objects.filter(devedor=devedor).first()
+        if titulo_exemplo and titulo_exemplo.empresa:
+            titulo_exemplo.empresa.operador = operador_username
+            titulo_exemplo.empresa.save()
+
+    return JsonResponse({
+        "status": "success",
+        "message": f"Operador alterado para {operador_username} em {titulos_atualizados} título(s)!",
+        "novo_operador": operador_username,
+        "titulos_atualizados": titulos_atualizados
+    })
+
 @login_required
 @group_required([2])
 def excluir_titulo_devedor(request, titulo_id):
