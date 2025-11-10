@@ -1,7 +1,7 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required, permission_required
 from django.contrib.auth import authenticate, login  
-from .models import Devedor, Empresa, Titulo, Acordo, Parcelamento, UserAccessLog, MensagemWhatsapp, TemplateMensagemWhatsapp, TabelaRemuneracao, TabelaRemuneracaoLista, EmailEnvio, EmailTemplate, Boleto
+from .models import Devedor, Empresa, Titulo, Acordo, Parcelamento, UserAccessLog, MensagemWhatsapp, TemplateMensagemWhatsapp, TabelaRemuneracao, TabelaRemuneracaoLista, EmailEnvio, EmailTemplate, Boleto, Cobranca
 from django.apps import AppConfig
 from django.core.paginator import Paginator
 import logging
@@ -5865,47 +5865,48 @@ def emitir_boletos_view(request):
             (emp_id, razao, cnpj, endereco, bairro, cidade, uf, cep,
              telefone, devedor_ids, dias_max, valor_recebido, comissao_valor) = row
 
+            # Buscar a empresa
+            try:
+                empresa = Empresa.objects.get(id=emp_id)
+            except Empresa.DoesNotExist:
+                messages.error(request, "Empresa não encontrada.")
+                return redirect(request.get_full_path())
+
             # Verificar se é documento ou link
             documento = request.FILES.get("documento")
             link = (request.POST.get("link") or "").strip()
             
-            # Determinar qual tipo foi selecionado (verificar qual input foi preenchido)
+            # Determinar qual tipo foi selecionado
             tipo_anexo = None
-            anexo_valor = None
             
             if documento:
                 tipo_anexo = "documento"
-                # Salvar o arquivo
-                from django.core.files.storage import default_storage
-                from django.core.files.base import ContentFile
-                
-                # Criar diretório se não existir
-                cobrancas_dir = os.path.join(settings.MEDIA_ROOT, "cobrancas")
-                os.makedirs(cobrancas_dir, exist_ok=True)
-                
-                # Salvar arquivo
-                file_name = f"cobranca_{emp_id}_{data_cobranca}_{documento.name}"
-                file_path = os.path.join(cobrancas_dir, file_name)
-                
-                with open(file_path, 'wb+') as destination:
-                    for chunk in documento.chunks():
-                        destination.write(chunk)
-                
-                anexo_valor = os.path.join("cobrancas", file_name)
+                # Criar registro na tabela Cobranca com o documento
+                cobranca = Cobranca.objects.create(
+                    empresa=empresa,
+                    data_cobranca=data_cobranca,
+                    tipo_anexo=tipo_anexo,
+                    documento=documento,
+                    link=None
+                )
                 messages.success(request, f"Cobrança gerada com sucesso para {razao}. Documento salvo.")
                 
             elif link:
                 tipo_anexo = "link"
-                anexo_valor = link
+                # Criar registro na tabela Cobranca com o link
+                cobranca = Cobranca.objects.create(
+                    empresa=empresa,
+                    data_cobranca=data_cobranca,
+                    tipo_anexo=tipo_anexo,
+                    documento=None,
+                    link=link
+                )
                 messages.success(request, f"Cobrança gerada com sucesso para {razao}. Link salvo.")
             else:
                 messages.error(request, "Por favor, informe um documento ou link.")
                 return redirect(request.get_full_path())
 
-            # Aqui você pode salvar os dados no banco de dados se necessário
-            # Por exemplo, criar um registro em uma tabela de cobranças
-            # Por enquanto, apenas logamos a informação
-            logger.info(f"Cobrança gerada - Empresa: {razao} (ID: {emp_id}), Data: {data_cobranca}, Tipo: {tipo_anexo}, Valor: {anexo_valor}")
+            logger.info(f"Cobrança gerada - ID: {cobranca.id}, Empresa: {razao} (ID: {emp_id}), Data: {data_cobranca}, Tipo: {tipo_anexo}")
             
             return redirect(request.get_full_path())
 

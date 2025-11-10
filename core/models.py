@@ -482,4 +482,28 @@ class Boleto(models.Model):
 
     def __str__(self):
         return f"Boleto {self.id} - Empresa {self.empresa_id}"
+
+
+class Cobranca(models.Model):
+    TIPO_ANEXO_CHOICES = [
+        ('documento', 'Documento'),
+        ('link', 'Link'),
+    ]
+    
+    empresa = models.ForeignKey('Empresa', on_delete=models.CASCADE, related_name='cobrancas')
+    data_cobranca = models.DateField(verbose_name="Data da Cobrança")
+    tipo_anexo = models.CharField(max_length=20, choices=TIPO_ANEXO_CHOICES, verbose_name="Tipo de Anexo")
+    documento = models.FileField(upload_to='cobrancas/', null=True, blank=True, verbose_name="Documento")
+    link = models.URLField(max_length=500, null=True, blank=True, verbose_name="Link")
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name="Data de Criação")
+    updated_at = models.DateTimeField(auto_now=True, verbose_name="Última Atualização")
+    
+    class Meta:
+        db_table = 'core_cobranca'
+        verbose_name = "Cobrança"
+        verbose_name_plural = "Cobranças"
+        ordering = ['-data_cobranca', '-created_at']
+    
+    def __str__(self):
+        return f"Cobrança {self.id} - {self.empresa.razao_social} - {self.data_cobranca}"
         
