@@ -155,6 +155,10 @@ urlpatterns = [
     path('templates-mensagens/adicionar/', views.adicionar_template_mensagem, name='adicionar_template_mensagem'),
     path('templates-mensagens/editar/<int:pk>/', views.editar_template_mensagem, name='editar_template_mensagem'),
     path('templates-mensagens/excluir/<int:pk>/', views.excluir_template_mensagem, name='excluir_template_mensagem'),
+    
+    # URLs para Cobranças
+    path('cobrancas/', views.listar_cobrancas, name='listar_cobrancas'),
+    path('cobrancas/<int:cobranca_id>/atualizar-pago/', views.atualizar_status_pago, name='atualizar_status_pago'),
 
     
     

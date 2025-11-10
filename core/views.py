@@ -5487,7 +5487,7 @@ def email_template_editar(request, id):
 
 import os, re, logging, requests
 from datetime import datetime, timedelta, date
-from decimal import Decimal
+from decimal import Decimal, InvalidOperation
 from urllib.parse import quote
 
 from django.conf import settings
@@ -5872,6 +5872,13 @@ def emitir_boletos_view(request):
                 messages.error(request, "Empresa não encontrada.")
                 return redirect(request.get_full_path())
 
+            # Obter o valor da comissão
+            valor_comissao_str = (request.POST.get("valor_comissao") or "0").strip()
+            try:
+                valor_comissao = Decimal(str(valor_comissao_str)).quantize(Decimal("0.01"))
+            except (ValueError, InvalidOperation):
+                valor_comissao = Decimal("0.00")
+
             # Verificar se é documento ou link
             documento = request.FILES.get("documento")
             link = (request.POST.get("link") or "").strip()
@@ -5885,6 +5892,7 @@ def emitir_boletos_view(request):
                 cobranca = Cobranca.objects.create(
                     empresa=empresa,
                     data_cobranca=data_cobranca,
+                    valor_comissao=valor_comissao,
                     tipo_anexo=tipo_anexo,
                     documento=documento,
                     link=None
@@ -5897,6 +5905,7 @@ def emitir_boletos_view(request):
                 cobranca = Cobranca.objects.create(
                     empresa=empresa,
                     data_cobranca=data_cobranca,
+                    valor_comissao=valor_comissao,
                     tipo_anexo=tipo_anexo,
                     documento=None,
                     link=link
@@ -5914,6 +5923,70 @@ def emitir_boletos_view(request):
             logger.exception("Falha ao gerar cobrança")
             messages.error(request, f"Falha ao gerar cobrança: {e}")
             return redirect(request.get_full_path())
+
+
+@login_required
+@group_required([2])
+def listar_cobrancas(request):
+    """Lista todas as cobranças"""
+    from django.db.models import Q
+    
+    cobrancas = Cobranca.objects.select_related('empresa').all().order_by('-data_cobranca', '-created_at')
+    
+    # Filtros
+    search_query = request.GET.get('q', '').strip()
+    if search_query:
+        cobrancas = cobrancas.filter(
+            Q(empresa__razao_social__icontains=search_query) |
+            Q(empresa__cnpj__icontains=search_query) |
+            Q(id__icontains=search_query)
+        )
+    
+    filtro_pago = request.GET.get('pago', '')
+    if filtro_pago == 'sim':
+        cobrancas = cobrancas.filter(pago=True)
+    elif filtro_pago == 'nao':
+        cobrancas = cobrancas.filter(pago=False)
+    
+    # Paginação
+    paginator = Paginator(cobrancas, 25)
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+    
+    context = {
+        'page_obj': page_obj,
+        'search_query': search_query,
+        'filtro_pago': filtro_pago,
+    }
+    
+    return render(request, 'cobrancas_listar.html', context)
+
+
+@login_required
+@group_required([2])
+def atualizar_status_pago(request, cobranca_id):
+    """Atualiza o status pago de uma cobrança"""
+    if request.method == 'POST':
+        try:
+            cobranca = get_object_or_404(Cobranca, id=cobranca_id)
+            pago = request.POST.get('pago') == 'true' or request.POST.get('pago') == '1'
+            cobranca.pago = pago
+            cobranca.save()
+            
+            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                return JsonResponse({'success': True, 'pago': cobranca.pago})
+            else:
+                messages.success(request, f'Status da cobrança #{cobranca.id} atualizado com sucesso.')
+                return redirect('listar_cobrancas')
+        except Exception as e:
+            logger.exception("Falha ao atualizar status pago")
+            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                return JsonResponse({'success': False, 'error': str(e)})
+            else:
+                messages.error(request, f'Erro ao atualizar status: {e}')
+                return redirect('listar_cobrancas')
+    
+    return redirect('listar_cobrancas')
 
     # -------- POST 2: Confirmar número e abrir WhatsApp --------
     if request.method == "POST" and request.POST.get("confirmar_wa"):

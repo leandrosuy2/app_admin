@@ -1,0 +1,187 @@
+{% extends 'base.html' %}
+{% load humanize %}
+
+{% block content %}
+<div class="container-fluid py-3">
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <h4 class="mb-0">Cobranças</h4>
+  </div>
+
+  <!-- Filtros -->
+  <form method="get" class="card shadow-sm mb-3">
+    <div class="card-body row g-2 align-items-end">
+      <div class="col-md-4">
+        <label class="form-label">Busca</label>
+        <input type="text" name="q" class="form-control" value="{{ search_query }}" placeholder="Empresa, CNPJ, ID...">
+      </div>
+      <div class="col-md-3">
+        <label class="form-label">Status Pagamento</label>
+        <select name="pago" class="form-control">
+          <option value="">Todos</option>
+          <option value="sim" {% if filtro_pago == 'sim' %}selected{% endif %}>Pago</option>
+          <option value="nao" {% if filtro_pago == 'nao' %}selected{% endif %}>Não Pago</option>
+        </select>
+      </div>
+      <div class="col-md-2">
+        <button class="btn btn-primary w-100" type="submit"><i class="bi bi-search"></i> Buscar</button>
+      </div>
+      <div class="col-md-3 text-end">
+        <a href="{% url 'listar_cobrancas' %}" class="btn btn-outline-secondary">Limpar Filtros</a>
+      </div>
+    </div>
+  </form>
+
+  <!-- Tabela de Cobranças -->
+  <div class="card shadow-sm">
+    <div class="table-responsive">
+      <table class="table table-sm table-hover align-middle mb-0">
+        <thead class="table-light">
+          <tr>
+            <th style="width:80px;">ID</th>
+            <th>Empresa</th>
+            <th style="width:120px;">Data Cobrança</th>
+            <th class="text-end" style="width:150px;">Valor Comissão</th>
+            <th style="width:100px;">Tipo</th>
+            <th style="width:120px;" class="text-center">Pago</th>
+            <th style="width:120px;">Criado em</th>
+            <th style="width:150px;" class="text-center">Ações</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for cobranca in page_obj %}
+          <tr {% if cobranca.pago %}class="table-success"{% endif %}>
+            <td><strong>{{ cobranca.id }}</strong></td>
+            <td>
+              <div><strong>{{ cobranca.empresa.razao_social }}</strong></div>
+              <small class="text-muted">CNPJ: {{ cobranca.empresa.cnpj }}</small>
+            </td>
+            <td>{{ cobranca.data_cobranca|date:"d/m/Y" }}</td>
+            <td class="text-end"><strong>R$ {{ cobranca.valor_comissao|floatformat:2 }}</strong></td>
+            <td>
+              <span class="badge {% if cobranca.tipo_anexo == 'documento' %}bg-info{% else %}bg-primary{% endif %}">
+                {{ cobranca.get_tipo_anexo_display }}
+              </span>
+            </td>
+            <td class="text-center">
+              <div class="form-check form-switch d-inline-block">
+                <input class="form-check-input pago-checkbox" 
+                       type="checkbox" 
+                       data-cobranca-id="{{ cobranca.id }}"
+                       {% if cobranca.pago %}checked{% endif %}
+                       onchange="atualizarPago({{ cobranca.id }}, this.checked)">
+                <label class="form-check-label">
+                  {% if cobranca.pago %}
+                    <span class="badge bg-success">Pago</span>
+                  {% else %}
+                    <span class="badge bg-secondary">Não Pago</span>
+                  {% endif %}
+                </label>
+              </div>
+            </td>
+            <td>{{ cobranca.created_at|date:"d/m/Y H:i" }}</td>
+            <td class="text-center">
+              <div class="btn-group btn-group-sm">
+                {% if cobranca.documento %}
+                  <a href="{{ cobranca.documento.url }}" 
+                     class="btn btn-outline-primary" 
+                     target="_blank" 
+                     title="Baixar Documento">
+                    <i class="bi bi-download"></i>
+                  </a>
+                {% elif cobranca.link %}
+                  <a href="{{ cobranca.link }}" 
+                     class="btn btn-outline-primary" 
+                     target="_blank" 
+                     title="Abrir Link">
+                    <i class="bi bi-link-45deg"></i>
+                  </a>
+                {% endif %}
+              </div>
+            </td>
+          </tr>
+          {% empty %}
+          <tr>
+            <td colspan="8" class="text-center text-muted py-4">
+              Nenhuma cobrança encontrada.
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Paginação -->
+    {% if page_obj.has_other_pages %}
+    <div class="card-footer">
+      <nav>
+        <ul class="pagination pagination-sm mb-0 justify-content-center">
+          {% if page_obj.has_previous %}
+            <li class="page-item">
+              <a class="page-link" href="?page={{ page_obj.previous_page_number }}&q={{ search_query }}&pago={{ filtro_pago }}">«</a>
+            </li>
+          {% else %}
+            <li class="page-item disabled"><span class="page-link">«</span></li>
+          {% endif %}
+          
+          <li class="page-item active">
+            <span class="page-link">{{ page_obj.number }} de {{ page_obj.paginator.num_pages }}</span>
+          </li>
+          
+          {% if page_obj.has_next %}
+            <li class="page-item">
+              <a class="page-link" href="?page={{ page_obj.next_page_number }}&q={{ search_query }}&pago={{ filtro_pago }}">»</a>
+            </li>
+          {% else %}
+            <li class="page-item disabled"><span class="page-link">»</span></li>
+          {% endif %}
+        </ul>
+      </nav>
+    </div>
+    {% endif %}
+  </div>
+</div>
+
+<script>
+function atualizarPago(cobrancaId, pago) {
+  const checkbox = document.querySelector(`input[data-cobranca-id="${cobrancaId}"]`);
+  const formData = new FormData();
+  formData.append('pago', pago ? '1' : '0');
+  formData.append('csrfmiddlewaretoken', '{{ csrf_token }}');
+  
+  fetch(`/cobrancas/${cobrancaId}/atualizar-pago/`, {
+    method: 'POST',
+    headers: {
+      'X-Requested-With': 'XMLHttpRequest',
+    },
+    body: formData
+  })
+  .then(response => response.json())
+  .then(data => {
+    if (data.success) {
+      // Atualizar visualmente
+      const row = checkbox.closest('tr');
+      if (data.pago) {
+        row.classList.add('table-success');
+        const label = row.querySelector('label');
+        label.innerHTML = '<span class="badge bg-success">Pago</span>';
+      } else {
+        row.classList.remove('table-success');
+        const label = row.querySelector('label');
+        label.innerHTML = '<span class="badge bg-secondary">Não Pago</span>';
+      }
+    } else {
+      alert('Erro ao atualizar status: ' + (data.error || 'Erro desconhecido'));
+      // Reverter checkbox
+      checkbox.checked = !pago;
+    }
+  })
+  .catch(error => {
+    console.error('Erro:', error);
+    alert('Erro ao atualizar status. Tente novamente.');
+    // Reverter checkbox
+    checkbox.checked = !pago;
+  });
+}
+</script>
+{% endblock %}
+

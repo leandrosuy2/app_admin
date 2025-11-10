@@ -367,6 +367,7 @@
           {% csrf_token %}
           <input type="hidden" name="gerar_cobranca" value="1">
           <input type="hidden" name="empresa_id" value="{{ row.0 }}">
+          <input type="hidden" name="valor_comissao" value="{{ row.12 }}">
           
           <div class="modal-header">
             <h5 class="modal-title">Gerar Cobrança — {{ row.1 }}</h5>
