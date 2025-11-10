@@ -3,6 +3,55 @@
 from django.db import migrations, models
 
 
+def verificar_e_adicionar_campos(apps, schema_editor):
+    """Verifica se as colunas já existem antes de adicionar"""
+    with schema_editor.connection.cursor() as cursor:
+        # Verificar se a coluna 'module' já existe
+        cursor.execute("""
+            SELECT COUNT(*) 
+            FROM information_schema.COLUMNS 
+            WHERE TABLE_SCHEMA = DATABASE() 
+            AND TABLE_NAME = 'devedores' 
+            AND COLUMN_NAME = 'module'
+        """)
+        module_exists = cursor.fetchone()[0] > 0
+        
+        # Verificar se a coluna 'status_code' já existe
+        cursor.execute("""
+            SELECT COUNT(*) 
+            FROM information_schema.COLUMNS 
+            WHERE TABLE_SCHEMA = DATABASE() 
+            AND TABLE_NAME = 'devedores' 
+            AND COLUMN_NAME = 'status_code'
+        """)
+        status_code_exists = cursor.fetchone()[0] > 0
+        
+        # Verificar se a coluna 'operador' já existe na tabela titulo
+        cursor.execute("""
+            SELECT COUNT(*) 
+            FROM information_schema.COLUMNS 
+            WHERE TABLE_SCHEMA = DATABASE() 
+            AND TABLE_NAME = 'titulo' 
+            AND COLUMN_NAME = 'operador'
+        """)
+        operador_exists = cursor.fetchone()[0] > 0
+        
+        # Adicionar apenas as colunas que não existem
+        if not module_exists:
+            cursor.execute("ALTER TABLE `devedores` ADD COLUMN `module` varchar(64) DEFAULT '' NOT NULL")
+        
+        if not status_code_exists:
+            cursor.execute("ALTER TABLE `devedores` ADD COLUMN `status_code` smallint unsigned DEFAULT 0 NOT NULL")
+        
+        if not operador_exists:
+            cursor.execute("ALTER TABLE `titulo` ADD COLUMN `operador` varchar(255) NULL")
+
+
+def reverse_migration(apps, schema_editor):
+    """Reverter a migration se necessário"""
+    pass
+
+
 class Migration(migrations.Migration):
 
     dependencies = [
@@ -10,19 +59,26 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        migrations.AddField(
-            model_name='devedor',
-            name='module',
-            field=models.CharField(blank=True, max_length=64),
-        ),
-        migrations.AddField(
-            model_name='devedor',
-            name='status_code',
-            field=models.PositiveSmallIntegerField(default=0),
-        ),
-        migrations.AddField(
-            model_name='titulo',
-            name='operador',
-            field=models.CharField(blank=True, max_length=255, null=True),
+        migrations.SeparateDatabaseAndState(
+            database_operations=[
+                migrations.RunPython(verificar_e_adicionar_campos, reverse_migration),
+            ],
+            state_operations=[
+                migrations.AddField(
+                    model_name='devedor',
+                    name='module',
+                    field=models.CharField(blank=True, max_length=64),
+                ),
+                migrations.AddField(
+                    model_name='devedor',
+                    name='status_code',
+                    field=models.PositiveSmallIntegerField(default=0),
+                ),
+                migrations.AddField(
+                    model_name='titulo',
+                    name='operador',
+                    field=models.CharField(blank=True, max_length=255, null=True),
+                ),
+            ],
         ),
     ]
