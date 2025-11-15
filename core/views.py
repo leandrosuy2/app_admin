@@ -322,7 +322,26 @@ def dashboard(request):
     page_number_pendentes = request.GET.get('page')
     agenda_pendentes_paginated = paginator_pendentes.get_page(page_number_pendentes)
 
+    # Filtro de data para negociados em atraso
+    data_inicio_negociados = request.GET.get('data_inicio_negociados', '').strip()
+    data_fim_negociados = request.GET.get('data_fim_negociados', '').strip()
+    
     # Filtro de busca para negociados
+    date_filter = ""
+    date_params = []
+    
+    if data_inicio_negociados:
+        date_filter += " AND titulo.dataVencimento >= %s"
+        date_params.append(data_inicio_negociados)
+    
+    if data_fim_negociados:
+        date_filter += " AND titulo.dataVencimento <= %s"
+        date_params.append(data_fim_negociados)
+    
+    # Se não houver filtro de data, mantém o comportamento padrão (menor que hoje)
+    if not data_inicio_negociados and not data_fim_negociados:
+        date_filter = " AND titulo.dataVencimento < CURRENT_DATE"
+    
     negociados_em_atraso_query = f"""
     SELECT
         MIN(titulo.id) AS id,
@@ -341,7 +360,8 @@ def dashboard(request):
         core_empresa ON devedores.empresa_id = core_empresa.id
     WHERE 
         titulo.statusBaixa = 3 
-        AND titulo.dataVencimento < CURRENT_DATE and core_empresa.status_empresa =1
+        {date_filter}
+        AND core_empresa.status_empresa = 1
         
     GROUP BY 
         core_empresa.id, 
@@ -350,7 +370,11 @@ def dashboard(request):
         titulo.devedor_id, 
         core_empresa.nome_fantasia
     """
-    negociados_em_atraso = Titulo.objects.raw(negociados_em_atraso_query)
+    
+    if date_params:
+        negociados_em_atraso = Titulo.objects.raw(negociados_em_atraso_query, date_params)
+    else:
+        negociados_em_atraso = Titulo.objects.raw(negociados_em_atraso_query)
 
     # Paginação para Negociados em Atraso
     paginator_negociados = Paginator(list(negociados_em_atraso), 10)
@@ -376,6 +400,8 @@ def dashboard(request):
         'negociados_hoje': negociados_hoje,
         'quitados_hoje_detalhes': quitados_hoje_detalhes_data,
         'negociados_hoje_detalhes': negociados_hoje_detalhes_data,
+        'data_inicio_negociados': data_inicio_negociados,
+        'data_fim_negociados': data_fim_negociados,
     }
 
     return render(request, 'dashboard.html', context)

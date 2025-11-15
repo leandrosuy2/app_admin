@@ -603,6 +603,51 @@ document.addEventListener("DOMContentLoaded", function () {
         <i class="fas fa-exclamation-circle me-2" style="color: #c0392b;"></i> Negociados em Atraso
     </h2>
 
+    <!-- Filtro de Data para Negociados em Atraso -->
+    <form method="get" action="{% url 'dashboard' %}" class="mb-4 p-3 shadow rounded bg-light">
+        <div class="row g-3 align-items-end">
+            <div class="col-md-4">
+                <label for="data_inicio_negociados" class="form-label fw-bold">Data de Vencimento (Início)</label>
+                <input type="date" 
+                       class="form-control" 
+                       id="data_inicio_negociados" 
+                       name="data_inicio_negociados" 
+                       value="{{ data_inicio_negociados }}"
+                       style="box-shadow: 0 0 10px rgba(0, 123, 255, 0.3);">
+            </div>
+            <div class="col-md-4">
+                <label for="data_fim_negociados" class="form-label fw-bold">Data de Vencimento (Fim)</label>
+                <input type="date" 
+                       class="form-control" 
+                       id="data_fim_negociados" 
+                       name="data_fim_negociados" 
+                       value="{{ data_fim_negociados }}"
+                       style="box-shadow: 0 0 10px rgba(0, 123, 255, 0.3);">
+            </div>
+            <div class="col-md-4">
+                <button type="submit" class="btn btn-primary w-100 fs-5" style="background: linear-gradient(135deg, #e74c3c, #c0392b); box-shadow: 0 4px 10px rgba(231, 76, 60, 0.5);">
+                    <i class="fas fa-filter me-2"></i>Filtrar
+                </button>
+            </div>
+        </div>
+        {% if data_inicio_negociados or data_fim_negociados %}
+        <div class="row mt-2">
+            <div class="col-md-12">
+                <a href="{% url 'dashboard' %}" class="btn btn-secondary btn-sm">
+                    <i class="fas fa-times me-1"></i>Limpar Filtro
+                </a>
+            </div>
+        </div>
+        {% endif %}
+        <!-- Preservar outros parâmetros GET -->
+        {% if query %}
+        <input type="hidden" name="query" value="{{ query }}">
+        {% endif %}
+        {% if request.GET.page %}
+        <input type="hidden" name="page" value="{{ request.GET.page }}">
+        {% endif %}
+    </form>
+
     {% if negociados_paginated %}
     <table class="table table-bordered table-striped">
         <thead>
@@ -717,7 +762,7 @@ document.addEventListener("DOMContentLoaded", function () {
             <ul class="pagination justify-content-center">
                 {% if negociados_paginated.has_previous %}
                 <li class="page-item">
-                    <a class="page-link" href="?page_negociados={{ negociados_paginated.previous_page_number }}">Anterior</a>
+                    <a class="page-link" href="?page_negociados={{ negociados_paginated.previous_page_number }}{% if data_inicio_negociados %}&data_inicio_negociados={{ data_inicio_negociados }}{% endif %}{% if data_fim_negociados %}&data_fim_negociados={{ data_fim_negociados }}{% endif %}{% if query %}&query={{ query }}{% endif %}">Anterior</a>
                 </li>
                 {% endif %}
                 <li class="page-item">
@@ -725,7 +770,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 </li>
                 {% if negociados_paginated.has_next %}
                 <li class="page-item">
-                    <a class="page-link" href="?page_negociados={{ negociados_paginated.next_page_number }}">Próxima</a>
+                    <a class="page-link" href="?page_negociados={{ negociados_paginated.next_page_number }}{% if data_inicio_negociados %}&data_inicio_negociados={{ data_inicio_negociados }}{% endif %}{% if data_fim_negociados %}&data_fim_negociados={{ data_fim_negociados }}{% endif %}{% if query %}&query={{ query }}{% endif %}">Próxima</a>
                 </li>
                 {% endif %}
             </ul>
