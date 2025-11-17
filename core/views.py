@@ -6753,6 +6753,7 @@ def honorarios(request):
     devedor_filt = (request.GET.get('devedor') or '').strip()
     cpf_cnpj     = (request.GET.get('cpf_cnpj') or '').strip()
     export_excel = (request.GET.get('exportar_excel') or '').strip()
+    export_pdf   = (request.GET.get('exportar_pdf') or '').strip()
 
     # Trava operador para não-admin
     trava_operador = False
@@ -6918,6 +6919,30 @@ def honorarios(request):
         resp['Content-Disposition'] = 'attachment; filename="honorarios.xlsx"'
         wb.save(resp)
         return resp
+
+    # -------- Exportar PDF --------
+    if export_pdf:
+        pdf_html = render_to_string('honorarios_pdf.html', {
+            "itens": itens,
+            "tot_valor_principal": tot_valor_principal,
+            "tot_valor_pago": tot_valor_pago,
+            "tot_comissao": tot_comissao,
+            "tot_liquido": tot_liquido,
+            "honorario_total": honorario_total,
+            "data_inicio": data_inicio,
+            "data_fim": data_fim,
+            "operador": operador_sel,
+            "empresa": empresa_filt,
+            "devedor": devedor_filt,
+            "cpf_cnpj": cpf_cnpj,
+            "generated_at": timezone.localtime(),
+        })
+        pdf_io = BytesIO()
+        HTML(string=pdf_html, base_url=request.build_absolute_uri()).write_pdf(pdf_io)
+        pdf_io.seek(0)
+        response = HttpResponse(pdf_io.read(), content_type='application/pdf')
+        response['Content-Disposition'] = 'attachment; filename="honorarios.pdf"'
+        return response
 
     # -------- Combos e paginação --------
     if request.user.is_staff or request.user.is_superuser:
