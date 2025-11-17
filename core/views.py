@@ -39,7 +39,7 @@ from reportlab.lib.pagesizes import letter
 from reportlab.pdfgen import canvas
 from reportlab.lib import colors
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
-from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph
+from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer
 from io import BytesIO
 import pandas as pd
 from openpyxl import Workbook
@@ -6922,25 +6922,108 @@ def honorarios(request):
 
     # -------- Exportar PDF --------
     if export_pdf:
-        pdf_html = render_to_string('honorarios_pdf.html', {
-            "itens": itens,
-            "tot_valor_principal": tot_valor_principal,
-            "tot_valor_pago": tot_valor_pago,
-            "tot_comissao": tot_comissao,
-            "tot_liquido": tot_liquido,
-            "honorario_total": honorario_total,
-            "data_inicio": data_inicio,
-            "data_fim": data_fim,
-            "operador": operador_sel,
-            "empresa": empresa_filt,
-            "devedor": devedor_filt,
-            "cpf_cnpj": cpf_cnpj,
-            "generated_at": timezone.localtime(),
-        })
-        pdf_io = BytesIO()
-        HTML(string=pdf_html, base_url=request.build_absolute_uri()).write_pdf(pdf_io)
-        pdf_io.seek(0)
-        response = HttpResponse(pdf_io.read(), content_type='application/pdf')
+        buffer = BytesIO()
+        doc = SimpleDocTemplate(
+            buffer,
+            pagesize=letter,
+            leftMargin=28,
+            rightMargin=28,
+            topMargin=36,
+            bottomMargin=36,
+        )
+
+        styles = getSampleStyleSheet()
+        subtitle_style = styles["Normal"].clone("Subtitle")
+        subtitle_style.fontSize = 10
+        subtitle_style.textColor = colors.HexColor("#475569")
+
+        meta_style = styles["Normal"].clone("Meta")
+        meta_style.fontSize = 9
+        meta_style.textColor = colors.HexColor("#1f2937")
+
+        elements = [
+            Paragraph("Relatório de Honorários", styles["Title"]),
+            Paragraph(
+                f"Gerado em {timezone.localtime().strftime('%d/%m/%Y %H:%M')}",
+                subtitle_style,
+            ),
+            Spacer(1, 10),
+        ]
+
+        filtros = [
+            f"Período: {data_inicio or '-'} a {data_fim or '-'}",
+            f"Operador: {operador_sel or 'Todos'}",
+            f"Credor: {empresa_filt or 'Todos'}",
+            f"Devedor: {devedor_filt or 'Todos'}",
+            f"CPF/CNPJ: {cpf_cnpj or '-'}",
+        ]
+        for linha in filtros:
+            elements.append(Paragraph(linha, meta_style))
+        elements.append(Spacer(1, 12))
+
+        resumo = [
+            f"Principal: R$ {tot_valor_principal:,.2f}",
+            f"Pago: R$ {tot_valor_pago:,.2f}",
+            f"Honorários: R$ {tot_comissao:,.2f}",
+            f"Líquido: R$ {tot_liquido:,.2f}",
+            f"Operador (25%): R$ {honorario_total:,.2f}",
+        ]
+        for linha in resumo:
+            elements.append(Paragraph(linha, meta_style))
+        elements.append(Spacer(1, 14))
+
+        def fmt_money(value):
+            return "R$ {:,.2f}".format(value).replace(",", "X").replace(".", ",").replace("X", ".")
+
+        headers = [
+            "Devedor", "Credor", "Doc", "Operador", "Vencto.", "Pagto.",
+            "Forma", "Parc.", "Principal", "Pago", "Honorários", "Líquido"
+        ]
+        table_data = [headers]
+        for h in itens:
+            table_data.append([
+                h["devedor"],
+                h["credor"],
+                h["doc"],
+                h["operador"],
+                h["vencto"].strftime("%d/%m/%Y") if h["vencto"] else "-",
+                h["pagto"].strftime("%d/%m/%Y") if h["pagto"] else "-",
+                h["forma"],
+                h["parc"],
+                fmt_money(h["valor_principal"]),
+                fmt_money(h["valor_pago"]),
+                fmt_money(h["honorarios_credor"]),
+                fmt_money(h["valor_liq"]),
+            ])
+
+        table_data.append([
+            "Totais", "", "", "", "", "", "", "",
+            fmt_money(tot_valor_principal),
+            fmt_money(tot_valor_pago),
+            fmt_money(tot_comissao),
+            fmt_money(tot_liquido),
+        ])
+
+        table = Table(table_data, repeatRows=1)
+        table.setStyle(TableStyle([
+            ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#0f172a")),
+            ("TEXTCOLOR", (0, 0), (-1, 0), colors.whitesmoke),
+            ("ALIGN", (8, 0), (-1, -1), "RIGHT"),
+            ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
+            ("FONTSIZE", (0, 0), (-1, 0), 9),
+            ("BOTTOMPADDING", (0, 0), (-1, 0), 6),
+            ("ROWBACKGROUNDS", (0, 1), (-1, -2), [colors.white, colors.HexColor("#f8fafc")]),
+            ("GRID", (0, 0), (-1, -1), 0.25, colors.HexColor("#e2e8f0")),
+            ("FONTNAME", (0, -1), (-1, -1), "Helvetica-Bold"),
+            ("BACKGROUND", (0, -1), (-1, -1), colors.HexColor("#f1f5f9")),
+        ]))
+
+        elements.append(table)
+        doc.build(elements)
+
+        pdf_bytes = buffer.getvalue()
+        buffer.close()
+        response = HttpResponse(pdf_bytes, content_type='application/pdf')
         response['Content-Disposition'] = 'attachment; filename="honorarios.pdf"'
         return response
 
