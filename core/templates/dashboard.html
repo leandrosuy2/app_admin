@@ -11,12 +11,11 @@
     .stat-card {
         height: 100%;
         border: none;
-        border-radius: 16px;
+        border-radius: 12px;
         overflow: hidden;
         transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         cursor: pointer;
         position: relative;
-        overflow: hidden;
     }
 
     .stat-card::before {
@@ -35,38 +34,38 @@
     }
 
     .stat-card:hover {
-        transform: translateY(-8px);
-        box-shadow: 0 12px 24px rgba(0,0,0,0.15) !important;
+        transform: translateY(-4px);
+        box-shadow: 0 8px 16px rgba(0,0,0,0.1) !important;
     }
 
     .stat-card .card-body {
-        display: flex;
-        flex-direction: column;
+    display: flex;
+    flex-direction: column;
         justify-content: space-between;
-        padding: 1.5rem;
-        min-height: 140px;
+        padding: 1rem;
+        min-height: 100px;
     }
 
     .stat-card .stat-icon {
-        font-size: 3rem;
+        font-size: 2rem;
         opacity: 0.3;
         transition: all 0.3s ease;
     }
 
     .stat-card:hover .stat-icon {
         opacity: 0.5;
-        transform: scale(1.1);
+        transform: scale(1.05);
     }
 
     .stat-card .stat-value {
-        font-size: 2rem;
+        font-size: 1.5rem;
         font-weight: 700;
-        margin: 0.5rem 0;
+        margin: 0.25rem 0;
         line-height: 1.2;
     }
 
     .stat-card .stat-label {
-        font-size: 0.9rem;
+        font-size: 0.75rem;
         font-weight: 600;
         text-transform: uppercase;
         letter-spacing: 0.5px;
@@ -75,23 +74,23 @@
 
     /* Seções */
     .dashboard-section {
-        margin-top: 2.5rem;
-        padding-top: 2rem;
+        margin-top: 1.5rem;
+        padding-top: 1.5rem;
         border-top: 1px solid var(--line);
     }
 
     .section-title {
-        font-size: 1.5rem;
+        font-size: 1.1rem;
         font-weight: 700;
-        margin-bottom: 1.5rem;
-        display: flex;
+        margin-bottom: 1rem;
+    display: flex;
         align-items: center;
-        gap: 0.75rem;
+        gap: 0.5rem;
         color: var(--text);
     }
 
     .section-title i {
-        font-size: 1.25rem;
+        font-size: 1rem;
     }
 
     /* Tabelas Responsivas */
@@ -104,7 +103,13 @@
 
     .table-responsive-custom table {
         margin-bottom: 0;
-        min-width: 800px;
+        min-width: 600px;
+    }
+
+    @media (max-width: 768px) {
+        .table-responsive-custom table {
+            min-width: 500px;
+        }
     }
 
     .table-responsive-custom thead {
@@ -114,10 +119,10 @@
 
     .table-responsive-custom thead th {
         border: none;
-        padding: 1rem;
+        padding: 0.75rem;
         font-weight: 600;
         text-transform: uppercase;
-        font-size: 0.85rem;
+        font-size: 0.75rem;
         letter-spacing: 0.5px;
     }
 
@@ -127,96 +132,112 @@
 
     .table-responsive-custom tbody tr:hover {
         background-color: var(--brand-50);
-        transform: scale(1.01);
     }
 
     .table-responsive-custom tbody td {
-        padding: 1rem;
+        padding: 0.75rem;
         vertical-align: middle;
         border-color: var(--line);
+        font-size: 0.875rem;
     }
 
     /* Formulários de Busca */
     .search-form {
         background: var(--card);
         border: 1px solid var(--line);
-        border-radius: 12px;
-        padding: 1.5rem;
-        margin-bottom: 2rem;
+        border-radius: 8px;
+        padding: 1rem;
+        margin-bottom: 1.5rem;
         box-shadow: 0 2px 8px rgba(0,0,0,0.05);
     }
 
     .search-form .form-control {
-        border-radius: 10px;
-        border: 2px solid var(--line);
-        padding: 0.75rem 1rem;
+        border-radius: 8px;
+        border: 1px solid var(--line);
+        padding: 0.5rem 0.75rem;
+        font-size: 0.875rem;
         transition: all 0.3s ease;
     }
 
     .search-form .form-control:focus {
         border-color: var(--brand-500);
-        box-shadow: 0 0 0 0.2rem rgba(99, 102, 241, 0.15);
+        box-shadow: 0 0 0 0.15rem rgba(99, 102, 241, 0.15);
     }
 
     .search-form .btn {
-        border-radius: 10px;
-        padding: 0.75rem 2rem;
+        border-radius: 8px;
+        padding: 0.5rem 1rem;
         font-weight: 600;
+        font-size: 0.875rem;
         transition: all 0.3s ease;
     }
 
     .search-form .btn:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        transform: translateY(-1px);
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
     }
 
     /* Badges */
     .badge {
-        padding: 0.5rem 0.75rem;
+        padding: 0.25rem 0.5rem;
         font-weight: 600;
-        border-radius: 8px;
+        border-radius: 6px;
+        font-size: 0.75rem;
     }
 
     /* Botões de Ação */
     .btn-action {
-        margin: 0 0.25rem;
-        border-radius: 8px;
+        margin: 0 0.125rem;
+        border-radius: 6px;
         font-weight: 500;
+        font-size: 0.75rem;
+        padding: 0.25rem 0.5rem;
         transition: all 0.2s ease;
     }
 
     .btn-action:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+        transform: translateY(-1px);
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
     }
 
     /* Modais */
     .modal-content {
-        border-radius: 16px;
+        border-radius: 12px;
         border: none;
-        box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        box-shadow: 0 10px 40px rgba(0,0,0,0.2);
     }
 
     .modal-header {
         border-bottom: 1px solid var(--line);
-        border-radius: 16px 16px 0 0;
-        padding: 1.5rem;
+        border-radius: 12px 12px 0 0;
+        padding: 1rem;
+    }
+
+    .modal-header .modal-title {
+        font-size: 1rem;
     }
 
     .modal-body {
-        padding: 1.5rem;
+        padding: 1rem;
+        font-size: 0.875rem;
+    }
+
+    .modal-footer {
+        padding: 0.75rem 1rem;
     }
 
     /* Paginação */
     .pagination {
-        margin-top: 2rem;
+        margin-top: 1rem;
     }
 
     .page-link {
-        border-radius: 8px;
-        margin: 0 0.25rem;
+        border-radius: 6px;
+        margin: 0 0.125rem;
         border: 1px solid var(--line);
         color: var(--text);
+        font-size: 0.875rem;
+        padding: 0.375rem 0.75rem;
         transition: all 0.2s ease;
     }
 
@@ -235,14 +256,19 @@
     /* Empty State */
     .empty-state {
         text-align: center;
-        padding: 3rem 1rem;
+        padding: 2rem 1rem;
         color: var(--muted);
     }
 
     .empty-state i {
-        font-size: 3rem;
+        font-size: 2rem;
         opacity: 0.3;
-        margin-bottom: 1rem;
+        margin-bottom: 0.5rem;
+    }
+
+    .empty-state p {
+        margin: 0;
+        font-size: 0.875rem;
     }
 
     /* Animações */
@@ -271,17 +297,55 @@
     .stat-card:nth-child(8) { animation-delay: 0.8s; }
 
     /* Responsividade */
-    @media (max-width: 768px) {
+    @media (max-width: 992px) {
+        .stat-card .card-body {
+            padding: 0.75rem;
+            min-height: 90px;
+        }
+
         .stat-card .stat-value {
-            font-size: 1.5rem;
+            font-size: 1.25rem;
         }
 
         .stat-card .stat-icon {
-            font-size: 2rem;
+            font-size: 1.5rem;
         }
 
         .section-title {
+            font-size: 1rem;
+        }
+
+        .table-responsive-custom thead th {
+            padding: 0.5rem;
+            font-size: 0.7rem;
+        }
+
+        .table-responsive-custom tbody td {
+            padding: 0.5rem;
+            font-size: 0.8rem;
+        }
+    }
+
+    @media (max-width: 768px) {
+        .stat-card .card-body {
+            padding: 0.75rem;
+            min-height: 80px;
+        }
+
+        .stat-card .stat-value {
+            font-size: 1.1rem;
+        }
+
+        .stat-card .stat-icon {
             font-size: 1.25rem;
+        }
+
+        .stat-card .stat-label {
+            font-size: 0.65rem;
+        }
+
+        .section-title {
+            font-size: 0.95rem;
         }
 
         .table-responsive-custom {
@@ -289,28 +353,49 @@
         }
 
         .btn-action {
-            display: block;
-            width: 100%;
-            margin: 0.5rem 0;
+            font-size: 0.7rem;
+            padding: 0.2rem 0.4rem;
+            margin: 0.125rem;
         }
 
         .search-form {
-            padding: 1rem;
+            padding: 0.75rem;
+        }
+
+        .dashboard-section {
+            margin-top: 1rem;
+            padding-top: 1rem;
         }
     }
 
     @media (max-width: 576px) {
         .stat-card .card-body {
-            padding: 1rem;
-            min-height: 120px;
+            padding: 0.5rem;
+            min-height: 70px;
         }
 
         .stat-card .stat-value {
-            font-size: 1.25rem;
+            font-size: 1rem;
         }
 
         .stat-card .stat-label {
+            font-size: 0.6rem;
+        }
+
+        .section-title {
+            font-size: 0.9rem;
+        }
+
+        .table-responsive-custom thead th,
+        .table-responsive-custom tbody td {
+            padding: 0.4rem;
             font-size: 0.75rem;
+        }
+
+        .btn-action {
+            display: block;
+            width: 100%;
+            margin: 0.25rem 0;
         }
     }
 
@@ -332,10 +417,10 @@
             <div class="card stat-card shadow-lg" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
                 <div class="card-body text-white">
                     <div class="d-flex justify-content-between align-items-start mb-3">
-                        <div>
+                    <div>
                             <div class="stat-label">Pendentes</div>
                             <div class="stat-value count-number" data-count="{{ titulos_pendentes }}">0</div>
-                        </div>
+                    </div>
                         <i class="fas fa-file-alt stat-icon"></i>
                     </div>
                 </div>
@@ -347,10 +432,10 @@
             <div class="card stat-card shadow-lg" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">
                 <div class="card-body text-white">
                     <div class="d-flex justify-content-between align-items-start mb-3">
-                        <div>
+                    <div>
                             <div class="stat-label">Quitados</div>
                             <div class="stat-value count-number" data-count="{{ titulos_quitados }}">0</div>
-                        </div>
+                    </div>
                         <i class="fas fa-check-circle stat-icon"></i>
                     </div>
                 </div>
@@ -362,10 +447,10 @@
             <div class="card stat-card shadow-lg" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);">
                 <div class="card-body text-white">
                     <div class="d-flex justify-content-between align-items-start mb-3">
-                        <div>
+                    <div>
                             <div class="stat-label">Negociados</div>
                             <div class="stat-value count-number" data-count="{{ titulos_negociados }}">0</div>
-                        </div>
+                    </div>
                         <i class="fas fa-handshake stat-icon"></i>
                     </div>
                 </div>
@@ -377,10 +462,10 @@
             <div class="card stat-card shadow-lg" style="background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);">
                 <div class="card-body text-white">
                     <div class="d-flex justify-content-between align-items-start mb-3">
-                        <div>
+                    <div>
                             <div class="stat-label">Total de Clientes</div>
                             <div class="stat-value count-number" data-count="{{ total_clientes }}">0</div>
-                        </div>
+                    </div>
                         <i class="fas fa-users stat-icon"></i>
                     </div>
                 </div>
@@ -392,10 +477,10 @@
             <div class="card stat-card shadow-lg" style="background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);">
                 <div class="card-body text-white">
                     <div class="d-flex justify-content-between align-items-start mb-3">
-                        <div>
+                    <div>
                             <div class="stat-label">Negociados em Atraso</div>
                             <div class="stat-value count-number" data-count="{{ negociados_em_atraso_count }}">0</div>
-                        </div>
+                    </div>
                         <i class="fas fa-exclamation-circle stat-icon"></i>
                     </div>
                 </div>
@@ -407,10 +492,10 @@
             <div class="card stat-card shadow-lg" style="background: linear-gradient(135deg, #30cfd0 0%, #330867 100%);" data-bs-toggle="modal" data-bs-target="#modalQuitadosHoje">
                 <div class="card-body text-white">
                     <div class="d-flex justify-content-between align-items-start mb-3">
-                        <div>
+                    <div>
                             <div class="stat-label">Quitados Hoje</div>
                             <div class="stat-value">R$ {{ quitados_hoje|floatformat:2 }}</div>
-                        </div>
+                    </div>
                         <i class="fas fa-calendar-check stat-icon"></i>
                     </div>
                     <small class="opacity-75"><i class="fas fa-info-circle me-1"></i>Clique para detalhes</small>
@@ -423,10 +508,10 @@
             <div class="card stat-card shadow-lg" style="background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%); color: #333;" data-bs-toggle="modal" data-bs-target="#modalNegociadosHoje">
                 <div class="card-body">
                     <div class="d-flex justify-content-between align-items-start mb-3">
-                        <div>
+                    <div>
                             <div class="stat-label" style="color: #555;">Negociados Hoje</div>
                             <div class="stat-value" style="color: #333;">R$ {{ negociados_hoje|floatformat:2 }}</div>
-                        </div>
+                    </div>
                         <i class="fas fa-handshake stat-icon" style="color: #333; opacity: 0.3;"></i>
                     </div>
                     <small style="color: #666;"><i class="fas fa-info-circle me-1"></i>Clique para detalhes</small>
@@ -439,10 +524,10 @@
             <div class="card stat-card shadow-lg" style="background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%); color: #333;" data-bs-toggle="modal" data-bs-target="#modalRankingOperadores">
                 <div class="card-body">
                     <div class="d-flex justify-content-between align-items-start mb-3">
-                        <div>
+                    <div>
                             <div class="stat-label" style="color: #555;">Ranking Operadores</div>
                             <div class="stat-value" style="color: #333; font-size: 1.5rem;">Ver Ranking</div>
-                        </div>
+                    </div>
                         <i class="fas fa-trophy stat-icon" style="color: #333; opacity: 0.3;"></i>
                     </div>
                     <small style="color: #666;"><i class="fas fa-info-circle me-1"></i>Clique para ver</small>
@@ -462,13 +547,13 @@
 
             const updateCounter = () => {
                 current += increment;
-                if (current < target) {
+                    if (current < target) {
                     counter.innerText = Math.floor(current);
                     requestAnimationFrame(updateCounter);
-                } else {
-                    counter.innerText = target;
-                }
-            };
+                    } else {
+                        counter.innerText = target;
+                    }
+                };
 
             updateCounter();
         };
@@ -501,31 +586,31 @@
                         <div class="table-responsive">
                             <table class="table table-hover">
                                 <thead class="table-light">
-                                    <tr>
-                                        <th>Nome</th>
-                                        <th>CPF/CNPJ</th>
-                                        <th>Empresa</th>
-                                        <th>Data de Baixa</th>
+                                <tr>
+                                    <th>Nome</th>
+                                    <th>CPF/CNPJ</th>
+                                    <th>Empresa</th>
+                                    <th>Data de Baixa</th>
                                         <th class="text-end">Valor Recebido</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {% for item in quitados_hoje_detalhes %}
-                                        <tr>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for item in quitados_hoje_detalhes %}
+                                    <tr>
                                             <td><strong>{{ item.nome }}</strong></td>
                                             <td>{{ item.cpf_cnpj|default:"-" }}</td>
-                                            <td>{{ item.nome_fantasia }}</td>
+                                        <td>{{ item.nome_fantasia }}</td>
                                             <td>{{ item.data_baixa|date:"d/m/Y" }}</td>
                                             <td class="text-end"><strong>R$ {{ item.valorRecebido|floatformat:2 }}</strong></td>
-                                        </tr>
-                                    {% endfor %}
-                                </tbody>
-                            </table>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
                         </div>
                     {% else %}
                         <div class="empty-state">
                             <i class="fas fa-inbox"></i>
-                            <p>Não há títulos quitados hoje.</p>
+                        <p>Não há títulos quitados hoje.</p>
                         </div>
                     {% endif %}
                 </div>
@@ -594,31 +679,31 @@
                         <div class="table-responsive">
                             <table class="table table-hover">
                                 <thead class="table-light">
-                                    <tr>
-                                        <th>Nome</th>
-                                        <th>CPF/CNPJ</th>
-                                        <th>Empresa</th>
-                                        <th>Data de Negociação</th>
+                                <tr>
+                                    <th>Nome</th>
+                                    <th>CPF/CNPJ</th>
+                                    <th>Empresa</th>
+                                    <th>Data de Negociação</th>
                                         <th class="text-end">Valor</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {% for item in negociados_hoje_detalhes %}
-                                        <tr>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for item in negociados_hoje_detalhes %}
+                                    <tr>
                                             <td><strong>{{ item.nome }}</strong></td>
                                             <td>{{ item.cpf_cnpj|default:"-" }}</td>
-                                            <td>{{ item.nome_fantasia }}</td>
+                                        <td>{{ item.nome_fantasia }}</td>
                                             <td>{{ item.data_negociacao|date:"d/m/Y" }}</td>
                                             <td class="text-end"><strong>R$ {{ item.valor|floatformat:2 }}</strong></td>
-                                        </tr>
-                                    {% endfor %}
-                                </tbody>
-                            </table>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
                         </div>
                     {% else %}
                         <div class="empty-state">
                             <i class="fas fa-inbox"></i>
-                            <p>Não há títulos negociados hoje.</p>
+                        <p>Não há títulos negociados hoje.</p>
                         </div>
                     {% endif %}
                 </div>
@@ -671,37 +756,37 @@
     </script>
 
     <!-- Modal para Ranking Operadores -->
-    <div class="modal fade" id="modalRankingOperadores" tabindex="-1" aria-labelledby="modalRankingOperadoresLabel" aria-hidden="true">
+<div class="modal fade" id="modalRankingOperadores" tabindex="-1" aria-labelledby="modalRankingOperadoresLabel" aria-hidden="true">
         <div class="modal-dialog modal-xl modal-dialog-scrollable">
-            <div class="modal-content">
+        <div class="modal-content">
                 <div class="modal-header bg-gradient text-white" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
                     <h5 class="modal-title fw-bold" id="modalRankingOperadoresLabel">
                         <i class="fas fa-trophy me-2"></i>Ranking Operadores - Títulos Quitados
                     </h5>
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    <!-- Filtros -->
+            </div>
+            <div class="modal-body">
+                <!-- Filtros -->
                     <form id="filtroRankingForm" class="search-form mb-4">
                         <div class="row g-3">
-                            <div class="col-md-4">
+                        <div class="col-md-4">
                                 <label for="dataBaixaInicio" class="form-label fw-bold">Data de Baixa (Início)</label>
-                                <input type="date" class="form-control" id="dataBaixaInicio" name="data_inicio">
-                            </div>
-                            <div class="col-md-4">
-                                <label for="dataBaixaFim" class="form-label fw-bold">Data de Baixa (Fim)</label>
-                                <input type="date" class="form-control" id="dataBaixaFim" name="data_fim">
-                            </div>
-                            <div class="col-md-4">
-                                <label for="operadorFiltro" class="form-label fw-bold">Operador</label>
-                                <select class="form-select" id="operadorFiltro" name="operador">
-                                    <option value="">Todos</option>
-                                    {% for usuario in usuarios %}
-                                        <option value="{{ usuario.username }}">{{ usuario.username }}</option>
-                                    {% endfor %}
-                                </select>
-                            </div>
+                            <input type="date" class="form-control" id="dataBaixaInicio" name="data_inicio">
                         </div>
+                        <div class="col-md-4">
+                                <label for="dataBaixaFim" class="form-label fw-bold">Data de Baixa (Fim)</label>
+                            <input type="date" class="form-control" id="dataBaixaFim" name="data_fim">
+                        </div>
+                        <div class="col-md-4">
+                                <label for="operadorFiltro" class="form-label fw-bold">Operador</label>
+                            <select class="form-select" id="operadorFiltro" name="operador">
+                                <option value="">Todos</option>
+                                {% for usuario in usuarios %}
+                                    <option value="{{ usuario.username }}">{{ usuario.username }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
                         <div class="row mt-3">
                             <div class="col-12">
                                 <button type="submit" class="btn btn-primary">
@@ -709,29 +794,29 @@
                                 </button>
                             </div>
                         </div>
-                    </form>
+                </form>
 
-                    <!-- Total destacado -->
+                <!-- Total destacado -->
                     <div id="totalRanking" class="alert alert-success text-center mb-4 rounded-3 shadow-sm" style="display: none;">
                         <h4 class="alert-heading fw-bold mb-2">
                             <i class="fas fa-dollar-sign me-2"></i>Total Recebido
                         </h4>
                         <p class="fs-2 mb-0 fw-bold" id="valorTotal">R$ 0,00</p>
-                    </div>
+                </div>
 
-                    <!-- Resultados -->
-                    <div id="rankingResultados">
+                <!-- Resultados -->
+                <div id="rankingResultados">
                         <div class="text-center py-5">
                             <div class="spinner-border text-primary" role="status">
                                 <span class="visually-hidden">Carregando...</span>
                             </div>
                             <p class="mt-3 text-muted">Carregando dados...</p>
                         </div>
-                    </div>
                 </div>
             </div>
         </div>
     </div>
+</div>
 
 <script>
 document.addEventListener("DOMContentLoaded", function () {
@@ -763,15 +848,15 @@ document.addEventListener("DOMContentLoaded", function () {
                 let htmlContent = `
                     <div class="table-responsive-custom">
                         <table class="table table-hover">
-                            <thead>
-                                <tr>
+                        <thead>
+                            <tr>
                                     <th style="width: 80px;">#</th>
-                                    <th>Operador</th>
+                                <th>Operador</th>
                                     <th class="text-center">Total de Títulos Quitados</th>
                                     <th class="text-end">Valor Total Recebido</th>
-                                </tr>
-                            </thead>
-                            <tbody>
+                            </tr>
+                        </thead>
+                        <tbody>
                 `;
 
                 data.resultados.forEach((item, index) => {
@@ -836,41 +921,41 @@ document.addEventListener("DOMContentLoaded", function () {
                 <input type="text" name="query" class="form-control flex-grow-1" placeholder="🔍 Buscar por nome, CPF, CNPJ, Nome Fantasia, etc." value="{{ query }}">
                 <button type="submit" class="btn btn-primary">
                     <i class="fas fa-search me-2"></i>Buscar
-                </button>
-            </form>
+            </button>
+    </form>
         </div>
 
         <h2 class="section-title">
             <i class="fas fa-calendar-alt text-primary"></i>
             Agenda de Trabalho do Dia - Pendentes
-        </h2>
+    </h2>
 
         <div class="table-responsive-custom">
             <table class="table table-hover">
                 <thead>
-                    <tr>
-                        <th>Devedor</th>
-                        <th>Credor</th>
-                        <th>Nome da Mãe</th>
-                        <th>Operador</th>
-                        <th>CPF/CNPJ</th>
-                        <th class="text-center">Ações</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for item in agenda_pendentes_paginated %}
-                    <tr>
+            <tr>
+                <th>Devedor</th>
+                <th>Credor</th>
+                <th>Nome da Mãe</th>
+                <th>Operador</th>
+                <th>CPF/CNPJ</th>
+                <th class="text-center">Ações</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in agenda_pendentes_paginated %}
+            <tr>
                         <td>
                             <strong>
-                                {% if item.nome and item.razao_social %}
-                                    {{ item.nome }} {{ item.razao_social }}
-                                {% elif item.nome %}
-                                    {{ item.nome }}
-                                {% elif item.razao_social %}
-                                    {{ item.razao_social }}
-                                {% else %}
+                    {% if item.nome and item.razao_social %}
+                        {{ item.nome }} {{ item.razao_social }}
+                    {% elif item.nome %}
+                        {{ item.nome }}
+                    {% elif item.razao_social %}
+                        {{ item.razao_social }}
+                    {% else %}
                                     -
-                                {% endif %}
+                    {% endif %}
                             </strong>
                         </td>
                         <td><strong>{{ item.nome_fantasia_credor }}</strong></td>
@@ -878,16 +963,16 @@ document.addEventListener("DOMContentLoaded", function () {
                         <td>{{ item.operador|default:'-' }}</td>
                         <td>
                             <strong>
-                                {% if item.cpf %}
-                                    {{ item.cpf }}
-                                {% elif item.cnpj %}
-                                    {{ item.cnpj }}
-                                {% else %}
-                                    Não informado
-                                {% endif %}
+                    {% if item.cpf %}
+                        {{ item.cpf }}
+                    {% elif item.cnpj %}
+                        {{ item.cnpj }}
+                    {% else %}
+                        Não informado
+                    {% endif %}
                             </strong>
                         </td>
-                        <td class="text-center">
+                <td class="text-center">
                             <div class="d-flex flex-wrap gap-2 justify-content-center">
                                 <a href="{% url 'detalhes_devedor' item.id %}" target="_blank" class="btn btn-sm btn-info btn-action">
                                     <i class="fas fa-eye me-1"></i>Visualizar
@@ -908,11 +993,11 @@ document.addEventListener("DOMContentLoaded", function () {
                                 <i class="fas fa-inbox"></i>
                                 <p class="mb-0">Nenhum registro encontrado</p>
                             </div>
-                        </td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
         </div>
 
     <!-- Agendamentos Pendentes -->
@@ -920,75 +1005,75 @@ document.addEventListener("DOMContentLoaded", function () {
         <h2 class="section-title">
             <i class="fas fa-tasks text-info"></i>
             Agendamentos Pendentes
-        </h2>
+    </h2>
 
-        {% if agendamentos_hoje %}
+    {% if agendamentos_hoje %}
         <div class="table-responsive-custom">
             <table class="table table-hover align-middle">
                 <thead>
-                    <tr>
-                        <th>Devedor</th>
-                        <th>CPF / CNPJ</th>
-                        <th>Empresa</th>
-                        <th>Telefone</th>
-                        <th>Data de Retorno</th>
-                        <th>Operador</th>
-                        <th class="text-center">Ações</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for agendamento in agendamentos_hoje %}
-                    <tr>
+            <tr>
+                <th>Devedor</th>
+                <th>CPF / CNPJ</th>
+                <th>Empresa</th>
+                <th>Telefone</th>
+                <th>Data de Retorno</th>
+                <th>Operador</th>
+                <th class="text-center">Ações</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for agendamento in agendamentos_hoje %}
+            <tr>
                         <td><strong>{{ agendamento.devedor__nome }}</strong></td>
                         <td>
                             <strong>
-                                {% if agendamento.devedor__cpf %}
-                                    {{ agendamento.devedor__cpf }}
-                                {% elif agendamento.devedor__cnpj %}
-                                    {{ agendamento.devedor__cnpj }}
-                                {% else %}
-                                    Não informado
-                                {% endif %}
+                    {% if agendamento.devedor__cpf %}
+                        {{ agendamento.devedor__cpf }}
+                    {% elif agendamento.devedor__cnpj %}
+                        {{ agendamento.devedor__cnpj }}
+                    {% else %}
+                        Não informado
+                    {% endif %}
                             </strong>
-                        </td>
+                </td>
                         <td>{{ agendamento.empresa__nome_fantasia }}</td>
                         <td class="text-center">
-                            {% if agendamento.telefone_formatado %}
+                    {% if agendamento.telefone_formatado %}
                                 <a href="https://wa.me/{{ agendamento.telefone_formatado }}" target="_blank" class="btn btn-sm btn-success btn-action">
                                     <i class="fab fa-whatsapp me-1"></i>
-                                    {{ agendamento.telefone_formatado }}
-                                </a>
+                            {{ agendamento.telefone_formatado }}
+                        </a>
                             {% else %}
                                 <span class="text-muted">-</span>
-                            {% endif %}
-                        </td>
+                    {% endif %}
+                </td>
                         <td><strong>{{ agendamento.data_retorno|date:"d/m/Y H:i" }}</strong></td>
                         <td><strong>{{ agendamento.operador }}</strong></td>
-                        <td class="text-center">
+                <td class="text-center">
                             <div class="d-flex flex-wrap gap-2 justify-content-center">
                                 <button type="button" class="btn btn-sm btn-info btn-action" data-bs-toggle="modal" data-bs-target="#modalAgendamento{{ agendamento.id }}">
                                     <i class="fas fa-eye me-1"></i>Visualizar
-                                </button>
-                                <form method="POST" action="{% url 'finalizar_agendamento' agendamento.id %}" style="display:inline;">
-                                    {% csrf_token %}
+                    </button>
+                    <form method="POST" action="{% url 'finalizar_agendamento' agendamento.id %}" style="display:inline;">
+                        {% csrf_token %}
                                     <button type="submit" class="btn btn-sm btn-success btn-action">
                                         <i class="fas fa-check me-1"></i>Finalizar
                                     </button>
-                                </form>
+                    </form>
                             </div>
-                        </td>
-                    </tr>
-                    <!-- Modal -->
-                    <div class="modal fade" id="modalAgendamento{{ agendamento.id }}" tabindex="-1" aria-labelledby="modalLabel{{ agendamento.id }}" aria-hidden="true">
-                        <div class="modal-dialog modal-dialog-centered">
-                            <div class="modal-content">
-                                <div class="modal-header bg-primary text-white">
+                </td>
+            </tr>
+            <!-- Modal -->
+            <div class="modal fade" id="modalAgendamento{{ agendamento.id }}" tabindex="-1" aria-labelledby="modalLabel{{ agendamento.id }}" aria-hidden="true">
+                <div class="modal-dialog modal-dialog-centered">
+                    <div class="modal-content">
+                        <div class="modal-header bg-primary text-white">
                                     <h5 class="modal-title fw-bold" id="modalLabel{{ agendamento.id }}">
                                         <i class="fas fa-calendar-check me-2"></i>Detalhes do Agendamento
                                     </h5>
                                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-                                </div>
-                                <div class="modal-body">
+                        </div>
+                        <div class="modal-body">
                                     <div class="row g-3">
                                         <div class="col-md-6">
                                             <p class="mb-2"><strong class="text-muted">Devedor:</strong></p>
@@ -1031,25 +1116,25 @@ document.addEventListener("DOMContentLoaded", function () {
                                             <p class="fs-6">{{ agendamento.assunto|default:"Não informado" }}</p>
                                         </div>
                                     </div>
-                                </div>
-                                <div class="modal-footer">
+                        </div>
+                        <div class="modal-footer">
                                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
                                         <i class="fas fa-times me-1"></i>Fechar
                                     </button>
-                                </div>
-                            </div>
                         </div>
                     </div>
-                    {% endfor %}
-                </tbody>
-            </table>
+                </div>
+            </div>
+            {% endfor %}
+        </tbody>
+    </table>
         </div>
-        {% else %}
+    {% else %}
         <div class="empty-state">
             <i class="fas fa-calendar-times"></i>
             <p>Nenhum agendamento para hoje.</p>
         </div>
-        {% endif %}
+    {% endif %}
     </div>
 
     <!-- Negociados em Atraso -->
@@ -1057,81 +1142,81 @@ document.addEventListener("DOMContentLoaded", function () {
         <h2 class="section-title">
             <i class="fas fa-exclamation-circle text-danger"></i>
             Negociados em Atraso
-        </h2>
+    </h2>
 
-        <!-- Filtro de Data para Negociados em Atraso -->
+    <!-- Filtro de Data para Negociados em Atraso -->
         <form method="get" action="{% url 'dashboard' %}" class="search-form">
-            <div class="row g-3 align-items-end">
-                <div class="col-md-4">
-                    <label for="data_inicio_negociados" class="form-label fw-bold">Data de Vencimento (Início)</label>
-                    <input type="date" 
-                           class="form-control" 
-                           id="data_inicio_negociados" 
-                           name="data_inicio_negociados" 
+        <div class="row g-3 align-items-end">
+            <div class="col-md-4">
+                <label for="data_inicio_negociados" class="form-label fw-bold">Data de Vencimento (Início)</label>
+                <input type="date" 
+                       class="form-control" 
+                       id="data_inicio_negociados" 
+                       name="data_inicio_negociados" 
                            value="{{ data_inicio_negociados }}">
-                </div>
-                <div class="col-md-4">
-                    <label for="data_fim_negociados" class="form-label fw-bold">Data de Vencimento (Fim)</label>
-                    <input type="date" 
-                           class="form-control" 
-                           id="data_fim_negociados" 
-                           name="data_fim_negociados" 
+            </div>
+            <div class="col-md-4">
+                <label for="data_fim_negociados" class="form-label fw-bold">Data de Vencimento (Fim)</label>
+                <input type="date" 
+                       class="form-control" 
+                       id="data_fim_negociados" 
+                       name="data_fim_negociados" 
                            value="{{ data_fim_negociados }}">
-                </div>
-                <div class="col-md-4">
+            </div>
+            <div class="col-md-4">
                     <button type="submit" class="btn btn-primary w-100">
-                        <i class="fas fa-filter me-2"></i>Filtrar
-                    </button>
-                </div>
+                    <i class="fas fa-filter me-2"></i>Filtrar
+                </button>
             </div>
-            {% if data_inicio_negociados or data_fim_negociados %}
+        </div>
+        {% if data_inicio_negociados or data_fim_negociados %}
             <div class="row mt-3">
-                <div class="col-md-12">
-                    <a href="{% url 'dashboard' %}" class="btn btn-secondary btn-sm">
-                        <i class="fas fa-times me-1"></i>Limpar Filtro
-                    </a>
-                </div>
+            <div class="col-md-12">
+                <a href="{% url 'dashboard' %}" class="btn btn-secondary btn-sm">
+                    <i class="fas fa-times me-1"></i>Limpar Filtro
+                </a>
             </div>
-            {% endif %}
-            <!-- Preservar outros parâmetros GET -->
-            {% if query %}
-            <input type="hidden" name="query" value="{{ query }}">
-            {% endif %}
-            {% if request.GET.page %}
-            <input type="hidden" name="page" value="{{ request.GET.page }}">
-            {% endif %}
-        </form>
+        </div>
+        {% endif %}
+        <!-- Preservar outros parâmetros GET -->
+        {% if query %}
+        <input type="hidden" name="query" value="{{ query }}">
+        {% endif %}
+        {% if request.GET.page %}
+        <input type="hidden" name="page" value="{{ request.GET.page }}">
+        {% endif %}
+    </form>
 
-        {% if negociados_paginated %}
+    {% if negociados_paginated %}
         <div class="table-responsive-custom">
             <table class="table table-hover">
-                <thead>
-                    <tr>
-                        <th>Devedor</th>
-                        <th>Empresa</th>
-                        <th>Operador</th>
-                        <th>Data de Vencimento</th>
-                        <th>Valor</th>
-                        <th>Status</th>
-                        <th class="text-center">Ações</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for titulo in negociados_paginated %}
-                    <tr>
+        <thead>
+            <tr>
+                <th>Devedor</th>
+                <th>Empresa</th>
+                <th>Operador</th>
+                <th>Data de Vencimento</th>
+                <th>Valor</th>
+                <th>Status</th>
+                <th class="text-center">Ações</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for titulo in negociados_paginated %}
+            <tr>
                         <td><strong>{{ titulo.devedor_nome }}</strong></td>
-                        <td>{{ titulo.empresa_nome }}</td>
-                        <td>{{ titulo.operador }}</td>
-                        <td>{{ titulo.data_vencimento|date:"d/m/Y" }}</td>
+                <td>{{ titulo.empresa_nome }}</td>
+                <td>{{ titulo.operador }}</td>
+                <td>{{ titulo.data_vencimento|date:"d/m/Y" }}</td>
                         <td><strong>R$ {{ titulo.valor_total|floatformat:2 }}</strong></td>
-                        <td>
+                <td>
                             <span class="badge bg-warning text-dark">Negociado em atraso</span>
-                        </td>
-                        <td class="text-center">
+                </td>
+                <td class="text-center">
                             <div class="d-flex flex-wrap gap-2 justify-content-center">
                                 <button class="btn btn-sm btn-primary btn-action alterar-operador-btn" data-id="{{ titulo.id }}" data-bs-toggle="modal" data-bs-target="#modalAlterarOperador">
                                     <i class="fas fa-user-edit me-1"></i>Mudar Operador
-                                </button>
+                    </button>
                                 <a href="{% url 'detalhes_devedor' titulo.id %}" target="_blank" class="btn btn-sm btn-info btn-action">
                                     <i class="fas fa-eye me-1"></i>Visualizar
                                 </a>
@@ -1141,42 +1226,6 @@ document.addEventListener("DOMContentLoaded", function () {
                             </div>
                         </td>
                     </tr>
-                    <!-- Modal de Seleção de Operador -->
-                    <div class="modal fade" id="modalAlterarOperador" tabindex="-1" aria-labelledby="modalAlterarOperadorLabel" aria-hidden="true">
-                        <div class="modal-dialog modal-dialog-centered">
-                            <div class="modal-content">
-                                <div class="modal-header bg-primary text-white">
-                                    <h5 class="modal-title fw-bold" id="modalAlterarOperadorLabel">
-                                        <i class="fas fa-user-edit me-2"></i>Selecionar Novo Operador
-                                    </h5>
-                                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-                                </div>
-                                <div class="modal-body">
-                                    <form id="alterar-operador-form">
-                                        {% csrf_token %}
-                                        <input type="hidden" id="titulo-id" name="titulo_id">
-                                        <div class="mb-3">
-                                            <label for="operador" class="form-label fw-bold">Escolha um operador:</label>
-                                            <select class="form-select" id="operador" name="operador" required>
-                                                <option value="" disabled selected>Selecione um operador</option>
-                                                {% for usuario in usuarios %}
-                                                    <option value="{{ usuario.username }}">{{ usuario.username }}</option>
-                                                {% endfor %}
-                                            </select>
-                                        </div>
-                                        <div class="modal-footer px-0">
-                                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
-                                                <i class="fas fa-times me-1"></i>Cancelar
-                                            </button>
-                                            <button type="submit" class="btn btn-success">
-                                                <i class="fas fa-save me-1"></i>Salvar
-                                            </button>
-                                        </div>
-                                    </form>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
                     {% empty %}
                     <tr>
                         <td colspan="7" class="text-center py-4">
@@ -1186,55 +1235,107 @@ document.addEventListener("DOMContentLoaded", function () {
                             </div>
                         </td>
                     </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
+            {% endfor %}
+        </tbody>
+    </table>
         </div>
+
+    <!-- Modal de Seleção de Operador (fora do loop) -->
+    <div class="modal fade" id="modalAlterarOperador" tabindex="-1" aria-labelledby="modalAlterarOperadorLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header bg-primary text-white">
+                    <h5 class="modal-title fw-bold" id="modalAlterarOperadorLabel">
+                        <i class="fas fa-user-edit me-2"></i>Selecionar Novo Operador
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="alterar-operador-form">
+                        {% csrf_token %}
+                        <input type="hidden" id="titulo-id" name="titulo_id">
+                        <div class="mb-3">
+                            <label for="operador" class="form-label fw-bold">Escolha um operador:</label>
+                            <select class="form-select" id="operador" name="operador" required>
+                                <option value="" disabled selected>Selecione um operador</option>
+                                {% for usuario in usuarios %}
+                                    <option value="{{ usuario.username }}">{{ usuario.username }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="modal-footer px-0">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                                <i class="fas fa-times me-1"></i>Cancelar
+                            </button>
+                            <button type="submit" class="btn btn-success">
+                                <i class="fas fa-save me-1"></i>Salvar
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
     document.addEventListener("DOMContentLoaded", function () {
+        // Configurar botões de alterar operador
         document.querySelectorAll(".alterar-operador-btn").forEach(button => {
             button.addEventListener("click", function () {
                 let tituloId = this.getAttribute("data-id");
-                document.getElementById("titulo-id").value = tituloId;
-            });
-        });
-
-        document.getElementById("alterar-operador-form").addEventListener("submit", function (event) {
-            event.preventDefault();
-            let tituloId = document.getElementById("titulo-id").value;
-            let operador = document.getElementById("operador").value;
-            let csrfToken = document.querySelector("[name=csrfmiddlewaretoken]").value;
-
-            if (!operador) {
-                alert("Por favor, selecione um operador.");
-                return;
-            }
-
-            fetch(`/alterar-operador/${tituloId}/`, {
-                method: "POST",
-                headers: {
-                    "X-CSRFToken": csrfToken,
-                    "Content-Type": "application/x-www-form-urlencoded"
-                },
-                body: `operador=${operador}`
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.status === "success") {
-                    alert(data.message);
-                    location.reload();
-                } else {
-                    alert(`Erro: ${data.message}`);
+                const tituloIdInput = document.getElementById("titulo-id");
+                if (tituloIdInput) {
+                    tituloIdInput.value = tituloId;
                 }
-            })
-            .catch(error => {
-                console.error("Erro na requisição:", error);
-                alert("Ocorreu um erro ao atualizar o operador.");
             });
         });
+
+        // Configurar formulário de alterar operador
+        const alterarOperadorForm = document.getElementById("alterar-operador-form");
+        if (alterarOperadorForm) {
+            alterarOperadorForm.addEventListener("submit", function (event) {
+                event.preventDefault();
+                let tituloId = document.getElementById("titulo-id").value;
+                let operador = document.getElementById("operador").value;
+                let csrfToken = document.querySelector("[name=csrfmiddlewaretoken]").value;
+
+                if (!operador) {
+                    alert("Por favor, selecione um operador.");
+                    return;
+                }
+
+                if (!tituloId) {
+                    alert("Erro: ID do título não encontrado.");
+                    return;
+                }
+
+                fetch(`/alterar-operador/${tituloId}/`, {
+                    method: "POST",
+                    headers: {
+                        "X-CSRFToken": csrfToken,
+                        "Content-Type": "application/x-www-form-urlencoded"
+                    },
+                    body: `operador=${operador}`
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === "success") {
+                        alert(data.message);
+                        location.reload();
+                    } else {
+                        alert(`Erro: ${data.message}`);
+                    }
+                })
+                .catch(error => {
+                    console.error("Erro na requisição:", error);
+                    alert("Ocorreu um erro ao atualizar o operador.");
+                });
+            });
+        }
     });
     </script>
 
-        <!-- Paginação -->
+    <!-- Paginação -->
         {% if negociados_paginated.has_other_pages %}
         <nav aria-label="Paginação de negociados">
             <ul class="pagination justify-content-center">
@@ -1258,12 +1359,12 @@ document.addEventListener("DOMContentLoaded", function () {
             </ul>
         </nav>
         {% endif %}
-        {% else %}
+    {% else %}
         <div class="empty-state">
             <i class="fas fa-inbox"></i>
             <p>Nenhum título negociado em atraso encontrado.</p>
         </div>
-        {% endif %}
+    {% endif %}
     </div>
 
     <!-- Modal para Detalhes -->
@@ -1346,21 +1447,21 @@ document.addEventListener("DOMContentLoaded", function () {
         <h2 class="section-title">
             <i class="fas fa-users text-info"></i>
             Últimos Clientes Cadastrados
-        </h2>
+    </h2>
 
         <div class="table-responsive-custom">
             <table class="table table-hover">
                 <thead>
-                    <tr>
-                        <th>ID</th>
-                        <th>Nome</th>
-                        <th>CPF/CNPJ</th>
-                        <th>Data de Cadastro</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for cliente in ultimos_clientes %}
-                    <tr>
+            <tr>
+                <th>ID</th>
+                <th>Nome</th>
+                <th>CPF/CNPJ</th>
+                <th>Data de Cadastro</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for cliente in ultimos_clientes %}
+            <tr>
                         <td><strong>{{ cliente.id }}</strong></td>
                         <td><strong>{{ cliente.nome }}{{ cliente.nome_fantasia }}</strong></td>
                         <td>
@@ -1384,10 +1485,10 @@ document.addEventListener("DOMContentLoaded", function () {
                                 <p class="mb-0">Nenhum cliente cadastrado recentemente.</p>
                             </div>
                         </td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
         </div>
     </div>
 </div>
