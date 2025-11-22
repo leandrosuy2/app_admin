@@ -29,6 +29,53 @@
   @media (min-width: 992px){
     .fixed-summary{ left:auto; width:720px; }
   }
+  /* Estilos para o campo de pesquisa */
+  .search-form-wrapper {
+    background: linear-gradient(to bottom, #ffffff, #f8f9fa);
+    border-radius: 0.75rem;
+    padding: 1.5rem;
+    border: 1px solid #dee2e6;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+  }
+  .search-form-wrapper .form-label {
+    margin-bottom: 0.75rem;
+    color: #212529;
+    font-size: 0.95rem;
+  }
+  .search-form-wrapper .input-group-lg .form-control {
+    font-size: 1rem;
+    padding: 0.75rem 1rem;
+  }
+  .search-form-wrapper .input-group-text {
+    background-color: #ffffff;
+    border-color: #ced4da;
+  }
+  .search-form-wrapper .input-group .form-control:focus {
+    border-color: #86b7fe;
+    box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.15);
+  }
+  .search-form-wrapper .input-group:focus-within .input-group-text {
+    border-color: #86b7fe;
+  }
+  .search-form-wrapper .btn {
+    font-weight: 500;
+    transition: all 0.2s ease;
+  }
+  .search-form-wrapper .btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  }
+  @media (max-width: 991px) {
+    .search-form-wrapper {
+      padding: 1.25rem;
+    }
+    .search-form-wrapper .d-flex.gap-2 {
+      flex-direction: column;
+    }
+    .search-form-wrapper .btn {
+      width: 100% !important;
+    }
+  }
 </style>
 
 <h2 class="mb-3">Emitir Boletos</h2>
@@ -454,34 +501,52 @@
   </div>
   <div class="card-body">
     <!-- Campo de Pesquisa -->
-    <form method="get" class="mb-3">
-      <div class="row g-2 align-items-end">
-        <div class="col-md-8">
-          <label for="search_cobranca" class="form-label small text-muted">Pesquisar cobranças</label>
-          <input type="text" 
-                 class="form-control" 
-                 id="search_cobranca" 
-                 name="search_cobranca" 
-                 value="{{ search_cobranca }}"
-                 placeholder="Digite empresa, CNPJ, ID ou valor...">
-          <div class="form-text">Pesquise por nome da empresa, CNPJ, ID da cobrança ou valor</div>
+    <div class="search-form-wrapper mb-4">
+      <form method="get">
+        <div class="row g-3">
+          <div class="col-12 col-lg-8">
+            <label for="search_cobranca" class="form-label fw-semibold mb-2">
+              <i class="bi bi-funnel me-1"></i> Pesquisar Cobranças
+            </label>
+            <div class="input-group input-group-lg">
+              <span class="input-group-text bg-white border-end-0">
+                <i class="bi bi-search text-muted"></i>
+              </span>
+              <input type="text" 
+                     class="form-control border-start-0" 
+                     id="search_cobranca" 
+                     name="search_cobranca" 
+                     value="{{ search_cobranca }}"
+                     placeholder="Digite empresa, CNPJ, ID ou valor...">
+            </div>
+            <div class="form-text mt-2">
+              <small class="text-muted">
+                <i class="bi bi-info-circle me-1"></i>
+                Pesquise por nome da empresa, CNPJ, ID da cobrança ou valor
+              </small>
+            </div>
+          </div>
+          <div class="col-12 col-lg-4">
+            <label class="form-label fw-semibold mb-2 d-block" style="opacity: 0;">
+              Ações
+            </label>
+            <div class="d-flex gap-2">
+              <button type="submit" class="btn btn-primary flex-fill" style="min-height: 48px;">
+                <i class="bi bi-search me-2"></i>Buscar
+              </button>
+              <a href="{% url 'emitir_boletos' %}{% if request.GET.from %}?from={{ request.GET.from }}{% endif %}" 
+                 class="btn btn-outline-secondary flex-fill" style="min-height: 48px;">
+                <i class="bi bi-x-circle me-2"></i>Limpar
+              </a>
+            </div>
+          </div>
         </div>
-        <div class="col-md-2">
-          <button type="submit" class="btn btn-primary w-100">
-            <i class="bi bi-search"></i> Buscar
-          </button>
-        </div>
-        <div class="col-md-2">
-          <a href="{% url 'emitir_boletos' %}" class="btn btn-outline-secondary w-100">
-            <i class="bi bi-x-circle"></i> Limpar
-          </a>
-        </div>
-      </div>
-      <!-- Manter outros parâmetros GET -->
-      {% if request.GET.from %}
-        <input type="hidden" name="from" value="{{ request.GET.from }}">
-      {% endif %}
-    </form>
+        <!-- Manter outros parâmetros GET -->
+        {% if request.GET.from %}
+          <input type="hidden" name="from" value="{{ request.GET.from }}">
+        {% endif %}
+      </form>
+    </div>
     
     {% if cobrancas_geradas %}
     <div class="mb-2">
