@@ -126,7 +126,8 @@
     /* ====== Footer ====== */
     footer{
       border-top:1px solid var(--line); background: var(--card);
-      color: var(--muted); padding: 20px 0;
+      color: var(--muted); padding: 16px 0;
+      text-align: center;
     }
     footer a{ color: var(--brand-600); text-decoration:none; font-weight:600; transition: color 0.2s ease; }
     footer a:hover{ color: var(--accent); }
@@ -135,8 +136,8 @@
       color: #e74c3c;
       animation: heartbeat 1.5s ease-in-out infinite;
       display: inline-block;
-      margin: 0 4px;
-      font-size: 1.1em;
+      margin: 0 3px;
+      font-size: 0.9em;
     }
     
     @keyframes heartbeat {
@@ -149,8 +150,14 @@
     .footer-text {
       display: flex;
       align-items: center;
+      justify-content: center;
       flex-wrap: wrap;
-      gap: 0.5rem;
+      gap: 0.3rem;
+      font-size: 0.8rem;
+    }
+    
+    .footer-text strong {
+      font-size: 0.8rem;
     }
 
     /* Toasts (Django messages) */
@@ -358,21 +365,10 @@
   <!-- ====== FOOTER ====== -->
   <footer>
     <div class="container-xl">
-      <div class="d-flex flex-wrap justify-content-between align-items-center gap-3">
-        <div class="footer-text">
-          <span class="small">© 2025 Negociar Cobranças. Desenvolvido com</span>
-          <span class="footer-heart" title="Feito com amor">❤️</span>
-          <span class="small">por nossa equipe <strong style="color: var(--brand-600);">Negociar Cobranças</strong>.</span>
-        </div>
-        <div class="d-flex align-items-center gap-3">
-          <a href="https://www.negociarcobrancas.com.br" class="small" target="_blank" rel="noopener">
-            <i class="fa-solid fa-globe me-1"></i>Site
-          </a>
-          <span class="text-muted">·</span>
-          <a href="mailto:financeiroadv@negociarcobrancas.com.br" class="small">
-            <i class="fa-solid fa-envelope me-1"></i>Contato
-          </a>
-        </div>
+      <div class="footer-text">
+        <span>© 2025 Negociar Cobranças. Desenvolvido com</span>
+        <span class="footer-heart" title="Feito com amor">❤️</span>
+        <span>por nossa equipe <strong style="color: var(--brand-600);">Negociar Cobranças</strong>.</span>
       </div>
     </div>
   </footer>
