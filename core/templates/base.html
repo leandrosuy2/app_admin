@@ -126,10 +126,32 @@
     /* ====== Footer ====== */
     footer{
       border-top:1px solid var(--line); background: var(--card);
-      color: var(--muted); padding: 18px 0;
+      color: var(--muted); padding: 20px 0;
     }
-    footer a{ color: var(--brand-600); text-decoration:none; font-weight:600; }
+    footer a{ color: var(--brand-600); text-decoration:none; font-weight:600; transition: color 0.2s ease; }
     footer a:hover{ color: var(--accent); }
+    
+    .footer-heart {
+      color: #e74c3c;
+      animation: heartbeat 1.5s ease-in-out infinite;
+      display: inline-block;
+      margin: 0 4px;
+      font-size: 1.1em;
+    }
+    
+    @keyframes heartbeat {
+      0%, 100% { transform: scale(1); }
+      10%, 30% { transform: scale(1.1); }
+      20%, 40% { transform: scale(1); }
+      50% { transform: scale(1.15); }
+    }
+    
+    .footer-text {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+    }
 
     /* Toasts (Django messages) */
     .toast-container{ position: fixed; top: 1rem; right: 1rem; z-index: 1095; }
@@ -335,12 +357,23 @@
 
   <!-- ====== FOOTER ====== -->
   <footer>
-    <div class="container-xl d-flex flex-wrap justify-content-between align-items-center gap-2">
-      <span class="small">© 2024 Negociar Cobranças</span>
-      <span class="small">
-        <a href="https://www.negociarcobrancas.com.br">Site</a> ·
-        <a href="mailto:financeiroadv@negociarcobrancas.com.br">Contato</a>
-      </span>
+    <div class="container-xl">
+      <div class="d-flex flex-wrap justify-content-between align-items-center gap-3">
+        <div class="footer-text">
+          <span class="small">© 2025 Negociar Cobranças. Desenvolvido com</span>
+          <span class="footer-heart" title="Feito com amor">❤️</span>
+          <span class="small">por nossa equipe <strong style="color: var(--brand-600);">Negociar Cobranças</strong>.</span>
+        </div>
+        <div class="d-flex align-items-center gap-3">
+          <a href="https://www.negociarcobrancas.com.br" class="small" target="_blank" rel="noopener">
+            <i class="fa-solid fa-globe me-1"></i>Site
+          </a>
+          <span class="text-muted">·</span>
+          <a href="mailto:financeiroadv@negociarcobrancas.com.br" class="small">
+            <i class="fa-solid fa-envelope me-1"></i>Contato
+          </a>
+        </div>
+      </div>
     </div>
   </footer>
 
