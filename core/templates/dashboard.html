@@ -993,12 +993,37 @@ document.addEventListener("DOMContentLoaded", function () {
                                 <i class="fas fa-inbox"></i>
                                 <p class="mb-0">Nenhum registro encontrado</p>
                             </div>
-                </td>
-            </tr>
+                        </td>
+                    </tr>
             {% endfor %}
         </tbody>
     </table>
         </div>
+
+        <!-- Paginação para Agenda de Pendentes -->
+        {% if agenda_pendentes_paginated.has_other_pages %}
+        <nav aria-label="Paginação de pendentes" class="mt-3">
+            <ul class="pagination justify-content-center">
+                {% if agenda_pendentes_paginated.has_previous %}
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ agenda_pendentes_paginated.previous_page_number }}{% if query %}&query={{ query }}{% endif %}{% if data_inicio_negociados %}&data_inicio_negociados={{ data_inicio_negociados }}{% endif %}{% if data_fim_negociados %}&data_fim_negociados={{ data_fim_negociados }}{% endif %}">
+                        <i class="fas fa-chevron-left me-1"></i>Anterior
+                    </a>
+                </li>
+                {% endif %}
+                <li class="page-item active">
+                    <span class="page-link">Página {{ agenda_pendentes_paginated.number }} de {{ agenda_pendentes_paginated.paginator.num_pages }}</span>
+                </li>
+                {% if agenda_pendentes_paginated.has_next %}
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ agenda_pendentes_paginated.next_page_number }}{% if query %}&query={{ query }}{% endif %}{% if data_inicio_negociados %}&data_inicio_negociados={{ data_inicio_negociados }}{% endif %}{% if data_fim_negociados %}&data_fim_negociados={{ data_fim_negociados }}{% endif %}">
+                        Próxima<i class="fas fa-chevron-right ms-1"></i>
+                    </a>
+                </li>
+                {% endif %}
+            </ul>
+        </nav>
+        {% endif %}
 
     <!-- Agendamentos Pendentes -->
     <div class="dashboard-section">

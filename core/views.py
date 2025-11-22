@@ -275,9 +275,8 @@ def dashboard(request):
         """
         params.extend([f"%{query}%"] * 4)  # Adiciona os filtros de busca à lista de parâmetros
     else:
-        # Aplica o filtro para o operador logado apenas quando não há pesquisa
-        search_filter = "AND titulo.operador = %s"
-        params.append(username)  # Adiciona o operador logado aos parâmetros
+        # Quando não há busca, mostra todos os pendentes (sem filtrar por operador)
+        search_filter = ""
 
     agenda_pendentes_query = f"""
     SELECT    
@@ -309,18 +308,30 @@ def dashboard(request):
         devedores.cnpj, 
         devedores.rg,
         titulo.juros,        
-        devedores.telefone1
+        devedores.telefone1,
+        titulo.operador,
+        devedores.razao_social
     ORDER BY 
         titulo.id DESC
     """
 
-    agenda_pendentes = Titulo.objects.raw(agenda_pendentes_query, params)
+    try:
+        agenda_pendentes = Titulo.objects.raw(agenda_pendentes_query, params)
+        
+        # Converter RawQuerySet para lista para permitir paginação
+        agenda_pendentes_list = list(agenda_pendentes)
 
-
-    # Paginação para Agenda de Pendentes
-    paginator_pendentes = Paginator(agenda_pendentes, 10)
-    page_number_pendentes = request.GET.get('page')
-    agenda_pendentes_paginated = paginator_pendentes.get_page(page_number_pendentes)
+        # Paginação para Agenda de Pendentes
+        paginator_pendentes = Paginator(agenda_pendentes_list, 10)
+        page_number_pendentes = request.GET.get('page')
+        agenda_pendentes_paginated = paginator_pendentes.get_page(page_number_pendentes)
+    except Exception as e:
+        # Em caso de erro, criar uma lista vazia
+        logging.error(f"Erro ao buscar agenda pendentes: {str(e)}")
+        agenda_pendentes_list = []
+        paginator_pendentes = Paginator(agenda_pendentes_list, 10)
+        page_number_pendentes = request.GET.get('page')
+        agenda_pendentes_paginated = paginator_pendentes.get_page(page_number_pendentes)
 
     # Filtro de data para negociados em atraso
     data_inicio_negociados = request.GET.get('data_inicio_negociados', '').strip()
