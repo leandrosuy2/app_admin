@@ -445,6 +445,93 @@
   {# ====== /MODAIS ====== #}
 </form>
 
+<!-- Seção de Cobranças Geradas -->
+<div class="card shadow-sm mt-4">
+  <div class="card-header bg-primary text-white">
+    <h5 class="mb-0">
+      <i class="bi bi-list-check"></i> Cobranças Geradas
+    </h5>
+  </div>
+  <div class="card-body">
+    {% if cobrancas_geradas %}
+    <div class="table-responsive">
+      <table class="table table-sm table-hover align-middle mb-0">
+        <thead class="table-light">
+          <tr>
+            <th style="width:80px;">ID</th>
+            <th>Empresa</th>
+            <th style="width:120px;">Data Cobrança</th>
+            <th class="text-end" style="width:150px;">Valor Comissão</th>
+            <th style="width:100px;">Tipo</th>
+            <th style="width:150px;">Link/Documento</th>
+            <th style="width:120px;" class="text-center">Status Pagamento</th>
+            <th style="width:120px;">Criado em</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for cobranca in cobrancas_geradas %}
+          <tr {% if cobranca.pago %}class="table-success"{% endif %}>
+            <td><strong>{{ cobranca.id }}</strong></td>
+            <td>
+              <div><strong>{{ cobranca.empresa.razao_social }}</strong></div>
+              <small class="text-muted">CNPJ: {{ cobranca.empresa.cnpj }}</small>
+            </td>
+            <td>{{ cobranca.data_cobranca|date:"d/m/Y" }}</td>
+            <td class="text-end"><strong>R$ {{ cobranca.valor_comissao|floatformat:2 }}</strong></td>
+            <td>
+              <span class="badge {% if cobranca.tipo_anexo == 'documento' %}bg-info{% else %}bg-primary{% endif %}">
+                {{ cobranca.get_tipo_anexo_display }}
+              </span>
+            </td>
+            <td>
+              {% if cobranca.documento %}
+                <a href="{{ cobranca.documento.url }}" 
+                   class="btn btn-outline-primary btn-sm" 
+                   target="_blank" 
+                   title="Baixar Documento">
+                  <i class="bi bi-download"></i> Baixar
+                </a>
+              {% elif cobranca.link %}
+                <a href="{{ cobranca.link }}" 
+                   class="btn btn-outline-primary btn-sm" 
+                   target="_blank" 
+                   title="Abrir Link">
+                  <i class="bi bi-link-45deg"></i> Abrir Link
+                </a>
+              {% else %}
+                <span class="text-muted">-</span>
+              {% endif %}
+            </td>
+            <td class="text-center">
+              <div class="form-check form-switch d-inline-block">
+                <input class="form-check-input pago-checkbox" 
+                       type="checkbox" 
+                       data-cobranca-id="{{ cobranca.id }}"
+                       {% if cobranca.pago %}checked{% endif %}
+                       onchange="atualizarPago({{ cobranca.id }}, this.checked)">
+                <label class="form-check-label">
+                  {% if cobranca.pago %}
+                    <span class="badge bg-success">Pago</span>
+                  {% else %}
+                    <span class="badge bg-secondary">Não Pago</span>
+                  {% endif %}
+                </label>
+              </div>
+            </td>
+            <td>{{ cobranca.created_at|date:"d/m/Y H:i" }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}
+    <div class="text-center text-muted py-4">
+      Nenhuma cobrança gerada ainda.
+    </div>
+    {% endif %}
+  </div>
+</div>
+
 <!-- Barra fixa de totais para conferência rápida -->
 <div class="fixed-summary d-print-none">
   <div class="row g-3 align-items-center">
@@ -668,6 +755,71 @@ function validarCobrancaForm(empresaId) {
   }
   
   return true;
+}
+
+// Função para atualizar status pago
+function atualizarPago(cobrancaId, pago) {
+  const checkbox = document.querySelector(`input[data-cobranca-id="${cobrancaId}"]`);
+  
+  // Obter token CSRF
+  function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+      const cookies = document.cookie.split(';');
+      for (let i = 0; i < cookies.length; i++) {
+        const cookie = cookies[i].trim();
+        if (cookie.substring(0, name.length + 1) === (name + '=')) {
+          cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+          break;
+        }
+      }
+    }
+    return cookieValue;
+  }
+  const csrftoken = getCookie('csrftoken') || document.querySelector('[name=csrfmiddlewaretoken]')?.value || '{{ csrf_token }}';
+  
+  const formData = new FormData();
+  formData.append('pago', pago ? '1' : '0');
+  formData.append('csrfmiddlewaretoken', csrftoken);
+  
+  fetch(`/cobrancas/${cobrancaId}/atualizar-pago/`, {
+    method: 'POST',
+    headers: {
+      'X-Requested-With': 'XMLHttpRequest',
+      'X-CSRFToken': csrftoken,
+    },
+    body: formData
+  })
+  .then(response => response.json())
+  .then(data => {
+    if (data.success) {
+      // Atualizar visualmente
+      const row = checkbox.closest('tr');
+      if (data.pago) {
+        row.classList.add('table-success');
+        const label = row.querySelector('label');
+        if (label) {
+          label.innerHTML = '<span class="badge bg-success">Pago</span>';
+        }
+      } else {
+        row.classList.remove('table-success');
+        const label = row.querySelector('label');
+        if (label) {
+          label.innerHTML = '<span class="badge bg-secondary">Não Pago</span>';
+        }
+      }
+    } else {
+      alert('Erro ao atualizar status: ' + (data.error || 'Erro desconhecido'));
+      // Reverter checkbox
+      checkbox.checked = !pago;
+    }
+  })
+  .catch(error => {
+    console.error('Erro:', error);
+    alert('Erro ao atualizar status. Tente novamente.');
+    // Reverter checkbox
+    checkbox.checked = !pago;
+  });
 }
 
 </script>

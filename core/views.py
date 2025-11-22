@@ -6077,6 +6077,13 @@ def emitir_boletos_view(request):
     wa_ctx = request.session.pop("wa_ctx", None)
     wa_open_url = request.session.pop("wa_open", None)
 
+    # Buscar cobranças geradas (últimas 50 para exibir na página)
+    try:
+        cobrancas_geradas = Cobranca.objects.select_related('empresa').all().order_by('-created_at')[:50]
+    except Exception as e:
+        logger.warning(f"Erro ao buscar cobranças: {e}")
+        cobrancas_geradas = []
+
     context = {
         "headers": ["ID Empresa","Razão Social","CNPJ","Endereço","Bairro","Cidade","UF","CEP",
                     "Telefone","ID Devedor(es)","Dias de Atraso (máx.)","Valor Recebido","Comissão (R$)"],
@@ -6087,6 +6094,7 @@ def emitir_boletos_view(request):
         "tot_valor_recebido": tot_valor_recebido,
         "tot_comissao": tot_comissao,
         "tot_empresas": tot_empresas,
+        "cobrancas_geradas": cobrancas_geradas,
 
         # Bloco de confirmação/whatsapp
         "wa_razao": (wa_ctx or {}).get("wa_razao"),
