@@ -6077,12 +6077,45 @@ def emitir_boletos_view(request):
     wa_ctx = request.session.pop("wa_ctx", None)
     wa_open_url = request.session.pop("wa_open", None)
 
-    # Buscar cobranças geradas (últimas 50 para exibir na página)
+    # Buscar cobranças geradas com filtro de pesquisa
+    search_cobranca = request.GET.get('search_cobranca', '').strip()
     try:
-        cobrancas_geradas = Cobranca.objects.select_related('empresa').all().order_by('-created_at')[:50]
+        cobrancas_geradas = Cobranca.objects.select_related('empresa').all()
+        
+        # Aplicar filtro de pesquisa se houver
+        if search_cobranca:
+            # Tentar converter para número para busca por ID ou valor
+            try:
+                # Se for um número, buscar por ID exato ou valor aproximado
+                search_num = float(search_cobranca.replace(',', '.'))
+                # Verificar se é um número inteiro (ID)
+                if search_num == int(search_num):
+                    cobrancas_geradas = cobrancas_geradas.filter(
+                        Q(empresa__razao_social__icontains=search_cobranca) |
+                        Q(empresa__cnpj__icontains=search_cobranca) |
+                        Q(id=int(search_num)) |
+                        Q(valor_comissao=search_num)
+                    )
+                else:
+                    # É um valor decimal (valor da comissão)
+                    cobrancas_geradas = cobrancas_geradas.filter(
+                        Q(empresa__razao_social__icontains=search_cobranca) |
+                        Q(empresa__cnpj__icontains=search_cobranca) |
+                        Q(valor_comissao=search_num)
+                    )
+            except (ValueError, TypeError):
+                # Se não for número, buscar apenas por texto
+                cobrancas_geradas = cobrancas_geradas.filter(
+                    Q(empresa__razao_social__icontains=search_cobranca) |
+                    Q(empresa__cnpj__icontains=search_cobranca) |
+                    Q(id__icontains=search_cobranca)
+                )
+        
+        cobrancas_geradas = cobrancas_geradas.order_by('-created_at')[:100]
     except Exception as e:
         logger.warning(f"Erro ao buscar cobranças: {e}")
         cobrancas_geradas = []
+        search_cobranca = ''
 
     context = {
         "headers": ["ID Empresa","Razão Social","CNPJ","Endereço","Bairro","Cidade","UF","CEP",
@@ -6095,6 +6128,7 @@ def emitir_boletos_view(request):
         "tot_comissao": tot_comissao,
         "tot_empresas": tot_empresas,
         "cobrancas_geradas": cobrancas_geradas,
+        "search_cobranca": search_cobranca,
 
         # Bloco de confirmação/whatsapp
         "wa_razao": (wa_ctx or {}).get("wa_razao"),

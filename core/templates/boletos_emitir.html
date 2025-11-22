@@ -453,7 +453,46 @@
     </h5>
   </div>
   <div class="card-body">
+    <!-- Campo de Pesquisa -->
+    <form method="get" class="mb-3">
+      <div class="row g-2 align-items-end">
+        <div class="col-md-8">
+          <label for="search_cobranca" class="form-label small text-muted">Pesquisar cobranças</label>
+          <input type="text" 
+                 class="form-control" 
+                 id="search_cobranca" 
+                 name="search_cobranca" 
+                 value="{{ search_cobranca }}"
+                 placeholder="Digite empresa, CNPJ, ID ou valor...">
+          <div class="form-text">Pesquise por nome da empresa, CNPJ, ID da cobrança ou valor</div>
+        </div>
+        <div class="col-md-2">
+          <button type="submit" class="btn btn-primary w-100">
+            <i class="bi bi-search"></i> Buscar
+          </button>
+        </div>
+        <div class="col-md-2">
+          <a href="{% url 'emitir_boletos' %}" class="btn btn-outline-secondary w-100">
+            <i class="bi bi-x-circle"></i> Limpar
+          </a>
+        </div>
+      </div>
+      <!-- Manter outros parâmetros GET -->
+      {% if request.GET.from %}
+        <input type="hidden" name="from" value="{{ request.GET.from }}">
+      {% endif %}
+    </form>
+    
     {% if cobrancas_geradas %}
+    <div class="mb-2">
+      <small class="text-muted">
+        {% if search_cobranca %}
+          <strong>{{ cobrancas_geradas|length }}</strong> cobrança(s) encontrada(s) para "<strong>{{ search_cobranca }}</strong>"
+        {% else %}
+          Mostrando as últimas <strong>{{ cobrancas_geradas|length }}</strong> cobranças geradas
+        {% endif %}
+      </small>
+    </div>
     <div class="table-responsive">
       <table class="table table-sm table-hover align-middle mb-0">
         <thead class="table-light">
@@ -526,7 +565,13 @@
     </div>
     {% else %}
     <div class="text-center text-muted py-4">
-      Nenhuma cobrança gerada ainda.
+      {% if search_cobranca %}
+        <i class="bi bi-search" style="font-size: 2rem;"></i>
+        <p class="mt-2">Nenhuma cobrança encontrada para "<strong>{{ search_cobranca }}</strong>"</p>
+        <a href="{% url 'emitir_boletos' %}" class="btn btn-outline-primary btn-sm">Limpar pesquisa</a>
+      {% else %}
+        Nenhuma cobrança gerada ainda.
+      {% endif %}
     </div>
     {% endif %}
   </div>
