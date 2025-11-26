@@ -233,12 +233,40 @@
         font-weight: 600;
         border-radius: 6px;
         font-size: 0.75rem;
+        white-space: nowrap;
+        display: inline-block;
+    }
+
+    /* Botão de Status */
+    .toggle-status {
+        white-space: nowrap;
+        min-width: 90px;
+        font-size: 0.75rem !important;
+        padding: 0.25rem 0.5rem !important;
+    }
+
+    /* Garantir que os botões de ação não quebrem */
+    .btn-action {
+        white-space: nowrap;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    /* Ajustar coluna de status */
+    .table-responsive-custom tbody td:nth-child(5) {
+        min-width: 200px;
+    }
+
+    /* Ajustar coluna de ações */
+    .table-responsive-custom tbody td:nth-child(6) {
+        min-width: 280px;
     }
 
     /* Responsividade */
     @media (max-width: 768px) {
         .table-responsive-custom table {
-            min-width: 700px;
+            min-width: 800px;
         }
 
         .table-responsive-custom thead th {
@@ -253,8 +281,28 @@
 
         .btn-action {
             font-size: 0.65rem;
-            padding: 0.15rem 0.3rem;
+            padding: 0.2rem 0.4rem;
             margin: 0.1rem;
+            min-width: auto;
+        }
+
+        .toggle-status {
+            min-width: 80px !important;
+            font-size: 0.7rem !important;
+            padding: 0.2rem 0.4rem !important;
+        }
+
+        .badge-status {
+            font-size: 0.7rem;
+            padding: 0.2rem 0.4rem;
+        }
+
+        .table-responsive-custom tbody td:nth-child(5) {
+            min-width: 180px;
+        }
+
+        .table-responsive-custom tbody td:nth-child(6) {
+            min-width: 250px;
         }
 
         .search-form {
@@ -358,32 +406,33 @@
                     <td><strong>{{ empresa.razao_social }}</strong></td>
                     <td><strong>{{ empresa.nome_fantasia }}</strong></td>
                     <td><strong>{{ empresa.cnpj }}</strong></td>
-                    <td>
-                        <span class="badge-status {% if empresa.status_empresa|as_bool %}bg-success text-white{% else %}bg-danger text-white{% endif %}">
-                            {% if empresa.status_empresa|as_bool %}Ativada{% else %}Desativada{% endif %}
-                        </span>
-                        <button type="button"
-                                class="btn btn-sm ms-2 toggle-status {% if empresa.status_empresa|as_bool %}btn-danger{% else %}btn-success{% endif %}"
-                                data-url="{% url 'alterar_status_empresa' empresa.id %}"
-                                style="min-width: 80px; font-size: 0.7rem; padding: 0.2rem 0.4rem;">
-                            {% if empresa.status_empresa|as_bool %}Desativar{% else %}Ativar{% endif %}
-                        </button>
+                    <td style="vertical-align: middle;">
+                        <div class="d-flex align-items-center gap-2 flex-wrap" style="min-width: 200px;">
+                            <span class="badge-status {% if empresa.status_empresa|as_bool %}bg-success text-white{% else %}bg-danger text-white{% endif %}">
+                                {% if empresa.status_empresa|as_bool %}Ativada{% else %}Desativada{% endif %}
+                            </span>
+                            <button type="button"
+                                    class="btn btn-sm toggle-status {% if empresa.status_empresa|as_bool %}btn-danger{% else %}btn-success{% endif %}"
+                                    data-url="{% url 'alterar_status_empresa' empresa.id %}">
+                                {% if empresa.status_empresa|as_bool %}Desativar{% else %}Ativar{% endif %}
+                            </button>
+                        </div>
                     </td>
-                    <td class="text-center">
-                        <div class="d-flex flex-wrap gap-1 justify-content-center">
+                    <td class="text-center" style="vertical-align: middle;">
+                        <div class="d-flex flex-wrap gap-1 justify-content-center align-items-center" style="min-width: 280px;">
                             <a href="{% url 'gerar_contrato_lojista' empresa.id %}"
-                               class="btn btn-sm btn-warning btn-action"
+                               class="btn btn-sm btn-warning btn-action text-white"
                                target="_blank"
                                title="Gerar Contrato">
                                 <i class="fas fa-file-signature"></i><span class="d-none d-md-inline ms-1">Contrato</span>
                             </a>
                             <a href="{% url 'editar_empresa' empresa.id %}"
-                               class="btn btn-sm btn-success btn-action"
+                               class="btn btn-sm btn-success btn-action text-white"
                                title="Editar">
                                 <i class="fas fa-edit"></i><span class="d-none d-md-inline ms-1">Editar</span>
                             </a>
                             <a href="{% url 'excluir_empresa' empresa.id %}"
-                               class="btn btn-sm btn-danger btn-action"
+                               class="btn btn-sm btn-danger btn-action text-white"
                                title="Excluir">
                                 <i class="fas fa-trash-alt"></i><span class="d-none d-md-inline ms-1">Excluir</span>
                             </a>
@@ -472,9 +521,11 @@ document.addEventListener("DOMContentLoaded", function () {
           const ativo = !!data.status_empresa;
 
           // Atualiza badge/status
-          statusText.textContent = ativo ? "Ativada" : "Desativada";
-          statusText.classList.remove("bg-success", "bg-danger");
-          statusText.classList.add(ativo ? "bg-success" : "bg-danger");
+          if (statusText) {
+            statusText.textContent = ativo ? "Ativada" : "Desativada";
+            statusText.classList.remove("bg-success", "bg-danger", "text-white");
+            statusText.classList.add(ativo ? "bg-success" : "bg-danger", "text-white");
+          }
 
           // Botão
           btn.classList.remove("btn-danger", "btn-success");
@@ -482,8 +533,13 @@ document.addEventListener("DOMContentLoaded", function () {
           btn.textContent = ativo ? "Desativar" : "Ativar";
 
           // Linha amarela quando desativada
-          tr.classList.toggle("bg-warning", !ativo);
-          tr.classList.toggle("text-dark", !ativo);
+          if (tr) {
+            if (!ativo) {
+              tr.classList.add("bg-warning", "text-dark");
+            } else {
+              tr.classList.remove("bg-warning", "text-dark");
+            }
+          }
         } else {
           alert("Erro ao alterar o status.");
           btn.textContent = originalText;
