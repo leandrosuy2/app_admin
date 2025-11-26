@@ -392,7 +392,6 @@
             <thead>
                 <tr>
                     <th>ID</th>
-                    <th>Razão Social</th>
                     <th>Nome Fantasia</th>
                     <th>CNPJ</th>
                     <th>Status</th>
@@ -403,7 +402,6 @@
                 {% for empresa in page_obj %}
                 <tr class="{% if not empresa.status_empresa|as_bool %}bg-warning text-dark{% endif %}">
                     <td><strong>{{ empresa.id }}</strong></td>
-                    <td><strong>{{ empresa.razao_social }}</strong></td>
                     <td><strong>{{ empresa.nome_fantasia }}</strong></td>
                     <td><strong>{{ empresa.cnpj }}</strong></td>
                     <td style="vertical-align: middle;">
@@ -441,7 +439,7 @@
                 </tr>
                 {% empty %}
                 <tr>
-                    <td colspan="6" class="text-center py-4">
+                    <td colspan="5" class="text-center py-4">
                         <div class="empty-state">
                             <i class="fas fa-inbox"></i>
                             <p class="mb-0">Nenhuma empresa encontrada.</p>
