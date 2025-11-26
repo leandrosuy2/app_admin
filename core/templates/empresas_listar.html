@@ -1,109 +1,433 @@
 {% extends 'base.html' %}
 {% load custom_filters bool_filters %}
 
+{% block extra_styles %}
+<style>
+    /* Estilos seguindo o padrão da dashboard */
+    .dashboard-container {
+        padding: 0;
+    }
+
+    /* Formulários de Busca */
+    .search-form {
+        background: var(--card);
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        padding: 0.75rem;
+        margin-bottom: 1rem;
+        box-shadow: 0 1px 4px rgba(0,0,0,0.05);
+    }
+
+    .search-form .form-control {
+        border-radius: 6px;
+        border: 1px solid var(--line);
+        padding: 0.4rem 0.6rem;
+        font-size: 0.8rem;
+        height: auto;
+        transition: all 0.2s ease;
+    }
+
+    .search-form .form-control:focus {
+        border-color: var(--brand-500);
+        box-shadow: 0 0 0 0.1rem rgba(99, 102, 241, 0.1);
+        outline: none;
+    }
+
+    .search-form .form-control::placeholder {
+        font-size: 0.75rem;
+        color: var(--muted);
+    }
+
+    .search-form .form-select {
+        border-radius: 6px;
+        border: 1px solid var(--line);
+        padding: 0.4rem 0.6rem;
+        font-size: 0.8rem;
+        height: auto;
+        transition: all 0.2s ease;
+    }
+
+    .search-form .form-select:focus {
+        border-color: var(--brand-500);
+        box-shadow: 0 0 0 0.1rem rgba(99, 102, 241, 0.1);
+        outline: none;
+    }
+
+    .search-form .btn {
+        border-radius: 6px;
+        padding: 0.4rem 0.8rem;
+        font-weight: 500;
+        font-size: 0.8rem;
+        white-space: nowrap;
+        transition: all 0.2s ease;
+        min-width: auto;
+    }
+
+    .search-form .btn i {
+        font-size: 0.75rem;
+    }
+
+    .search-form .btn:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+
+    /* Tabelas Responsivas */
+    .table-responsive-custom {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        border-radius: 12px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    }
+
+    .table-responsive-custom table {
+        margin-bottom: 0;
+        min-width: 800px;
+    }
+
+    .table-responsive-custom thead {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+    }
+
+    .table-responsive-custom thead th {
+        border: none;
+        padding: 0.5rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        font-size: 0.7rem;
+        letter-spacing: 0.3px;
+    }
+
+    .table-responsive-custom tbody tr {
+        transition: all 0.2s ease;
+    }
+
+    .table-responsive-custom tbody tr:hover {
+        background-color: var(--brand-50);
+    }
+
+    .table-responsive-custom tbody tr.bg-warning:hover {
+        background-color: #ffc107 !important;
+    }
+
+    .table-responsive-custom tbody td {
+        padding: 0.5rem;
+        vertical-align: middle;
+        border-color: var(--line);
+        font-size: 0.8rem;
+    }
+
+    .table-responsive-custom tbody td strong {
+        font-weight: 600;
+        font-size: 0.8rem;
+    }
+
+    /* Botões de Ação */
+    .btn-action {
+        margin: 0 0.125rem;
+        border-radius: 5px;
+        font-weight: 500;
+        font-size: 0.7rem;
+        padding: 0.2rem 0.4rem;
+        transition: all 0.2s ease;
+        white-space: nowrap;
+        line-height: 1.2;
+    }
+
+    .btn-action i {
+        font-size: 0.65rem;
+        margin-right: 0.2rem;
+    }
+
+    .btn-action:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+
+    /* Paginação */
+    .pagination {
+        margin-top: 0.75rem;
+        margin-bottom: 0;
+    }
+
+    .pagination .page-item {
+        margin: 0 0.1rem;
+    }
+
+    .page-link {
+        border-radius: 5px;
+        border: 1px solid var(--line);
+        color: var(--text);
+        font-size: 0.75rem;
+        padding: 0.3rem 0.6rem;
+        transition: all 0.2s ease;
+        min-width: 2rem;
+        text-align: center;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .page-link i {
+        font-size: 0.65rem;
+    }
+
+    .page-link:hover {
+        background-color: var(--brand-100);
+        border-color: var(--brand-400);
+        color: var(--brand-700);
+        transform: translateY(-1px);
+        text-decoration: none;
+    }
+
+    .page-item.active .page-link {
+        background: var(--brand-500);
+        border-color: var(--brand-500);
+        color: white;
+        font-weight: 600;
+    }
+
+    .page-item.disabled .page-link {
+        opacity: 0.5;
+        cursor: not-allowed;
+        pointer-events: none;
+    }
+
+    /* Empty State */
+    .empty-state {
+        text-align: center;
+        padding: 2rem 1rem;
+        color: var(--muted);
+    }
+
+    .empty-state i {
+        font-size: 2rem;
+        opacity: 0.3;
+        margin-bottom: 0.5rem;
+    }
+
+    .empty-state p {
+        margin: 0;
+        font-size: 0.875rem;
+    }
+
+    /* Section Title */
+    .section-title {
+        font-size: 0.95rem;
+        font-weight: 700;
+        margin-bottom: 0.75rem;
+        display: flex;
+        align-items: center;
+        gap: 0.4rem;
+        color: var(--text);
+    }
+
+    .section-title i {
+        font-size: 0.85rem;
+    }
+
+    /* Badge Status */
+    .badge-status {
+        padding: 0.25rem 0.5rem;
+        font-weight: 600;
+        border-radius: 6px;
+        font-size: 0.75rem;
+    }
+
+    /* Responsividade */
+    @media (max-width: 768px) {
+        .table-responsive-custom table {
+            min-width: 700px;
+        }
+
+        .table-responsive-custom thead th {
+            padding: 0.4rem;
+            font-size: 0.65rem;
+        }
+
+        .table-responsive-custom tbody td {
+            padding: 0.4rem;
+            font-size: 0.75rem;
+        }
+
+        .btn-action {
+            font-size: 0.65rem;
+            padding: 0.15rem 0.3rem;
+            margin: 0.1rem;
+        }
+
+        .search-form {
+            padding: 0.5rem;
+        }
+
+        .search-form .form-control {
+            font-size: 0.75rem;
+            padding: 0.35rem 0.5rem;
+        }
+
+        .search-form .btn {
+            font-size: 0.75rem;
+            padding: 0.35rem 0.6rem;
+        }
+    }
+</style>
+{% endblock %}
+
 {% block content %}
 <!-- CSRF disponível para o JS -->
 <form id="csrf-holder" style="display:none;">{% csrf_token %}</form>
 
-<div class="container mt-5">
-  <h3 class="text-center mb-4 fw-bold" style="font-size:22px;color:#3498db;text-transform:uppercase;letter-spacing:1px;">
-    <i class="fas fa-building me-2" style="color:#2980b9;"></i> Lista de Empresas
-  </h3>
+<div class="dashboard-container">
+    <h2 class="section-title">
+        <i class="fas fa-building text-info"></i>
+        Lista de Empresas
+    </h2>
 
-  <div class="mb-3 d-flex justify-content-between align-items-center gap-2 flex-wrap">
-    <form method="GET" class="d-flex gap-2">
-      <input type="text" name="q" class="form-control form-control-sm" placeholder="Pesquisar..." value="{{ query }}">
-      <button type="submit" class="btn btn-sm btn-primary">Pesquisar</button>
-    </form>
-    <a href="{% url 'adicionar_empresa' %}" class="btn btn-sm btn-success">Adicionar Empresa</a>
-  </div>
-
-  <div class="table-responsive">
-    <table class="table table-striped table-bordered text-center table-sm align-middle" style="font-size:.9rem;">
-      <thead class="table-light">
-        <tr>
-          <th>ID</th>
-          <th>Razão Social</th>
-          <th>Nome Fantasia</th>
-          <th>CNPJ</th>
-          <th>Status</th>
-          <th style="min-width:360px;">Ações</th>
-        </tr>
-      </thead>
-      <tbody>
-        {% for empresa in page_obj %}
-        <tr class="{% if not empresa.status_empresa|as_bool %}bg-warning text-dark{% endif %}">
-          <td><b>{{ empresa.id }}</b></td>
-          <td><b>{{ empresa.razao_social }}</b></td>
-          <td><b>{{ empresa.nome_fantasia }}</b></td>
-          <td><b>{{ empresa.cnpj }}</b></td>
-
-          <td>
-            <span class="status-text fw-bold {% if empresa.status_empresa|as_bool %}text-success{% else %}text-danger{% endif %}">
-              {% if empresa.status_empresa|as_bool %}Ativada{% else %}Desativada{% endif %}
-            </span>
-            <button type="button"
-                    class="btn btn-sm ms-2 toggle-status {% if empresa.status_empresa|as_bool %}btn-danger{% else %}btn-success{% endif %}"
-                    data-url="{% url 'alterar_status_empresa' empresa.id %}"
-                    style="min-width: 80px;">
-              {% if empresa.status_empresa|as_bool %}Desativar{% else %}Ativar{% endif %}
-            </button>
-          </td>
-
-          <td>
-            <div class="d-flex justify-content-center gap-1 flex-nowrap" style="min-width:350px;">
-              <a href="{% url 'gerar_contrato_lojista' empresa.id %}"
-                 class="btn btn-sm btn-warning text-white fw-bold shadow-sm"
-                 target="_blank" style="min-width:80px;">
-                <i class="fas fa-file-signature me-1"></i> Contrato
-              </a>
-
-              {% comment "Oculto por enquanto" %}
-              <a href="{% url 'gerar_ficha_lojista' empresa.id %}"
-                 class="btn btn-sm btn-primary text-white fw-bold shadow-sm"
-                 target="_blank" style="min-width:80px;">
-                <i class="fas fa-file-alt me-1"></i> Ficha
-              </a>
-              {% endcomment %}
-
-              <a href="{% url 'editar_empresa' empresa.id %}"
-                 class="btn btn-sm btn-success text-white fw-bold shadow-sm"
-                 style="min-width:80px;">
-                <i class="fas fa-edit me-1"></i> Editar
-              </a>
-
-              <a href="{% url 'excluir_empresa' empresa.id %}"
-                 class="btn btn-sm btn-danger text-white fw-bold shadow-sm"
-                 style="min-width:80px;">
-                <i class="fas fa-trash-alt me-1"></i> Excluir
-              </a>
+    <!-- Formulário de Filtros -->
+    <form method="get" action="{% url 'listar_empresas' %}" class="search-form">
+        <div class="row g-2 align-items-end">
+            <div class="col-md-3 col-sm-6">
+                <label for="q" class="form-label small fw-bold mb-1">Buscar</label>
+                <input type="text" 
+                       name="q" 
+                       id="q"
+                       class="form-control form-control-sm" 
+                       placeholder="ID, Razão Social, Nome Fantasia, CNPJ..." 
+                       value="{{ query }}">
             </div>
-          </td>
-        </tr>
-        {% empty %}
-        <tr><td colspan="6">Nenhuma empresa encontrada.</td></tr>
-        {% endfor %}
-      </tbody>
-    </table>
-  </div>
+            <div class="col-md-2 col-sm-6">
+                <label for="data_inicio" class="form-label small fw-bold mb-1">Data Cadastro (Início)</label>
+                <input type="date" 
+                       class="form-control form-control-sm" 
+                       id="data_inicio" 
+                       name="data_inicio" 
+                       value="{{ data_inicio }}">
+            </div>
+            <div class="col-md-2 col-sm-6">
+                <label for="data_fim" class="form-label small fw-bold mb-1">Data Cadastro (Fim)</label>
+                <input type="date" 
+                       class="form-control form-control-sm" 
+                       id="data_fim" 
+                       name="data_fim" 
+                       value="{{ data_fim }}">
+            </div>
+            <div class="col-md-2 col-sm-6">
+                <label for="status_empresa" class="form-label small fw-bold mb-1">Status</label>
+                <select class="form-select form-select-sm" id="status_empresa" name="status_empresa">
+                    <option value="">Todos</option>
+                    <option value="1" {% if status_empresa == '1' %}selected{% endif %}>Ativadas</option>
+                    <option value="0" {% if status_empresa == '0' %}selected{% endif %}>Desativadas</option>
+                </select>
+            </div>
+            <div class="col-md-3 col-sm-12">
+                <div class="d-flex gap-2">
+                    <button type="submit" class="btn btn-primary btn-sm flex-grow-1">
+                        <i class="fas fa-filter"></i> Filtrar
+                    </button>
+                    {% if query or data_inicio or data_fim or status_empresa %}
+                    <a href="{% url 'listar_empresas' %}" class="btn btn-secondary btn-sm" title="Limpar filtros">
+                        <i class="fas fa-times"></i>
+                    </a>
+                    {% endif %}
+                    <a href="{% url 'adicionar_empresa' %}" class="btn btn-success btn-sm">
+                        <i class="fas fa-plus"></i> Adicionar
+                    </a>
+                </div>
+            </div>
+        </div>
+    </form>
 
-  <div class="d-flex justify-content-between align-items-center mt-2">
-    <div>
-      {% if page_obj.has_previous %}
-        <a href="?page=1{% if query %}&q={{ query|urlencode }}{% endif %}" class="btn btn-sm btn-primary">Primeira</a>
-        <a href="?page={{ page_obj.previous_page_number }}{% if query %}&q={{ query|urlencode }}{% endif %}" class="btn btn-sm btn-secondary">Anterior</a>
-      {% endif %}
+    <!-- Tabela de Empresas -->
+    <div class="table-responsive-custom">
+        <table class="table table-hover">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Razão Social</th>
+                    <th>Nome Fantasia</th>
+                    <th>CNPJ</th>
+                    <th>Status</th>
+                    <th class="text-center">Ações</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for empresa in page_obj %}
+                <tr class="{% if not empresa.status_empresa|as_bool %}bg-warning text-dark{% endif %}">
+                    <td><strong>{{ empresa.id }}</strong></td>
+                    <td><strong>{{ empresa.razao_social }}</strong></td>
+                    <td><strong>{{ empresa.nome_fantasia }}</strong></td>
+                    <td><strong>{{ empresa.cnpj }}</strong></td>
+                    <td>
+                        <span class="badge-status {% if empresa.status_empresa|as_bool %}bg-success text-white{% else %}bg-danger text-white{% endif %}">
+                            {% if empresa.status_empresa|as_bool %}Ativada{% else %}Desativada{% endif %}
+                        </span>
+                        <button type="button"
+                                class="btn btn-sm ms-2 toggle-status {% if empresa.status_empresa|as_bool %}btn-danger{% else %}btn-success{% endif %}"
+                                data-url="{% url 'alterar_status_empresa' empresa.id %}"
+                                style="min-width: 80px; font-size: 0.7rem; padding: 0.2rem 0.4rem;">
+                            {% if empresa.status_empresa|as_bool %}Desativar{% else %}Ativar{% endif %}
+                        </button>
+                    </td>
+                    <td class="text-center">
+                        <div class="d-flex flex-wrap gap-1 justify-content-center">
+                            <a href="{% url 'gerar_contrato_lojista' empresa.id %}"
+                               class="btn btn-sm btn-warning btn-action"
+                               target="_blank"
+                               title="Gerar Contrato">
+                                <i class="fas fa-file-signature"></i><span class="d-none d-md-inline ms-1">Contrato</span>
+                            </a>
+                            <a href="{% url 'editar_empresa' empresa.id %}"
+                               class="btn btn-sm btn-success btn-action"
+                               title="Editar">
+                                <i class="fas fa-edit"></i><span class="d-none d-md-inline ms-1">Editar</span>
+                            </a>
+                            <a href="{% url 'excluir_empresa' empresa.id %}"
+                               class="btn btn-sm btn-danger btn-action"
+                               title="Excluir">
+                                <i class="fas fa-trash-alt"></i><span class="d-none d-md-inline ms-1">Excluir</span>
+                            </a>
+                        </div>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="6" class="text-center py-4">
+                        <div class="empty-state">
+                            <i class="fas fa-inbox"></i>
+                            <p class="mb-0">Nenhuma empresa encontrada.</p>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
     </div>
-    <div>
-      <span class="fw-bold">Página {{ page_obj.number }} de {{ page_obj.paginator.num_pages }}</span>
-    </div>
-    <div>
-      {% if page_obj.has_next %}
-        <a href="?page={{ page_obj.next_page_number }}{% if query %}&q={{ query|urlencode }}{% endif %}" class="btn btn-sm btn-secondary">Próxima</a>
-        <a href="?page={{ page_obj.paginator.num_pages }}{% if query %}&q={{ query|urlencode }}{% endif %}" class="btn btn-sm btn-primary">Última</a>
-      {% endif %}
-    </div>
-  </div>
+
+    <!-- Paginação -->
+    {% if page_obj.has_other_pages %}
+    <nav aria-label="Paginação de empresas" class="mt-2">
+        <ul class="pagination justify-content-center mb-0">
+            {% if page_obj.has_previous %}
+            <li class="page-item">
+                <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if query %}&q={{ query|urlencode }}{% endif %}{% if data_inicio %}&data_inicio={{ data_inicio }}{% endif %}{% if data_fim %}&data_fim={{ data_fim }}{% endif %}{% if status_empresa %}&status_empresa={{ status_empresa }}{% endif %}" title="Página anterior">
+                    <i class="fas fa-chevron-left"></i>
+                </a>
+            </li>
+            {% endif %}
+            <li class="page-item active">
+                <span class="page-link">{{ page_obj.number }} / {{ page_obj.paginator.num_pages }}</span>
+            </li>
+            {% if page_obj.has_next %}
+            <li class="page-item">
+                <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if query %}&q={{ query|urlencode }}{% endif %}{% if data_inicio %}&data_inicio={{ data_inicio }}{% endif %}{% if data_fim %}&data_fim={{ data_fim }}{% endif %}{% if status_empresa %}&status_empresa={{ status_empresa }}{% endif %}" title="Próxima página">
+                    <i class="fas fa-chevron-right"></i>
+                </a>
+            </li>
+            {% endif %}
+        </ul>
+    </nav>
+    {% endif %}
 </div>
 
 <script>
@@ -120,7 +444,7 @@ document.addEventListener("DOMContentLoaded", function () {
       const btn = this;
       const td = btn.closest('td');
       const tr = btn.closest('tr');
-      const statusText = td.querySelector(".status-text");
+      const statusText = td.querySelector(".badge-status");
 
       btn.disabled = true;
       const originalText = btn.textContent.trim();
@@ -147,14 +471,14 @@ document.addEventListener("DOMContentLoaded", function () {
         if (data.success) {
           const ativo = !!data.status_empresa;
 
-          // Atualiza texto/status
+          // Atualiza badge/status
           statusText.textContent = ativo ? "Ativada" : "Desativada";
-          statusText.classList.toggle("text-success", ativo);
-          statusText.classList.toggle("text-danger", !ativo);
+          statusText.classList.remove("bg-success", "bg-danger");
+          statusText.classList.add(ativo ? "bg-success" : "bg-danger");
 
           // Botão
-          btn.classList.toggle("btn-danger", ativo);
-          btn.classList.toggle("btn-success", !ativo);
+          btn.classList.remove("btn-danger", "btn-success");
+          btn.classList.add(ativo ? "btn-danger" : "btn-success");
           btn.textContent = ativo ? "Desativar" : "Ativar";
 
           // Linha amarela quando desativada

@@ -2297,19 +2297,72 @@ def to_bool(v):
 @login_required
 @group_required([2])
 @ensure_csrf_cookie           # <- garante o cookie de CSRF na página da lista
+@login_required
+@group_required([2])
 def listar_empresas(request):
+    # Filtros de busca
     query = (request.GET.get('q') or '').strip()
+    data_inicio = request.GET.get('data_inicio', '').strip()
+    data_fim = request.GET.get('data_fim', '').strip()
+    status_empresa = request.GET.get('status_empresa', '').strip()
+    
+    # Query base
     empresas = Empresa.objects.all()
+    
+    # Filtro de busca textual
     if query:
         empresas = empresas.filter(
             Q(id__icontains=query) |
             Q(razao_social__icontains=query) |
             Q(nome_fantasia__icontains=query) |
-            Q(cnpj__icontains=query)
+            Q(cnpj__icontains=query) |
+            Q(nome_contato__icontains=query) |
+            Q(email__icontains=query)
         )
-
-    page_obj = Paginator(empresas.order_by('id'), 10).get_page(request.GET.get('page'))
-    return render(request, 'empresas_listar.html', {'page_obj': page_obj, 'query': query})
+    
+    # Filtro de data de cadastro (início)
+    if data_inicio:
+        try:
+            from datetime import time as dt_time
+            data_inicio_date = datetime.strptime(data_inicio, '%Y-%m-%d').date()
+            data_inicio_datetime = datetime.combine(data_inicio_date, dt_time.min)
+            if settings.USE_TZ:
+                data_inicio_datetime = make_aware(data_inicio_datetime)
+            empresas = empresas.filter(created_at__gte=data_inicio_datetime)
+        except Exception as e:
+            logging.error(f"Erro ao processar data_inicio: {str(e)}")
+    
+    # Filtro de data de cadastro (fim)
+    if data_fim:
+        try:
+            from datetime import time as dt_time
+            data_fim_date = datetime.strptime(data_fim, '%Y-%m-%d').date()
+            data_fim_datetime = datetime.combine(data_fim_date, dt_time.max)
+            if settings.USE_TZ:
+                data_fim_datetime = make_aware(data_fim_datetime)
+            empresas = empresas.filter(created_at__lte=data_fim_datetime)
+        except Exception as e:
+            logging.error(f"Erro ao processar data_fim: {str(e)}")
+    
+    # Filtro de status
+    if status_empresa:
+        if status_empresa == '1':
+            empresas = empresas.filter(status_empresa=1)
+        elif status_empresa == '0':
+            empresas = empresas.filter(status_empresa=0)
+    
+    # Ordenação e paginação
+    page_obj = Paginator(empresas.order_by('-id'), 10).get_page(request.GET.get('page'))
+    
+    context = {
+        'page_obj': page_obj,
+        'query': query,
+        'data_inicio': data_inicio,
+        'data_fim': data_fim,
+        'status_empresa': status_empresa,
+    }
+    
+    return render(request, 'empresas_listar.html', context)
 
 @login_required
 @group_required([2])
