@@ -1642,6 +1642,12 @@ document.addEventListener("DOMContentLoaded", function () {
             {% if request.GET.page_negociados %}
             <input type="hidden" name="page_negociados" value="{{ request.GET.page_negociados }}">
             {% endif %}
+            {% if request.GET.page %}
+            <input type="hidden" name="page" value="{{ request.GET.page }}">
+            {% endif %}
+            {% if request.GET.page_clientes %}
+            <input type="hidden" name="page_clientes" value="{{ request.GET.page_clientes }}">
+            {% endif %}
         </form>
 
         <div class="table-responsive-custom">
@@ -1659,7 +1665,7 @@ document.addEventListener("DOMContentLoaded", function () {
             {% for cliente in ultimos_clientes %}
             <tr>
                         <td><strong>{{ cliente.id }}</strong></td>
-                        <td><strong>{{ cliente.nome }}{{ cliente.nome_fantasia }}</strong></td>
+                        <td><strong>{% if cliente.nome %}{{ cliente.nome }}{% elif cliente.nome_fantasia %}{{ cliente.nome_fantasia }}{% else %}-{% endif %}</strong></td>
                         <td>
                             <strong>
                                 {% if cliente.cpf %}
@@ -1679,7 +1685,7 @@ document.addEventListener("DOMContentLoaded", function () {
                         <td colspan="5" class="text-center py-4">
                             <div class="empty-state">
                                 <i class="fas fa-inbox"></i>
-                                <p class="mb-0">Nenhum cliente cadastrado recentemente.</p>
+                                <p class="mb-0">Nenhum cliente cadastrado encontrado.</p>
                             </div>
                         </td>
             </tr>
@@ -1687,6 +1693,31 @@ document.addEventListener("DOMContentLoaded", function () {
         </tbody>
     </table>
         </div>
+
+        <!-- Paginação para Últimos Clientes Cadastrados -->
+        {% if ultimos_clientes_paginated.has_other_pages %}
+        <nav aria-label="Paginação de clientes" class="mt-2">
+            <ul class="pagination justify-content-center mb-0">
+                {% if ultimos_clientes_paginated.has_previous %}
+                <li class="page-item">
+                    <a class="page-link" href="?page_clientes={{ ultimos_clientes_paginated.previous_page_number }}{% if data_inicio_clientes %}&data_inicio_clientes={{ data_inicio_clientes }}{% endif %}{% if data_fim_clientes %}&data_fim_clientes={{ data_fim_clientes }}{% endif %}{% if lojista_id_clientes %}&lojista_id_clientes={{ lojista_id_clientes }}{% endif %}{% if query %}&query={{ query }}{% endif %}{% if data_inicio_negociados %}&data_inicio_negociados={{ data_inicio_negociados }}{% endif %}{% if data_fim_negociados %}&data_fim_negociados={{ data_fim_negociados }}{% endif %}{% if request.GET.page %}&page={{ request.GET.page }}{% endif %}{% if request.GET.page_negociados %}&page_negociados={{ request.GET.page_negociados }}{% endif %}" title="Página anterior">
+                        <i class="fas fa-chevron-left"></i>
+                    </a>
+                </li>
+                {% endif %}
+                <li class="page-item active">
+                    <span class="page-link">{{ ultimos_clientes_paginated.number }} / {{ ultimos_clientes_paginated.paginator.num_pages }}</span>
+                </li>
+                {% if ultimos_clientes_paginated.has_next %}
+                <li class="page-item">
+                    <a class="page-link" href="?page_clientes={{ ultimos_clientes_paginated.next_page_number }}{% if data_inicio_clientes %}&data_inicio_clientes={{ data_inicio_clientes }}{% endif %}{% if data_fim_clientes %}&data_fim_clientes={{ data_fim_clientes }}{% endif %}{% if lojista_id_clientes %}&lojista_id_clientes={{ lojista_id_clientes }}{% endif %}{% if query %}&query={{ query }}{% endif %}{% if data_inicio_negociados %}&data_inicio_negociados={{ data_inicio_negociados }}{% endif %}{% if data_fim_negociados %}&data_fim_negociados={{ data_fim_negociados }}{% endif %}{% if request.GET.page %}&page={{ request.GET.page }}{% endif %}{% if request.GET.page_negociados %}&page_negociados={{ request.GET.page_negociados }}{% endif %}" title="Próxima página">
+                        <i class="fas fa-chevron-right"></i>
+                    </a>
+                </li>
+                {% endif %}
+            </ul>
+        </nav>
+        {% endif %}
     </div>
 </div>
 

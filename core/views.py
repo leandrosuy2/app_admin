@@ -243,8 +243,11 @@ def dashboard(request):
         try:
             from datetime import time as dt_time
             data_inicio = datetime.strptime(data_inicio_clientes, '%Y-%m-%d').date()
-            # Criar datetime no início do dia (00:00:00)
+            # Criar datetime no início do dia (00:00:00) com timezone
             data_inicio_datetime = datetime.combine(data_inicio, dt_time.min)
+            # Tornar timezone-aware se necessário
+            if settings.USE_TZ:
+                data_inicio_datetime = make_aware(data_inicio_datetime)
             ultimos_clientes_query = ultimos_clientes_query.filter(created_at__gte=data_inicio_datetime)
         except Exception as e:
             logging.error(f"Erro ao processar data_inicio_clientes: {str(e)}")
@@ -253,8 +256,11 @@ def dashboard(request):
         try:
             from datetime import time as dt_time
             data_fim = datetime.strptime(data_fim_clientes, '%Y-%m-%d').date()
-            # Criar datetime no final do dia (23:59:59)
+            # Criar datetime no final do dia (23:59:59) com timezone
             data_fim_datetime = datetime.combine(data_fim, dt_time.max)
+            # Tornar timezone-aware se necessário
+            if settings.USE_TZ:
+                data_fim_datetime = make_aware(data_fim_datetime)
             ultimos_clientes_query = ultimos_clientes_query.filter(created_at__lte=data_fim_datetime)
         except Exception as e:
             logging.error(f"Erro ao processar data_fim_clientes: {str(e)}")
@@ -271,8 +277,16 @@ def dashboard(request):
             import logging
             logging.error(f"Erro ao processar lojista_id_clientes: {str(e)}")
     
-    # Últimos clientes cadastrados
-    ultimos_clientes = ultimos_clientes_query.order_by('-id')[:10].values(
+    # Últimos clientes cadastrados com paginação
+    ultimos_clientes_query = ultimos_clientes_query.order_by('-id')
+    
+    # Paginação para Últimos Clientes Cadastrados
+    paginator_clientes = Paginator(ultimos_clientes_query, 10)
+    page_number_clientes = request.GET.get('page_clientes', 1)
+    ultimos_clientes_paginated = paginator_clientes.get_page(page_number_clientes)
+    
+    # Converter para valores para o template
+    ultimos_clientes = ultimos_clientes_paginated.object_list.values(
         'id',
         'nome',
         'cpf',
@@ -448,6 +462,7 @@ def dashboard(request):
         'parcelamentos_atrasados': parcelamentos_atrasados,
         'ultimos_movimentos': ultimos_movimentos,
         'ultimos_clientes': ultimos_clientes,
+        'ultimos_clientes_paginated': ultimos_clientes_paginated,
         'agendamentos_hoje': agendamentos_hoje,
         'agenda_pendentes_paginated': agenda_pendentes_paginated,
         'negociados_paginated': negociados_paginated,
