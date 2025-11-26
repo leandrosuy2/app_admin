@@ -517,20 +517,42 @@ document.addEventListener("DOMContentLoaded", function () {
         return r.json();
       })
       .then(data => {
-        if (data.success) {
-          const ativo = !!data.status_empresa;
+        console.log('Resposta do servidor:', data); // Debug
+        if (data.success !== false && data.success !== undefined) {
+          // Garantir que o status seja tratado como booleano
+          let ativo = false;
+          if (typeof data.status_empresa === 'boolean') {
+            ativo = data.status_empresa;
+          } else if (typeof data.status_empresa === 'number') {
+            ativo = data.status_empresa === 1;
+          } else if (typeof data.status_empresa === 'string') {
+            ativo = data.status_empresa === '1' || data.status_empresa.toLowerCase() === 'true';
+          } else {
+            ativo = !!data.status_empresa;
+          }
+
+          console.log('Status interpretado:', ativo); // Debug
 
           // Atualiza badge/status
           if (statusText) {
             statusText.textContent = ativo ? "Ativada" : "Desativada";
             statusText.classList.remove("bg-success", "bg-danger", "text-white");
-            statusText.classList.add(ativo ? "bg-success" : "bg-danger", "text-white");
+            if (ativo) {
+              statusText.classList.add("bg-success", "text-white");
+            } else {
+              statusText.classList.add("bg-danger", "text-white");
+            }
           }
 
-          // Botão
+          // Botão - inverter a lógica: se está ativo, mostra botão vermelho (desativar)
           btn.classList.remove("btn-danger", "btn-success");
-          btn.classList.add(ativo ? "btn-danger" : "btn-success");
-          btn.textContent = ativo ? "Desativar" : "Ativar";
+          if (ativo) {
+            btn.classList.add("btn-danger");
+            btn.textContent = "Desativar";
+          } else {
+            btn.classList.add("btn-success");
+            btn.textContent = "Ativar";
+          }
 
           // Linha amarela quando desativada
           if (tr) {
@@ -541,12 +563,13 @@ document.addEventListener("DOMContentLoaded", function () {
             }
           }
         } else {
-          alert("Erro ao alterar o status.");
+          alert("Erro ao alterar o status: " + (data.error || "Erro desconhecido"));
           btn.textContent = originalText;
         }
       })
-      .catch(() => {
-        alert("Erro de comunicação.");
+      .catch((error) => {
+        console.error("Erro na requisição:", error);
+        alert("Erro de comunicação. Verifique o console para mais detalhes.");
         btn.textContent = originalText;
       })
       .finally(() => { btn.disabled = false; });
