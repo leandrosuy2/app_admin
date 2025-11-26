@@ -345,22 +345,6 @@
                        value="{{ query }}">
             </div>
             <div class="col-md-2 col-sm-6">
-                <label for="data_inicio" class="form-label small fw-bold mb-1">Data Cadastro (Início)</label>
-                <input type="date" 
-                       class="form-control form-control-sm" 
-                       id="data_inicio" 
-                       name="data_inicio" 
-                       value="{{ data_inicio }}">
-            </div>
-            <div class="col-md-2 col-sm-6">
-                <label for="data_fim" class="form-label small fw-bold mb-1">Data Cadastro (Fim)</label>
-                <input type="date" 
-                       class="form-control form-control-sm" 
-                       id="data_fim" 
-                       name="data_fim" 
-                       value="{{ data_fim }}">
-            </div>
-            <div class="col-md-2 col-sm-6">
                 <label for="status_empresa" class="form-label small fw-bold mb-1">Status</label>
                 <select class="form-select form-select-sm" id="status_empresa" name="status_empresa">
                     <option value="">Todos</option>
@@ -368,12 +352,21 @@
                     <option value="0" {% if status_empresa == '0' %}selected{% endif %}>Desativadas</option>
                 </select>
             </div>
+            <div class="col-md-2 col-sm-6">
+                <label for="cidade" class="form-label small fw-bold mb-1">Cidade</label>
+                <input type="text" 
+                       class="form-control form-control-sm" 
+                       id="cidade" 
+                       name="cidade" 
+                       placeholder="Buscar cidade..."
+                       value="{{ cidade_filtro }}">
+            </div>
             <div class="col-md-3 col-sm-12">
                 <div class="d-flex gap-2">
                     <button type="submit" class="btn btn-primary btn-sm flex-grow-1">
                         <i class="fas fa-filter"></i> Filtrar
                     </button>
-                    {% if query or data_inicio or data_fim or status_empresa %}
+                    {% if query or status_empresa or cidade_filtro %}
                     <a href="{% url 'listar_empresas' %}" class="btn btn-secondary btn-sm" title="Limpar filtros">
                         <i class="fas fa-times"></i>
                     </a>
@@ -459,7 +452,7 @@
         <ul class="pagination justify-content-center mb-0">
             {% if page_obj.has_previous %}
             <li class="page-item">
-                <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if query %}&q={{ query|urlencode }}{% endif %}{% if data_inicio %}&data_inicio={{ data_inicio }}{% endif %}{% if data_fim %}&data_fim={{ data_fim }}{% endif %}{% if status_empresa %}&status_empresa={{ status_empresa }}{% endif %}" title="Página anterior">
+                <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if query %}&q={{ query|urlencode }}{% endif %}{% if status_empresa %}&status_empresa={{ status_empresa }}{% endif %}{% if cidade_filtro %}&cidade={{ cidade_filtro|urlencode }}{% endif %}" title="Página anterior">
                     <i class="fas fa-chevron-left"></i>
                 </a>
             </li>
@@ -469,7 +462,7 @@
             </li>
             {% if page_obj.has_next %}
             <li class="page-item">
-                <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if query %}&q={{ query|urlencode }}{% endif %}{% if data_inicio %}&data_inicio={{ data_inicio }}{% endif %}{% if data_fim %}&data_fim={{ data_fim }}{% endif %}{% if status_empresa %}&status_empresa={{ status_empresa }}{% endif %}" title="Próxima página">
+                <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if query %}&q={{ query|urlencode }}{% endif %}{% if status_empresa %}&status_empresa={{ status_empresa }}{% endif %}{% if cidade_filtro %}&cidade={{ cidade_filtro|urlencode }}{% endif %}" title="Próxima página">
                     <i class="fas fa-chevron-right"></i>
                 </a>
             </li>

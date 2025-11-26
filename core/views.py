@@ -2302,9 +2302,8 @@ def to_bool(v):
 def listar_empresas(request):
     # Filtros de busca
     query = (request.GET.get('q') or '').strip()
-    data_inicio = request.GET.get('data_inicio', '').strip()
-    data_fim = request.GET.get('data_fim', '').strip()
     status_empresa = request.GET.get('status_empresa', '').strip()
+    cidade_filtro = request.GET.get('cidade', '').strip()
     
     # Query base
     empresas = Empresa.objects.all()
@@ -2320,29 +2319,9 @@ def listar_empresas(request):
             Q(email__icontains=query)
         )
     
-    # Filtro de data de cadastro (início)
-    if data_inicio:
-        try:
-            from datetime import time as dt_time
-            data_inicio_date = datetime.strptime(data_inicio, '%Y-%m-%d').date()
-            data_inicio_datetime = datetime.combine(data_inicio_date, dt_time.min)
-            if settings.USE_TZ:
-                data_inicio_datetime = make_aware(data_inicio_datetime)
-            empresas = empresas.filter(created_at__gte=data_inicio_datetime)
-        except Exception as e:
-            logging.error(f"Erro ao processar data_inicio: {str(e)}")
-    
-    # Filtro de data de cadastro (fim)
-    if data_fim:
-        try:
-            from datetime import time as dt_time
-            data_fim_date = datetime.strptime(data_fim, '%Y-%m-%d').date()
-            data_fim_datetime = datetime.combine(data_fim_date, dt_time.max)
-            if settings.USE_TZ:
-                data_fim_datetime = make_aware(data_fim_datetime)
-            empresas = empresas.filter(created_at__lte=data_fim_datetime)
-        except Exception as e:
-            logging.error(f"Erro ao processar data_fim: {str(e)}")
+    # Filtro de cidade
+    if cidade_filtro:
+        empresas = empresas.filter(cidade__icontains=cidade_filtro)
     
     # Filtro de status
     if status_empresa:
@@ -2357,9 +2336,8 @@ def listar_empresas(request):
     context = {
         'page_obj': page_obj,
         'query': query,
-        'data_inicio': data_inicio,
-        'data_fim': data_fim,
         'status_empresa': status_empresa,
+        'cidade_filtro': cidade_filtro,
     }
     
     return render(request, 'empresas_listar.html', context)
@@ -2375,22 +2353,23 @@ def alterar_status_empresa(request, id):
     except Exception:
         payload = {}
 
-    if "status_empresa" in payload:
-        new_status = to_bool(payload.get("status_empresa"))
-    else:
-        # Pega o status atual e inverte
-        current = to_bool(empresa.status_empresa)
-        new_status = not current
+    # Pega o status atual e converte para boolean
+    current_status = bool(empresa.status_empresa) if empresa.status_empresa is not None else False
+    
+    # Inverte o status
+    new_status = not current_status
+    
+    # Log para debug
+    logging.info(f"Empresa {id}: Status atual = {current_status}, Novo status = {new_status}")
 
-    # Salva o novo status
-    empresa.status_empresa = new_status
-    empresa.save(update_fields=["status_empresa"])
+    # Atualiza diretamente no banco usando update() para garantir que funcione
+    Empresa.objects.filter(id=id).update(status_empresa=new_status)
     
-    # Recarrega do banco para garantir que temos o valor atualizado
+    # Recarrega do banco para confirmar
     empresa.refresh_from_db()
-    
-    # Retorna o status atualizado (garantindo que seja boolean)
     final_status = bool(empresa.status_empresa)
+    
+    logging.info(f"Empresa {id}: Status final salvo = {final_status}")
     
     return JsonResponse({"success": True, "status_empresa": final_status})
 
@@ -2674,22 +2653,6 @@ def editar_empresa(request, id):
     return render(request, 'empresas_editar.html', {'empresa': empresa, 'tabelas': tabelas})
 
 
-@login_required
-@group_required([2])
-def alterar_status_empresa(request, id):
-    if request.method == "POST":
-        empresa = get_object_or_404(Empresa, id=id)
-
-        try:
-            # Alternar o status da empresa
-            empresa.status_empresa = not empresa.status_empresa
-            empresa.save()
-            
-            return JsonResponse({"success": True, "status_empresa": empresa.status_empresa})
-        except Exception as e:
-            return JsonResponse({"success": False, "error": str(e)})
-
-    return JsonResponse({"success": False, "error": "Método inválido"})
     
 @login_required
 @group_required([2])
