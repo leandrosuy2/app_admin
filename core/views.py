@@ -230,15 +230,55 @@ def dashboard(request):
         'contato',
     )
 
+    # Filtros para Últimos clientes cadastrados
+    data_inicio_clientes = request.GET.get('data_inicio_clientes', '').strip()
+    data_fim_clientes = request.GET.get('data_fim_clientes', '').strip()
+    lojista_id_clientes = request.GET.get('lojista_id_clientes', '').strip()
+    
+    # Query base para últimos clientes cadastrados
+    ultimos_clientes_query = Devedor.objects.select_related('empresa').all()
+    
+    # Aplicar filtro de data de cadastro
+    if data_inicio_clientes:
+        try:
+            from datetime import datetime
+            data_inicio = datetime.strptime(data_inicio_clientes, '%Y-%m-%d').date()
+            ultimos_clientes_query = ultimos_clientes_query.filter(created_at__date__gte=data_inicio)
+        except:
+            pass
+    
+    if data_fim_clientes:
+        try:
+            from datetime import datetime
+            data_fim = datetime.strptime(data_fim_clientes, '%Y-%m-%d').date()
+            ultimos_clientes_query = ultimos_clientes_query.filter(created_at__date__lte=data_fim)
+        except:
+            pass
+    
+    # Aplicar filtro de lojista (através da empresa)
+    if lojista_id_clientes:
+        try:
+            lojista_id = int(lojista_id_clientes)
+            # Buscar o lojista e sua empresa relacionada
+            lojista = UsersLojistas.objects.filter(id=lojista_id).first()
+            if lojista and lojista.empresa:
+                ultimos_clientes_query = ultimos_clientes_query.filter(empresa_id=lojista.empresa.id)
+        except:
+            pass
+    
     # Últimos clientes cadastrados
-    ultimos_clientes = Devedor.objects.order_by('-id')[:10].values(
+    ultimos_clientes = ultimos_clientes_query.order_by('-id')[:10].values(
         'id',
         'nome',
         'cpf',
         'cnpj',
         'created_at',
         'nome_fantasia',
+        'empresa__nome_fantasia',
     )
+    
+    # Lista de lojistas para o filtro
+    lojistas = UsersLojistas.objects.filter(status=True).order_by('name')
 
     # Agendamentos do dia corrente
     agendamentos_hoje = Agendamento.objects.filter(
@@ -413,6 +453,10 @@ def dashboard(request):
         'negociados_hoje_detalhes': negociados_hoje_detalhes_data,
         'data_inicio_negociados': data_inicio_negociados,
         'data_fim_negociados': data_fim_negociados,
+        'lojistas': lojistas,
+        'data_inicio_clientes': data_inicio_clientes,
+        'data_fim_clientes': data_fim_clientes,
+        'lojista_id_clientes': lojista_id_clientes,
     }
 
     return render(request, 'dashboard.html', context)

@@ -1583,6 +1583,67 @@ document.addEventListener("DOMContentLoaded", function () {
             Últimos Clientes Cadastrados
     </h2>
 
+        <!-- Filtros para Últimos Clientes Cadastrados -->
+        <form method="get" action="{% url 'dashboard' %}" class="search-form">
+            <div class="row g-2 align-items-end">
+                <div class="col-md-3 col-sm-6">
+                    <label for="data_inicio_clientes" class="form-label small fw-bold mb-1">Data de Cadastro (Início)</label>
+                    <input type="date" 
+                           class="form-control form-control-sm" 
+                           id="data_inicio_clientes" 
+                           name="data_inicio_clientes" 
+                           value="{{ data_inicio_clientes }}">
+                </div>
+                <div class="col-md-3 col-sm-6">
+                    <label for="data_fim_clientes" class="form-label small fw-bold mb-1">Data de Cadastro (Fim)</label>
+                    <input type="date" 
+                           class="form-control form-control-sm" 
+                           id="data_fim_clientes" 
+                           name="data_fim_clientes" 
+                           value="{{ data_fim_clientes }}">
+                </div>
+                <div class="col-md-3 col-sm-6">
+                    <label for="lojista_id_clientes" class="form-label small fw-bold mb-1">Lojista</label>
+                    <select class="form-select form-select-sm" id="lojista_id_clientes" name="lojista_id_clientes">
+                        <option value="">Todos</option>
+                        {% for lojista in lojistas %}
+                            <option value="{{ lojista.id }}" {% if lojista_id_clientes|stringformat:"s" == lojista.id|stringformat:"s" %}selected{% endif %}>
+                                {{ lojista.name }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-3 col-sm-12">
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-primary btn-sm flex-grow-1">
+                            <i class="fas fa-filter"></i> Filtrar
+                        </button>
+                        {% if data_inicio_clientes or data_fim_clientes or lojista_id_clientes %}
+                        <a href="{% url 'dashboard' %}" class="btn btn-secondary btn-sm" title="Limpar filtro">
+                            <i class="fas fa-times"></i>
+                        </a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            <!-- Preservar outros parâmetros GET -->
+            {% if query %}
+            <input type="hidden" name="query" value="{{ query }}">
+            {% endif %}
+            {% if data_inicio_negociados %}
+            <input type="hidden" name="data_inicio_negociados" value="{{ data_inicio_negociados }}">
+            {% endif %}
+            {% if data_fim_negociados %}
+            <input type="hidden" name="data_fim_negociados" value="{{ data_fim_negociados }}">
+            {% endif %}
+            {% if request.GET.page %}
+            <input type="hidden" name="page" value="{{ request.GET.page }}">
+            {% endif %}
+            {% if request.GET.page_negociados %}
+            <input type="hidden" name="page_negociados" value="{{ request.GET.page_negociados }}">
+            {% endif %}
+        </form>
+
         <div class="table-responsive-custom">
             <table class="table table-hover">
                 <thead>
@@ -1591,6 +1652,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 <th>Nome</th>
                 <th>CPF/CNPJ</th>
                 <th>Data de Cadastro</th>
+                <th>Lojista</th>
             </tr>
         </thead>
         <tbody>
@@ -1610,10 +1672,11 @@ document.addEventListener("DOMContentLoaded", function () {
                             </strong>
                         </td>
                         <td><strong>{{ cliente.created_at|date:"d/m/Y" }}</strong></td>
+                        <td><strong>{{ cliente.empresa__nome_fantasia|default:"-" }}</strong></td>
                     </tr>
                     {% empty %}
                     <tr>
-                        <td colspan="4" class="text-center py-4">
+                        <td colspan="5" class="text-center py-4">
                             <div class="empty-state">
                                 <i class="fas fa-inbox"></i>
                                 <p class="mb-0">Nenhum cliente cadastrado recentemente.</p>
