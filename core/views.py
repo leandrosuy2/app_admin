@@ -2378,17 +2378,21 @@ def alterar_status_empresa(request, id):
     if "status_empresa" in payload:
         new_status = to_bool(payload.get("status_empresa"))
     else:
+        # Pega o status atual e inverte
         current = to_bool(empresa.status_empresa)
         new_status = not current
 
-    # salva como 1/0 (funciona p/ BooleanField/IntegerField/CharField)
-    try:
-        empresa.status_empresa = 1 if new_status else 0
-    except Exception:
-        empresa.status_empresa = '1' if new_status else '0'
-
+    # Salva o novo status
+    empresa.status_empresa = new_status
     empresa.save(update_fields=["status_empresa"])
-    return JsonResponse({"success": True, "status_empresa": bool(new_status)})
+    
+    # Recarrega do banco para garantir que temos o valor atualizado
+    empresa.refresh_from_db()
+    
+    # Retorna o status atualizado (garantindo que seja boolean)
+    final_status = bool(empresa.status_empresa)
+    
+    return JsonResponse({"success": True, "status_empresa": final_status})
 
 from decimal import Decimal, InvalidOperation
 from django.shortcuts import render, get_object_or_404
