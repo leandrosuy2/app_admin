@@ -4784,8 +4784,10 @@ def listar_logs(request):
     # Query base
     logs = UserAccessLog.objects.select_related('user').all()
     
-    # Obter lista de emails de lojistas para identificar
-    emails_lojistas = set(UsersLojistas.objects.values_list('email', flat=True))
+    # Obter lista de emails e nomes de lojistas para identificar
+    lojistas_data = UsersLojistas.objects.values_list('email', 'name')
+    emails_lojistas = set([email.lower() if email else None for email, _ in lojistas_data if email])
+    nomes_lojistas = set([name.lower() if name else None for _, name in lojistas_data if name])
     
     # Aplicar filtro de data de início
     if data_inicio:
@@ -4825,20 +4827,40 @@ def listar_logs(request):
     
     # Aplicar filtro de tipo de usuário
     if tipo_usuario == 'lojista':
-        # Filtrar logs de lojistas - verificar por email ou path
-        # Logs onde o email do user está em UsersLojistas OU o path contém indicadores de lojista
-        logs = logs.filter(
-            Q(user__email__in=emails_lojistas) | 
-            Q(path__icontains='/lojista') |
-            Q(path__icontains='/usuarios/lojista')
-        )
+        # Filtrar logs de lojistas - verificar por email, username ou path
+        # Tratar casos onde user pode ser None
+        conditions = Q(path__icontains='/lojista') | Q(path__icontains='/usuarios/lojista')
+        
+        if emails_lojistas:
+            # Verificar por email (case insensitive)
+            email_conditions = Q()
+            for email in emails_lojistas:
+                email_conditions |= Q(user__isnull=False, user__email__iexact=email)
+            conditions |= email_conditions
+        
+        if nomes_lojistas:
+            # Verificar por username também (case insensitive)
+            username_conditions = Q()
+            for nome in nomes_lojistas:
+                username_conditions |= Q(user__isnull=False, user__username__iexact=nome)
+            conditions |= username_conditions
+        
+        logs = logs.filter(conditions)
+        
     elif tipo_usuario == 'admin':
         # Filtrar apenas logs de admin/operador (não lojistas)
-        logs = logs.filter(
-            ~Q(user__email__in=emails_lojistas) &
-            ~Q(path__icontains='/lojista') &
-            ~Q(path__icontains='/usuarios/lojista')
-        )
+        # Excluir logs que são de lojistas
+        exclude_conditions = Q(path__icontains='/lojista') | Q(path__icontains='/usuarios/lojista')
+        
+        if emails_lojistas:
+            for email in emails_lojistas:
+                exclude_conditions |= Q(user__isnull=False, user__email__iexact=email)
+        
+        if nomes_lojistas:
+            for nome in nomes_lojistas:
+                exclude_conditions |= Q(user__isnull=False, user__username__iexact=nome)
+        
+        logs = logs.exclude(exclude_conditions)
     
     # Ordenar por timestamp descendente
     logs_ordered = logs.order_by('-timestamp')
@@ -4874,11 +4896,22 @@ def listar_logs(request):
         except Exception as e:
             logging.error(f"Erro ao processar data_fim: {str(e)}")
     
-    total_logs_lojistas = logs_base.filter(
-        Q(user__email__in=emails_lojistas) | 
-        Q(path__icontains='/lojista') |
-        Q(path__icontains='/usuarios/lojista')
-    ).count()
+    # Contagem de logs de lojistas usando a mesma lógica do filtro
+    conditions_lojistas = Q(path__icontains='/lojista') | Q(path__icontains='/usuarios/lojista')
+    
+    if emails_lojistas:
+        email_conditions = Q()
+        for email in emails_lojistas:
+            email_conditions |= Q(user__isnull=False, user__email__iexact=email)
+        conditions_lojistas |= email_conditions
+    
+    if nomes_lojistas:
+        username_conditions = Q()
+        for nome in nomes_lojistas:
+            username_conditions |= Q(user__isnull=False, user__username__iexact=nome)
+        conditions_lojistas |= username_conditions
+    
+    total_logs_lojistas = logs_base.filter(conditions_lojistas).count()
     
     # Paginação
     paginator = Paginator(logs_ordered, 30)
@@ -4910,6 +4943,7 @@ def listar_logs(request):
         'total_logs_lojistas': total_logs_lojistas,
         'logs_por_metodo': logs_por_metodo,
         'emails_lojistas': emails_lojistas,  # Para usar no template para identificar tipo
+        'nomes_lojistas': nomes_lojistas,  # Para usar no template para identificar tipo
     }
     
     return render(request, 'logs_listar.html', context)

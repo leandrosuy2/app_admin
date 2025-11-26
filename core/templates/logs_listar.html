@@ -204,20 +204,33 @@
         border-radius: 5px;
         font-weight: 500;
         font-size: 0.7rem;
-        padding: 0.2rem 0.4rem;
+        padding: 0.25rem 0.5rem;
         transition: all 0.2s ease;
         white-space: nowrap;
         line-height: 1.2;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-width: auto;
     }
 
     .btn-action i {
-        font-size: 0.65rem;
-        margin-right: 0.2rem;
+        font-size: 0.7rem;
     }
 
     .btn-action:hover {
         transform: translateY(-1px);
         box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    
+    /* Ajuste para botões na coluna de ações */
+    .table-responsive-custom tbody td.text-center {
+        white-space: nowrap;
+    }
+    
+    .table-responsive-custom tbody td.text-center .btn {
+        margin: 0;
+        padding: 0.25rem 0.5rem;
     }
 
     /* Paginação */
@@ -585,7 +598,8 @@
                     </td>
                     <td>
                         {% if log.user %}
-                            {% if log.user.email in emails_lojistas or '/lojista' in log.path|default:'' or '/usuarios/lojista' in log.path|default:'' %}
+                            {% with user_email=log.user.email|lower|default:'' user_username=log.user.username|lower|default:'' %}
+                            {% if user_email in emails_lojistas or user_username in nomes_lojistas or '/lojista' in log.path|default:'' or '/usuarios/lojista' in log.path|default:'' %}
                                 <span class="badge bg-success">
                                     <i class="fas fa-store me-1"></i>Lojista
                                 </span>
@@ -594,6 +608,7 @@
                                     <i class="fas fa-user-shield me-1"></i>Admin/Operador
                                 </span>
                             {% endif %}
+                            {% endwith %}
                         {% else %}
                             <span class="badge bg-secondary">
                                 <i class="fas fa-user-slash me-1"></i>Anônimo
@@ -625,9 +640,8 @@
                     </td>
                     <td class="text-center">
                         {% if log.path %}
-                        <a href="{{ log.path }}" class="btn btn-sm btn-primary btn-action" target="_blank" title="Ir para link">
+                        <a href="{{ log.path }}" class="btn btn-sm btn-primary" target="_blank" title="Ir para link">
                             <i class="fas fa-external-link-alt"></i>
-                            <span class="d-none d-md-inline">Abrir</span>
                         </a>
                         {% else %}
                         <span class="text-muted">-</span>
