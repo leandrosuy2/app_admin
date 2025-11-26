@@ -4772,11 +4772,147 @@ from core.models import UserAccessLog
 @login_required
 @staff_member_required
 def listar_logs(request):
-    logs = (UserAccessLog.objects
-            .select_related('user')
-            .order_by('-timestamp'))
-    page_obj = Paginator(logs, 30).get_page(request.GET.get('page'))
-    return render(request, 'logs_listar.html', {'page_obj': page_obj})
+    # Filtros
+    data_inicio = request.GET.get('data_inicio', '').strip()
+    data_fim = request.GET.get('data_fim', '').strip()
+    usuario = request.GET.get('usuario', '').strip()
+    ip_address = request.GET.get('ip_address', '').strip()
+    path = request.GET.get('path', '').strip()
+    method = request.GET.get('method', '').strip()
+    tipo_usuario = request.GET.get('tipo_usuario', '').strip()  # Novo filtro: 'lojista', 'admin', ''
+    
+    # Query base
+    logs = UserAccessLog.objects.select_related('user').all()
+    
+    # Obter lista de emails de lojistas para identificar
+    emails_lojistas = set(UsersLojistas.objects.values_list('email', flat=True))
+    
+    # Aplicar filtro de data de início
+    if data_inicio:
+        try:
+            from datetime import time as dt_time
+            data_inicio_obj = datetime.strptime(data_inicio, '%Y-%m-%d').date()
+            data_inicio_datetime = datetime.combine(data_inicio_obj, dt_time.min)
+            logs = logs.filter(timestamp__gte=data_inicio_datetime)
+        except Exception as e:
+            logging.error(f"Erro ao processar data_inicio: {str(e)}")
+    
+    # Aplicar filtro de data de fim
+    if data_fim:
+        try:
+            from datetime import time as dt_time
+            data_fim_obj = datetime.strptime(data_fim, '%Y-%m-%d').date()
+            data_fim_datetime = datetime.combine(data_fim_obj, dt_time.max)
+            logs = logs.filter(timestamp__lte=data_fim_datetime)
+        except Exception as e:
+            logging.error(f"Erro ao processar data_fim: {str(e)}")
+    
+    # Aplicar filtro de usuário
+    if usuario:
+        logs = logs.filter(user__username__icontains=usuario)
+    
+    # Aplicar filtro de IP
+    if ip_address:
+        logs = logs.filter(ip_address__icontains=ip_address)
+    
+    # Aplicar filtro de path
+    if path:
+        logs = logs.filter(path__icontains=path)
+    
+    # Aplicar filtro de método
+    if method:
+        logs = logs.filter(method=method)
+    
+    # Aplicar filtro de tipo de usuário
+    if tipo_usuario == 'lojista':
+        # Filtrar logs de lojistas - verificar por email ou path
+        # Logs onde o email do user está em UsersLojistas OU o path contém indicadores de lojista
+        logs = logs.filter(
+            Q(user__email__in=emails_lojistas) | 
+            Q(path__icontains='/lojista') |
+            Q(path__icontains='/usuarios/lojista')
+        )
+    elif tipo_usuario == 'admin':
+        # Filtrar apenas logs de admin/operador (não lojistas)
+        logs = logs.filter(
+            ~Q(user__email__in=emails_lojistas) &
+            ~Q(path__icontains='/lojista') &
+            ~Q(path__icontains='/usuarios/lojista')
+        )
+    
+    # Ordenar por timestamp descendente
+    logs_ordered = logs.order_by('-timestamp')
+    
+    # Estatísticas (antes da paginação)
+    total_logs = logs.count()
+    total_usuarios_unicos = logs.values('user').distinct().exclude(user__isnull=True).count()
+    total_ips_unicos = logs.values('ip_address').distinct().exclude(ip_address__isnull=True).count()
+    total_hoje = logs.filter(timestamp__date=date.today()).count()
+    
+    # Contagem por método
+    from django.db.models import Count
+    logs_por_metodo = logs.values('method').annotate(total=Count('id')).order_by('-total')
+    
+    # Contagem de logs de lojistas (usando query base antes dos filtros de tipo)
+    logs_base = UserAccessLog.objects.select_related('user').all()
+    # Aplicar filtros de data para contar todos os logs de lojistas no período
+    if data_inicio:
+        try:
+            from datetime import time as dt_time
+            data_inicio_obj = datetime.strptime(data_inicio, '%Y-%m-%d').date()
+            data_inicio_datetime = datetime.combine(data_inicio_obj, dt_time.min)
+            logs_base = logs_base.filter(timestamp__gte=data_inicio_datetime)
+        except Exception as e:
+            logging.error(f"Erro ao processar data_inicio: {str(e)}")
+    
+    if data_fim:
+        try:
+            from datetime import time as dt_time
+            data_fim_obj = datetime.strptime(data_fim, '%Y-%m-%d').date()
+            data_fim_datetime = datetime.combine(data_fim_obj, dt_time.max)
+            logs_base = logs_base.filter(timestamp__lte=data_fim_datetime)
+        except Exception as e:
+            logging.error(f"Erro ao processar data_fim: {str(e)}")
+    
+    total_logs_lojistas = logs_base.filter(
+        Q(user__email__in=emails_lojistas) | 
+        Q(path__icontains='/lojista') |
+        Q(path__icontains='/usuarios/lojista')
+    ).count()
+    
+    # Paginação
+    paginator = Paginator(logs_ordered, 30)
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+    
+    # Lista de usuários para o filtro
+    usuarios = User.objects.filter(is_active=True).order_by('username')
+    
+    # Lista de métodos HTTP
+    metodos = ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'HEAD', 'OPTIONS']
+    
+    # Contexto
+    context = {
+        'page_obj': page_obj,
+        'data_inicio': data_inicio,
+        'data_fim': data_fim,
+        'usuario': usuario,
+        'ip_address': ip_address,
+        'path': path,
+        'method': method,
+        'tipo_usuario': tipo_usuario,
+        'usuarios': usuarios,
+        'metodos': metodos,
+        'total_logs': total_logs,
+        'total_usuarios_unicos': total_usuarios_unicos,
+        'total_ips_unicos': total_ips_unicos,
+        'total_hoje': total_hoje,
+        'total_logs_lojistas': total_logs_lojistas,
+        'logs_por_metodo': logs_por_metodo,
+        'emails_lojistas': emails_lojistas,  # Para usar no template para identificar tipo
+    }
+    
+    return render(request, 'logs_listar.html', context)
 
 
 
