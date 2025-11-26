@@ -241,19 +241,23 @@ def dashboard(request):
     # Aplicar filtro de data de cadastro
     if data_inicio_clientes:
         try:
-            from datetime import datetime
+            from datetime import time as dt_time
             data_inicio = datetime.strptime(data_inicio_clientes, '%Y-%m-%d').date()
-            ultimos_clientes_query = ultimos_clientes_query.filter(created_at__date__gte=data_inicio)
-        except:
-            pass
+            # Criar datetime no início do dia (00:00:00)
+            data_inicio_datetime = datetime.combine(data_inicio, dt_time.min)
+            ultimos_clientes_query = ultimos_clientes_query.filter(created_at__gte=data_inicio_datetime)
+        except Exception as e:
+            logging.error(f"Erro ao processar data_inicio_clientes: {str(e)}")
     
     if data_fim_clientes:
         try:
-            from datetime import datetime
+            from datetime import time as dt_time
             data_fim = datetime.strptime(data_fim_clientes, '%Y-%m-%d').date()
-            ultimos_clientes_query = ultimos_clientes_query.filter(created_at__date__lte=data_fim)
-        except:
-            pass
+            # Criar datetime no final do dia (23:59:59)
+            data_fim_datetime = datetime.combine(data_fim, dt_time.max)
+            ultimos_clientes_query = ultimos_clientes_query.filter(created_at__lte=data_fim_datetime)
+        except Exception as e:
+            logging.error(f"Erro ao processar data_fim_clientes: {str(e)}")
     
     # Aplicar filtro de lojista (através da empresa)
     if lojista_id_clientes:
@@ -263,8 +267,9 @@ def dashboard(request):
             lojista = UsersLojistas.objects.filter(id=lojista_id).first()
             if lojista and lojista.empresa:
                 ultimos_clientes_query = ultimos_clientes_query.filter(empresa_id=lojista.empresa.id)
-        except:
-            pass
+        except Exception as e:
+            import logging
+            logging.error(f"Erro ao processar lojista_id_clientes: {str(e)}")
     
     # Últimos clientes cadastrados
     ultimos_clientes = ultimos_clientes_query.order_by('-id')[:10].values(
