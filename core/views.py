@@ -5959,7 +5959,18 @@ def emitir_boletos_view(request):
     comissao_por_devedor AS (
       SELECT b.empresa_id, b.devedor_id, b.base_devedor, h.dias_max_hist,
              ROUND(
-               b.base_devedor * (
+               b.base_devedor * COALESCE(
+                 (
+                   SELECT trl.percentual_remuneracao / 100.0
+                   FROM core_TabelaRemuneracaoLista trl
+                   INNER JOIN core_tabelaremuneracao tr ON tr.id = trl.tabela_remuneracao_id
+                   INNER JOIN core_empresa emp ON emp.plano_id = tr.id
+                   WHERE emp.id = b.empresa_id
+                     AND h.dias_max_hist >= trl.de_dias
+                     AND h.dias_max_hist <= trl.ate_dias
+                   ORDER BY trl.de_dias DESC
+                   LIMIT 1
+                 ),
                  CASE
                    WHEN h.dias_max_hist BETWEEN  30 AND   90 THEN 0.09
                    WHEN h.dias_max_hist BETWEEN  91 AND  180 THEN 0.15
@@ -7135,7 +7146,18 @@ def honorarios(request):
       ma.max_dias                                                                    AS dias_atraso_hist,
 
       ROUND(
-        t.valorRecebido * (
+        t.valorRecebido * COALESCE(
+          (
+            SELECT trl.percentual_remuneracao / 100.0
+            FROM core_TabelaRemuneracaoLista trl
+            INNER JOIN core_tabelaremuneracao tr ON tr.id = trl.tabela_remuneracao_id
+            INNER JOIN core_empresa emp ON emp.plano_id = tr.id
+            WHERE emp.id = e.id
+              AND ma.max_dias >= trl.de_dias
+              AND ma.max_dias <= trl.ate_dias
+            ORDER BY trl.de_dias DESC
+            LIMIT 1
+          ),
           CASE
             WHEN ma.max_dias BETWEEN  30 AND   90 THEN 0.09
             WHEN ma.max_dias BETWEEN  91 AND  180 THEN 0.15
