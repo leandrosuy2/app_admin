@@ -4543,15 +4543,18 @@ def detalhes_devedor(request, titulo_id):
     )
 
     tpl_padrao = (
-        "NOTIFICAÇÃO EXTRAJUDICIAL\n\n"
-        "Olá, tudo bem contigo ?\n\n"
-        "Nesse contato eu falo com %Nome%, portado do documento %CpfCnpjMascarado% ?\n\n"
-        "Digite - 01 - Para SIM\n"
-        "Digite - 02 - Para NÃO\n\n"
-        "Temos uma informação importante referente a empresa %NomeCredor%\n\n"
-        "Precisamos da confirmação se falamos com a pessoa acima em caráter de urgência, evitando assim o encaminhamento do assunto para analise de acionamento JURIDICO  \n\n"
-        "Caso eu demora a responder, me chama no contato abaixo:\n\n"
-        "Central de Atendimento e Negociações: wa.me://5591991600118"
+        "NOTIFICAÇÃO EXTRAJUDICIAL – CONFIRMAÇÃO DE DADOS\n\n"
+        "Olá, tudo bem?\n\n"
+        "Por gentileza, estou falando com *%Nome%*, CPF %CpfCnpjMascarado%?\n\n"
+        "Por favor, responda apenas com:\n\n"
+        "01 – SIM, sou eu\n"
+        "02 – NÃO sou eu\n\n"
+        "Temos uma informação relevante e de caráter prioritário vinculada à empresa *%NomeCredor%*, e precisamos confirmar se estamos falando com a pessoa correta antes de prosseguir com a análise para possível encaminhamento jurídico.\n\n"
+        "Sua confirmação é essencial para que possamos dar continuidade da forma mais adequada.\n\n"
+        "Se eu não visualizar sua resposta rapidamente, pode me chamar diretamente pelo WhatsApp da Central:\n\n"
+        "*📞 Central de Atendimento e Negociações*\n"
+        "*🔗 wa.me/5591991600118*\n\n"
+        "Aguardo sua confirmação."
     )
 
     tpl_quebra = (
