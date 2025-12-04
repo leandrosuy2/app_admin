@@ -4501,8 +4501,13 @@ def detalhes_devedor(request, titulo_id):
     lista_vencidas = ", ".join(
         [t.dataVencimento.strftime("%d/%m/%Y") for t in vencidas_qs if t.dataVencimento]
     )
+    # Calcula total incluindo valor + juros das parcelas vencidas
+    valor_total_expr = ExpressionWrapper(
+        Coalesce(Cast(F('valor'), DEC_FIELD), ZERO_DEC) + Coalesce(Cast(F('juros'), DEC_FIELD), ZERO_DEC),
+        output_field=DEC_FIELD
+    )
     total_vencidas = vencidas_qs.aggregate(
-        total=Coalesce(Sum(Cast(F('valor'), DEC_FIELD)), ZERO_DEC)
+        total=Coalesce(Sum(valor_total_expr), ZERO_DEC)
     )['total'] or 0
 
     total_quebra = nao_quitados.aggregate(
