@@ -4544,11 +4544,12 @@ def detalhes_devedor(request, titulo_id):
 
     tpl_padrao = (
         "NOTIFICAÇÃO EXTRAJUDICIAL\n\n"
-        "Olá, me Chamo %NomeConsultor%.\n\n"
+        "Olá, tudo bem contigo ?\n\n"
         "Nesse contato eu falo com %Nome%, portado do documento %CpfCnpjMascarado% ?\n\n"
         "Digite - 01 - Para SIM\n"
         "Digite - 02 - Para NÃO\n\n"
         "Temos uma informação importante referente a empresa %NomeCredor%\n\n"
+        "Precisamos da confirmação se falamos com a pessoa acima em caráter de urgência, evitando assim o encaminhamento do assunto para analise de acionamento JURIDICO  \n\n"
         "Caso eu demora a responder, me chama no contato abaixo:\n\n"
         "Central de Atendimento e Negociações: wa.me://5591991600118"
     )
