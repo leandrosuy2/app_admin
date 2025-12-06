@@ -171,7 +171,11 @@
                             <div class="d-flex align-items-center">
                                 <i class="fas fa-user text-muted mr-1" style="width: 16px; font-size: 0.75rem;"></i>
                                 <small class="text-muted" style="font-size: 0.75rem;">
-                                    {{ template.atualizado_por.get_full_name|default:template.atualizado_por.username|truncatewords:2 }}
+                                    {% if template.atualizado_por.first_name or template.atualizado_por.last_name %}
+                                        {{ template.atualizado_por.first_name }} {{ template.atualizado_por.last_name }}
+                                    {% else %}
+                                        {{ template.atualizado_por.username }}
+                                    {% endif %}
                                 </small>
                             </div>
                             {% endif %}

@@ -117,7 +117,7 @@
                                     <i class="fas fa-info-circle mr-1"></i>
                                     Use as variáveis disponíveis para personalizar a mensagem
                                 </small>
-                                <button type="button" class="btn btn-sm btn-outline-primary" data-toggle="modal" data-target="#variaveisModal" onclick="$('#variaveisModal').modal('show');">
+                                <button type="button" class="btn btn-sm btn-outline-primary" id="btnVerVariaveis" data-toggle="modal" data-target="#variaveisModal">
                                     <i class="fas fa-code mr-1"></i>
                                     Ver Variáveis
                                 </button>
@@ -142,16 +142,16 @@
     
     <!-- Modal com variáveis disponíveis -->
     <div class="modal fade" id="variaveisModal" tabindex="-1" role="dialog" aria-labelledby="variaveisModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-lg" role="document">
-        <div class="modal-content shadow-lg">
-            <div class="modal-header bg-primary text-white">
-                <h5 class="modal-title mb-0" style="font-weight: 600;">
-                    <i class="fas fa-code mr-2"></i> Variáveis Dinâmicas Disponíveis
-                </h5>
-                <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
-                    <span aria-hidden="true">&times;</span>
-                </button>
-            </div>
+        <div class="modal-dialog modal-lg" role="document">
+            <div class="modal-content shadow-lg">
+                <div class="modal-header bg-primary text-white">
+                    <h5 class="modal-title mb-0" style="font-weight: 600;" id="variaveisModalLabel">
+                        <i class="fas fa-code mr-2"></i> Variáveis Dinâmicas Disponíveis
+                    </h5>
+                    <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
             <div class="modal-body">
                 <p class="text-muted">Clique em uma variável para inseri-la na mensagem.</p>
                 <div class="row">
@@ -235,27 +235,37 @@ Atenciosamente,
 %NomeCredor%</code></pre>
                 </div>
             </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-dismiss="modal">
-                    <i class="fas fa-times mr-1"></i> Fechar
-                </button>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">
+                        <i class="fas fa-times mr-1"></i> Fechar
+                    </button>
+                </div>
             </div>
         </div>
-    </div>
     </div>
 </div>
 {% endblock %}
 
 {% block extra_js %}
 <script>
+// Garantir que jQuery e Bootstrap estejam carregados
+if (typeof jQuery === 'undefined') {
+    console.error('jQuery não está carregado!');
+}
+
 $(document).ready(function() {
+    console.log('Script de variáveis carregado');
+    
     // Adicionar funcionalidade para inserir variáveis no textarea
-    $('.variavel-item').on('click', function() {
+    $(document).on('click', '.variavel-item', function() {
         var variavel = $(this).attr('data-variavel');
         var textarea = $('#id_mensagem');
         
+        console.log('Variável clicada:', variavel);
+        console.log('Textarea encontrado:', textarea.length);
+        
         if (textarea.length) {
-            var cursorPos = textarea[0].selectionStart;
+            var cursorPos = textarea[0].selectionStart || textarea.val().length;
             var textBefore = textarea.val().substring(0, cursorPos);
             var textAfter = textarea.val().substring(cursorPos);
             
@@ -268,12 +278,29 @@ $(document).ready(function() {
             
             // Fechar modal após inserir variável
             $('#variaveisModal').modal('hide');
+        } else {
+            console.error('Textarea #id_mensagem não encontrado!');
         }
     });
     
-    // Garantir que o modal funcione
+    // Garantir que o modal funcione quando aberto
     $('#variaveisModal').on('shown.bs.modal', function() {
         console.log('Modal de variáveis aberto');
+    });
+    
+    // Alternativa caso data-toggle não funcione
+    $('#btnVerVariaveis').on('click', function(e) {
+        e.preventDefault();
+        console.log('Botão Ver Variáveis clicado');
+        $('#variaveisModal').modal('show');
+    });
+    
+    // Também usar o evento padrão do Bootstrap
+    $('[data-toggle="modal"]').on('click', function() {
+        var target = $(this).data('target');
+        if (target) {
+            $(target).modal('show');
+        }
     });
 });
 </script>
