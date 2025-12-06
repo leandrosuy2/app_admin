@@ -17,53 +17,42 @@
                         <div class="row">
                             <div class="col-md-6">
                                 <div class="form-group">
-                                    <label for="{{ form.nome.id_for_label }}">Nome do Template</label>
-                                    {{ form.nome }}
-                                    {% if form.nome.errors %}
-                                        <div class="text-danger">{{ form.nome.errors }}</div>
+                                    <label for="{{ form.template.id_for_label }}">Nome do Template <span class="text-danger">*</span></label>
+                                    {{ form.template }}
+                                    {% if form.template.errors %}
+                                        <div class="text-danger">{{ form.template.errors }}</div>
                                     {% endif %}
+                                    <small class="form-text text-muted">
+                                        Ex: padrao, vencendo_hoje, negociacao, etc.
+                                    </small>
                                 </div>
                             </div>
                             <div class="col-md-6">
                                 <div class="form-group">
-                                    <label for="{{ form.categoria.id_for_label }}">Categoria</label>
-                                    {{ form.categoria }}
-                                    {% if form.categoria.errors %}
-                                        <div class="text-danger">{{ form.categoria.errors }}</div>
+                                    <label for="{{ form.empresa.id_for_label }}">Empresa</label>
+                                    {{ form.empresa }}
+                                    {% if form.empresa.errors %}
+                                        <div class="text-danger">{{ form.empresa.errors }}</div>
                                     {% endif %}
+                                    <small class="form-text text-muted">
+                                        Deixe em branco para template geral (todas as empresas)
+                                    </small>
                                 </div>
                             </div>
                         </div>
                         
                         <div class="form-group">
-                            <label for="{{ form.template_mensagem.id_for_label }}">Template da Mensagem</label>
-                            {{ form.template_mensagem }}
-                            {% if form.template_mensagem.errors %}
-                                <div class="text-danger">{{ form.template_mensagem.errors }}</div>
+                            <label for="{{ form.mensagem.id_for_label }}">Mensagem <span class="text-danger">*</span></label>
+                            {{ form.mensagem }}
+                            {% if form.mensagem.errors %}
+                                <div class="text-danger">{{ form.mensagem.errors }}</div>
                             {% endif %}
                             <small class="form-text text-muted">
                                 Use as variáveis disponíveis para personalizar a mensagem. 
-                                <a href="#" data-toggle="modal" data-target="#variaveisModal">Ver variáveis disponíveis</a>
+                                <a href="#" data-toggle="modal" data-target="#variaveisModal">
+                                    <i class="fas fa-info-circle"></i> Ver variáveis disponíveis
+                                </a>
                             </small>
-                        </div>
-                        
-                        <div class="row">
-                            <div class="col-md-6">
-                                <div class="form-check">
-                                    {{ form.follow_up_automatico }}
-                                    <label class="form-check-label" for="{{ form.follow_up_automatico.id_for_label }}">
-                                        Inserir follow-up automaticamente ao carregar o modelo
-                                    </label>
-                                </div>
-                            </div>
-                            <div class="col-md-6">
-                                <div class="form-check">
-                                    {{ form.ativo }}
-                                    <label class="form-check-label" for="{{ form.ativo.id_for_label }}">
-                                        Template ativo
-                                    </label>
-                                </div>
-                            </div>
                         </div>
                         
                         <div class="form-group mt-3">
@@ -86,63 +75,94 @@
     <div class="modal-dialog modal-lg" role="document">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title">Variáveis Disponíveis</h5>
+                <h5 class="modal-title">
+                    <i class="fas fa-code"></i> Variáveis Dinâmicas Disponíveis
+                </h5>
                 <button type="button" class="close" data-dismiss="modal">
                     <span>&times;</span>
                 </button>
             </div>
             <div class="modal-body">
+                <p class="text-muted">Clique em uma variável para inseri-la na mensagem.</p>
                 <div class="row">
                     <div class="col-md-6">
-                        <h6>Informações do Devedor</h6>
+                        <h6 class="font-weight-bold text-primary">
+                            <i class="fas fa-user"></i> Informações do Devedor
+                        </h6>
                         <ul class="list-unstyled">
-                            <li><span class="variavel-item badge badge-primary" style="cursor: pointer;" data-variavel="%Nome%">%Nome%</span> - Nome do devedor</li>
-                            <li><span class="variavel-item badge badge-primary" style="cursor: pointer;" data-variavel="%CpfCnpj%">%CpfCnpj%</span> - CPF/CNPJ do devedor</li>
-                            <li><span class="variavel-item badge badge-primary" style="cursor: pointer;" data-variavel="%CpfCnpjMascarado%">%CpfCnpjMascarado%</span> - CPF/CNPJ mascarado</li>
-                            <li><span class="variavel-item badge badge-primary" style="cursor: pointer;" data-variavel="%LinkPortal%">%LinkPortal%</span> - Link do portal do devedor</li>
+                            <li class="mb-2">
+                                <span class="variavel-item badge badge-primary badge-pill" style="cursor: pointer;" data-variavel="%Nome%">%Nome%</span> 
+                                <small class="ml-2">- Nome do devedor</small>
+                            </li>
+                            <li class="mb-2">
+                                <span class="variavel-item badge badge-primary badge-pill" style="cursor: pointer;" data-variavel="%CpfCnpjMascarado%">%CpfCnpjMascarado%</span> 
+                                <small class="ml-2">- CPF/CNPJ formatado e mascarado</small>
+                            </li>
                         </ul>
                         
-                        <h6>Informações do Credor</h6>
+                        <h6 class="font-weight-bold text-success mt-3">
+                            <i class="fas fa-building"></i> Informações do Credor
+                        </h6>
                         <ul class="list-unstyled">
-                            <li><span class="variavel-item badge badge-primary" style="cursor: pointer;" data-variavel="%NomeCredor%">%NomeCredor%</span> - Nome do credor</li>
-                            <li><span class="variavel-item badge badge-primary" style="cursor: pointer;" data-variavel="%CpfCnpjCredor%">%CpfCnpjCredor%</span> - CPF/CNPJ do credor</li>
-                            <li><span class="variavel-item badge badge-primary" style="cursor: pointer;" data-variavel="%LinkPortalCredor%">%LinkPortalCredor%</span> - Link do portal do credor</li>
+                            <li class="mb-2">
+                                <span class="variavel-item badge badge-success badge-pill" style="cursor: pointer;" data-variavel="%NomeCredor%">%NomeCredor%</span> 
+                                <small class="ml-2">- Nome da empresa credora</small>
+                            </li>
                         </ul>
                     </div>
                     <div class="col-md-6">
-                        <h6>Informações do Consultor</h6>
+                        <h6 class="font-weight-bold text-info mt-3">
+                            <i class="fas fa-user-tie"></i> Informações do Consultor
+                        </h6>
                         <ul class="list-unstyled">
-                            <li><span class="variavel-item badge badge-primary" style="cursor: pointer;" data-variavel="%NomeConsultor%">%NomeConsultor%</span> - Nome do consultor logado</li>
+                            <li class="mb-2">
+                                <span class="variavel-item badge badge-info badge-pill" style="cursor: pointer;" data-variavel="%NomeConsultor%">%NomeConsultor%</span> 
+                                <small class="ml-2">- Nome do atendente/consultor</small>
+                            </li>
+                            <li class="mb-2">
+                                <span class="variavel-item badge badge-info badge-pill" style="cursor: pointer;" data-variavel="%TelefoneConsultor%">%TelefoneConsultor%</span> 
+                                <small class="ml-2">- Telefone do consultor</small>
+                            </li>
                         </ul>
                         
-                        <h6>Informações de Dívidas</h6>
+                        <h6 class="font-weight-bold text-warning mt-3">
+                            <i class="fas fa-dollar-sign"></i> Informações Financeiras
+                        </h6>
                         <ul class="list-unstyled">
-                            <li><span class="variavel-item badge badge-primary" style="cursor: pointer;" data-variavel="%ListaVencimentosDividas%">%ListaVencimentosDividas%</span> - Datas de vencimento das dívidas</li>
-                            <li><span class="variavel-item badge badge-primary" style="cursor: pointer;" data-variavel="%QtdeDividas%">%QtdeDividas%</span> - Quantidade de dívidas em aberto</li>
-                            <li><span class="variavel-item badge badge-primary" style="cursor: pointer;" data-variavel="%ValorTotalDividas%">%ValorTotalDividas%</span> - Valor total das dívidas (sem R$)</li>
-                            <li><span class="variavel-item badge badge-primary" style="cursor: pointer;" data-variavel="%ValorTotalCorrigidoDividas%">%ValorTotalCorrigidoDividas%</span> - Valor total corrigido (sem R$)</li>
+                            <li class="mb-2">
+                                <span class="variavel-item badge badge-warning badge-pill" style="cursor: pointer;" data-variavel="%ValorDebitoCorrigido%">%ValorDebitoCorrigido%</span> 
+                                <small class="ml-2">- Valor com juros e correções</small>
+                            </li>
+                            <li class="mb-2">
+                                <span class="variavel-item badge badge-warning badge-pill" style="cursor: pointer;" data-variavel="%DataVencimentoOrigem%">%DataVencimentoOrigem%</span> 
+                                <small class="ml-2">- Data de vencimento original</small>
+                            </li>
                         </ul>
                         
-                        <h6>Informações de Parcelas</h6>
+                        <h6 class="font-weight-bold text-secondary mt-3">
+                            <i class="fas fa-briefcase"></i> Informações da Empresa
+                        </h6>
                         <ul class="list-unstyled">
-                            <li><span class="variavel-item badge badge-primary" style="cursor: pointer;" data-variavel="%ListaVencimentosParcelas%">%ListaVencimentosParcelas%</span> - Datas de vencimento das parcelas</li>
-                            <li><span class="variavel-item badge badge-primary" style="cursor: pointer;" data-variavel="%QtdeParcelas%">%QtdeParcelas%</span> - Quantidade de parcelas em aberto</li>
-                            <li><span class="variavel-item badge badge-primary" style="cursor: pointer;" data-variavel="%ValorTotalParcelas%">%ValorTotalParcelas%</span> - Valor total das parcelas (sem R$)</li>
+                            <li class="mb-2">
+                                <span class="variavel-item badge badge-secondary badge-pill" style="cursor: pointer;" data-variavel="%Empresa%">%Empresa%</span> 
+                                <small class="ml-2">- Nome da empresa do cliente</small>
+                            </li>
                         </ul>
                     </div>
                 </div>
                 
-                <div class="mt-3">
-                    <h6>Exemplo de Uso:</h6>
-                    <pre class="bg-light p-3"><code>NOTIFICAÇÃO EXTRAJUDICIAL
+                <div class="mt-4">
+                    <h6 class="font-weight-bold">Exemplo de Uso:</h6>
+                    <pre class="bg-light p-3 border rounded"><code>Olá %Nome%,
 
-NOTIFICANTE:
-%NomeCredor%
-CNPJ: %CpfCnpjCredor%
+Identificamos um débito em aberto no valor de %ValorDebitoCorrigido% 
+com vencimento em %DataVencimentoOrigem%.
 
-NOTIFICADO:
-%Nome%
-CPF/CNPJ: %CpfCnpj%</code></pre>
+Entre em contato conosco através do consultor %NomeConsultor% 
+(%TelefoneConsultor%) para negociar.
+
+Atenciosamente,
+%NomeCredor%</code></pre>
                 </div>
             </div>
             <div class="modal-footer">
@@ -156,20 +176,12 @@ CPF/CNPJ: %CpfCnpj%</code></pre>
 {% block extra_js %}
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    // Garantir que o modal funcione
-    var modal = document.getElementById('variaveisModal');
-    if (modal) {
-        modal.addEventListener('show.bs.modal', function (e) {
-            // Modal está funcionando
-        });
-    }
-    
     // Adicionar funcionalidade para inserir variáveis no textarea
     var variavelItems = document.querySelectorAll('.variavel-item');
     variavelItems.forEach(function(item) {
         item.addEventListener('click', function() {
             var variavel = this.getAttribute('data-variavel');
-            var textarea = document.getElementById('id_template_mensagem');
+            var textarea = document.getElementById('id_mensagem');
             if (textarea) {
                 var cursorPos = textarea.selectionStart;
                 var textBefore = textarea.value.substring(0, cursorPos);
@@ -178,6 +190,9 @@ document.addEventListener('DOMContentLoaded', function() {
                 textarea.value = textBefore + variavel + textAfter;
                 textarea.focus();
                 textarea.setSelectionRange(cursorPos + variavel.length, cursorPos + variavel.length);
+                
+                // Fechar modal após inserir variável
+                $('#variaveisModal').modal('hide');
             }
         });
     });

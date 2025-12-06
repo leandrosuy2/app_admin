@@ -368,6 +368,29 @@ class TemplateMensagemWhatsapp(models.Model):
 
     def __str__(self):
         return f"{self.nome} - {self.categoria}"
+
+
+class WhatsappTemplate(models.Model):
+    """
+    Modelo para templates de mensagens WhatsApp
+    Mapeia para a tabela core_whatsapp_template
+    """
+    template = models.CharField(max_length=255, help_text="Nome/tipo do template (ex: padrao, vencendo_hoje)")
+    mensagem = models.TextField(help_text="Conteúdo da mensagem com variáveis dinâmicas")
+    empresa = models.ForeignKey('Empresa', on_delete=models.SET_NULL, null=True, blank=True, related_name='whatsapp_templates')
+    criado_em = models.DateTimeField(auto_now_add=True, verbose_name="Data de Criação")
+    atualizado_em = models.DateTimeField(auto_now=True, verbose_name="Data de Atualização")
+    atualizado_por = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='whatsapp_templates_atualizados', verbose_name="Atualizado por")
+
+    class Meta:
+        db_table = 'core_whatsapp_template'
+        verbose_name = "Template WhatsApp"
+        verbose_name_plural = "Templates WhatsApp"
+        ordering = ['-atualizado_em']
+
+    def __str__(self):
+        empresa_nome = self.empresa.nome_fantasia if self.empresa else "Geral"
+        return f"{self.template} - {empresa_nome}"
         
 class TabelaRemuneracao(models.Model):
     nome = models.CharField(max_length=255)

@@ -1,7 +1,7 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required, permission_required
 from django.contrib.auth import authenticate, login  
-from .models import Devedor, Empresa, Titulo, Acordo, Parcelamento, UserAccessLog, MensagemWhatsapp, TemplateMensagemWhatsapp, TabelaRemuneracao, TabelaRemuneracaoLista, EmailEnvio, EmailTemplate, Boleto, Cobranca
+from .models import Devedor, Empresa, Titulo, Acordo, Parcelamento, UserAccessLog, MensagemWhatsapp, TemplateMensagemWhatsapp, WhatsappTemplate, TabelaRemuneracao, TabelaRemuneracaoLista, EmailEnvio, EmailTemplate, Boleto, Cobranca
 from django.apps import AppConfig
 from django.core.paginator import Paginator
 import logging
@@ -51,7 +51,7 @@ from django.contrib.auth.decorators import login_required, permission_required
 from num2words import num2words
 import os
 from django.conf import settings
-from .forms import MensagemWhatsappForm, TemplateMensagemWhatsappForm
+from .forms import MensagemWhatsappForm, TemplateMensagemWhatsappForm, WhatsappTemplateForm
 from django.core.exceptions import ValidationError
 from decimal import Decimal, InvalidOperation 
 
@@ -7394,11 +7394,12 @@ def honorarios(request):
     })
 
 
-# Views para Templates de Mensagens WhatsApp
+# Views para Templates de Mensagens WhatsApp (core_whatsapp_template)
+@login_required
 def listar_templates_mensagens(request):
     try:
-        # Verificar se a tabela existe
-        templates = TemplateMensagemWhatsapp.objects.all().order_by('-created_at')
+        # Carregar todos os templates da tabela core_whatsapp_template
+        templates = WhatsappTemplate.objects.select_related('empresa', 'atualizado_por').all().order_by('-atualizado_em')
         return render(request, 'templates_mensagens_listar.html', {'templates': templates})
     except Exception as e:
         # Se houver erro, mostrar mensagem de erro
@@ -7408,30 +7409,58 @@ def listar_templates_mensagens(request):
         })
 
 
+@login_required
 def adicionar_template_mensagem(request):
     if request.method == 'POST':
-        form = TemplateMensagemWhatsappForm(request.POST)
+        form = WhatsappTemplateForm(request.POST)
         if form.is_valid():
-            form.save()
+            template = form.save(commit=False)
+            # Preencher automaticamente atualizado_por_id com o usuário logado
+            template.atualizado_por = request.user
+            template.save()
+            messages.success(request, 'Template criado com sucesso!')
             return redirect('listar_templates_mensagens')
     else:
-        form = TemplateMensagemWhatsappForm()
-    return render(request, 'template_mensagem_adicionar.html', {'form': form})
+        form = WhatsappTemplateForm()
+    
+    # Buscar todas as empresas para o select
+    empresas = Empresa.objects.filter(status_empresa=True).order_by('nome_fantasia')
+    return render(request, 'template_mensagem_adicionar.html', {
+        'form': form,
+        'empresas': empresas
+    })
 
 
+@login_required
 def editar_template_mensagem(request, pk):
-    template = get_object_or_404(TemplateMensagemWhatsapp, pk=pk)
+    template = get_object_or_404(WhatsappTemplate, pk=pk)
     if request.method == 'POST':
-        form = TemplateMensagemWhatsappForm(request.POST, instance=template)
+        form = WhatsappTemplateForm(request.POST, instance=template)
         if form.is_valid():
-            form.save()
+            template = form.save(commit=False)
+            # Atualizar atualizado_por_id com o usuário logado
+            template.atualizado_por = request.user
+            template.save()
+            messages.success(request, 'Template atualizado com sucesso!')
             return redirect('listar_templates_mensagens')
     else:
-        form = TemplateMensagemWhatsappForm(instance=template)
-    return render(request, 'template_mensagem_editar.html', {'form': form, 'template': template})
+        form = WhatsappTemplateForm(instance=template)
+    
+    # Buscar todas as empresas para o select
+    empresas = Empresa.objects.filter(status_empresa=True).order_by('nome_fantasia')
+    return render(request, 'template_mensagem_editar.html', {
+        'form': form,
+        'template': template,
+        'empresas': empresas
+    })
 
 
+@login_required
 def excluir_template_mensagem(request, pk):
-    template = get_object_or_404(TemplateMensagemWhatsapp, pk=pk)
-    template.delete()
-    return redirect('listar_templates_mensagens')
+    template = get_object_or_404(WhatsappTemplate, pk=pk)
+    if request.method == 'POST':
+        template.delete()
+        messages.success(request, 'Template excluído com sucesso!')
+        return redirect('listar_templates_mensagens')
+    # Se for GET, mostrar página de confirmação
+    return render(request, 'template_mensagem_excluir.html', {'template': template})

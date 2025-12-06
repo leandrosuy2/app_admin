@@ -1,0 +1,64 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header bg-danger text-white">
+                    <h3 class="card-title">
+                        <i class="fas fa-trash"></i>
+                        Excluir Template de Mensagem WhatsApp
+                    </h3>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-warning">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        <strong>Atenção!</strong> Esta ação não pode ser desfeita.
+                    </div>
+                    
+                    <div class="card mb-3">
+                        <div class="card-body">
+                            <h5 class="card-title">Informações do Template</h5>
+                            <p><strong>Template:</strong> {{ template.template }}</p>
+                            <p><strong>Empresa:</strong> 
+                                {% if template.empresa %}
+                                    {{ template.empresa.nome_fantasia }}
+                                {% else %}
+                                    <span class="text-muted">Geral (sem empresa específica)</span>
+                                {% endif %}
+                            </p>
+                            <p><strong>Mensagem:</strong></p>
+                            <div class="bg-light p-3 border rounded">
+                                <pre class="mb-0">{{ template.mensagem|truncatewords:50 }}</pre>
+                            </div>
+                            <p class="mt-2">
+                                <small class="text-muted">
+                                    <strong>Última atualização:</strong> 
+                                    {{ template.atualizado_em|date:"d/m/Y H:i" }}
+                                    {% if template.atualizado_por %}
+                                        por {{ template.atualizado_por.get_full_name|default:template.atualizado_por.username }}
+                                    {% endif %}
+                                </small>
+                            </p>
+                        </div>
+                    </div>
+                    
+                    <form method="post">
+                        {% csrf_token %}
+                        <div class="form-group">
+                            <button type="submit" class="btn btn-danger">
+                                <i class="fas fa-trash"></i> Confirmar Exclusão
+                            </button>
+                            <a href="{% url 'listar_templates_mensagens' %}" class="btn btn-secondary">
+                                <i class="fas fa-times"></i> Cancelar
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
