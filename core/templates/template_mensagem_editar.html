@@ -161,100 +161,101 @@
     
     <!-- Modal com variáveis disponíveis -->
     <div class="modal fade" id="variaveisModal" tabindex="-1" role="dialog" aria-labelledby="variaveisModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-dialog modal-dialog-centered" role="document" style="max-width: 600px;">
             <div class="modal-content shadow-lg">
-                <div class="modal-header bg-primary text-white">
-                    <h5 class="modal-title mb-0" style="font-weight: 600;" id="variaveisModalLabel">
-                        <i class="fas fa-code mr-2"></i> Variáveis Dinâmicas Disponíveis
-                    </h5>
+                <div class="modal-header bg-primary text-white py-2">
+                    <h6 class="modal-title mb-0 fw-bold" id="variaveisModalLabel" style="font-size: 0.95rem;">
+                        <i class="fas fa-code me-2"></i> Variáveis Disponíveis
+                    </h6>
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
-            <div class="modal-body">
-                <p class="text-muted">Clique em uma variável para inseri-la na mensagem.</p>
-                <div class="row">
-                    <div class="col-md-6">
-                        <h6 class="font-weight-bold text-primary">
-                            <i class="fas fa-user"></i> Informações do Devedor
-                        </h6>
-                        <ul class="list-unstyled">
-                            <li class="mb-2">
-                                <span class="variavel-item badge badge-primary badge-pill" style="cursor: pointer;" data-variavel="%Nome%">%Nome%</span> 
-                                <small class="ml-2">- Nome do devedor</small>
-                            </li>
-                            <li class="mb-2">
-                                <span class="variavel-item badge badge-primary badge-pill" style="cursor: pointer;" data-variavel="%CpfCnpjMascarado%">%CpfCnpjMascarado%</span> 
-                                <small class="ml-2">- CPF/CNPJ formatado e mascarado</small>
-                            </li>
-                        </ul>
+                <div class="modal-body p-3">
+                    <p class="text-muted mb-2 small" style="font-size: 0.8rem;">
+                        <i class="fas fa-mouse-pointer me-1"></i> Clique em uma variável para inserir
+                    </p>
+                    
+                    <div class="row g-2">
+                        <!-- Devedor -->
+                        <div class="col-6">
+                            <div class="border rounded p-2 mb-2" style="background: #f8f9fa;">
+                                <small class="text-primary fw-bold d-block mb-1">
+                                    <i class="fas fa-user me-1" style="font-size: 0.7rem;"></i> Devedor
+                                </small>
+                                <div class="d-flex flex-column gap-1">
+                                    <span class="variavel-item badge bg-primary" style="cursor: pointer; font-size: 0.7rem; padding: 0.25rem 0.5rem;" data-variavel="%Nome%">%Nome%</span>
+                                    <span class="variavel-item badge bg-primary" style="cursor: pointer; font-size: 0.7rem; padding: 0.25rem 0.5rem;" data-variavel="%CpfCnpjMascarado%">%CpfCnpjMascarado%</span>
+                                </div>
+                            </div>
+                        </div>
                         
-                        <h6 class="font-weight-bold text-success mt-3">
-                            <i class="fas fa-building"></i> Informações do Credor
-                        </h6>
-                        <ul class="list-unstyled">
-                            <li class="mb-2">
-                                <span class="variavel-item badge badge-success badge-pill" style="cursor: pointer;" data-variavel="%NomeCredor%">%NomeCredor%</span> 
-                                <small class="ml-2">- Nome da empresa credora</small>
-                            </li>
-                        </ul>
+                        <!-- Credor -->
+                        <div class="col-6">
+                            <div class="border rounded p-2 mb-2" style="background: #f8f9fa;">
+                                <small class="text-success fw-bold d-block mb-1">
+                                    <i class="fas fa-building me-1" style="font-size: 0.7rem;"></i> Credor
+                                </small>
+                                <div class="d-flex flex-column gap-1">
+                                    <span class="variavel-item badge bg-success" style="cursor: pointer; font-size: 0.7rem; padding: 0.25rem 0.5rem;" data-variavel="%NomeCredor%">%NomeCredor%</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Consultor -->
+                        <div class="col-6">
+                            <div class="border rounded p-2 mb-2" style="background: #f8f9fa;">
+                                <small class="text-info fw-bold d-block mb-1">
+                                    <i class="fas fa-user-tie me-1" style="font-size: 0.7rem;"></i> Consultor
+                                </small>
+                                <div class="d-flex flex-column gap-1">
+                                    <span class="variavel-item badge bg-info" style="cursor: pointer; font-size: 0.7rem; padding: 0.25rem 0.5rem;" data-variavel="%NomeConsultor%">%NomeConsultor%</span>
+                                    <span class="variavel-item badge bg-info" style="cursor: pointer; font-size: 0.7rem; padding: 0.25rem 0.5rem;" data-variavel="%TelefoneConsultor%">%TelefoneConsultor%</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Financeiro -->
+                        <div class="col-6">
+                            <div class="border rounded p-2 mb-2" style="background: #f8f9fa;">
+                                <small class="text-warning fw-bold d-block mb-1">
+                                    <i class="fas fa-dollar-sign me-1" style="font-size: 0.7rem;"></i> Financeiro
+                                </small>
+                                <div class="d-flex flex-column gap-1">
+                                    <span class="variavel-item badge bg-warning text-dark" style="cursor: pointer; font-size: 0.7rem; padding: 0.25rem 0.5rem;" data-variavel="%ValorDebitoCorrigido%">%ValorDebitoCorrigido%</span>
+                                    <span class="variavel-item badge bg-warning text-dark" style="cursor: pointer; font-size: 0.7rem; padding: 0.25rem 0.5rem;" data-variavel="%DataVencimentoOrigem%">%DataVencimentoOrigem%</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Empresa -->
+                        <div class="col-12">
+                            <div class="border rounded p-2" style="background: #f8f9fa;">
+                                <small class="text-secondary fw-bold d-block mb-1">
+                                    <i class="fas fa-briefcase me-1" style="font-size: 0.7rem;"></i> Empresa
+                                </small>
+                                <div class="d-flex flex-column gap-1">
+                                    <span class="variavel-item badge bg-secondary" style="cursor: pointer; font-size: 0.7rem; padding: 0.25rem 0.5rem;" data-variavel="%Empresa%">%Empresa%</span>
+                                </div>
+                            </div>
+                        </div>
                     </div>
-                    <div class="col-md-6">
-                        <h6 class="font-weight-bold text-info mt-3">
-                            <i class="fas fa-user-tie"></i> Informações do Consultor
-                        </h6>
-                        <ul class="list-unstyled">
-                            <li class="mb-2">
-                                <span class="variavel-item badge badge-info badge-pill" style="cursor: pointer;" data-variavel="%NomeConsultor%">%NomeConsultor%</span> 
-                                <small class="ml-2">- Nome do atendente/consultor</small>
-                            </li>
-                            <li class="mb-2">
-                                <span class="variavel-item badge badge-info badge-pill" style="cursor: pointer;" data-variavel="%TelefoneConsultor%">%TelefoneConsultor%</span> 
-                                <small class="ml-2">- Telefone do consultor</small>
-                            </li>
-                        </ul>
-                        
-                        <h6 class="font-weight-bold text-warning mt-3">
-                            <i class="fas fa-dollar-sign"></i> Informações Financeiras
-                        </h6>
-                        <ul class="list-unstyled">
-                            <li class="mb-2">
-                                <span class="variavel-item badge badge-warning badge-pill" style="cursor: pointer;" data-variavel="%ValorDebitoCorrigido%">%ValorDebitoCorrigido%</span> 
-                                <small class="ml-2">- Valor com juros e correções</small>
-                            </li>
-                            <li class="mb-2">
-                                <span class="variavel-item badge badge-warning badge-pill" style="cursor: pointer;" data-variavel="%DataVencimentoOrigem%">%DataVencimentoOrigem%</span> 
-                                <small class="ml-2">- Data de vencimento original</small>
-                            </li>
-                        </ul>
-                        
-                        <h6 class="font-weight-bold text-secondary mt-3">
-                            <i class="fas fa-briefcase"></i> Informações da Empresa
-                        </h6>
-                        <ul class="list-unstyled">
-                            <li class="mb-2">
-                                <span class="variavel-item badge badge-secondary badge-pill" style="cursor: pointer;" data-variavel="%Empresa%">%Empresa%</span> 
-                                <small class="ml-2">- Nome da empresa do cliente</small>
-                            </li>
-                        </ul>
-                    </div>
-                </div>
-                
-                <div class="mt-4">
-                    <h6 class="font-weight-bold">Exemplo de Uso:</h6>
-                    <pre class="bg-light p-3 border rounded"><code>Olá %Nome%,
+                    
+                    <div class="mt-3 pt-2 border-top">
+                        <small class="text-muted fw-bold d-block mb-1" style="font-size: 0.75rem;">
+                            <i class="fas fa-lightbulb me-1"></i> Exemplo:
+                        </small>
+                        <pre class="bg-light p-2 border rounded mb-0" style="font-size: 0.7rem; line-height: 1.4; max-height: 120px; overflow-y: auto;"><code>Olá %Nome%,
 
-Identificamos um débito em aberto no valor de %ValorDebitoCorrigido% 
-com vencimento em %DataVencimentoOrigem%.
+Identificamos um débito de %ValorDebitoCorrigido% 
+vencendo em %DataVencimentoOrigem%.
 
-Entre em contato conosco através do consultor %NomeConsultor% 
-(%TelefoneConsultor%) para negociar.
+Contato: %NomeConsultor% (%TelefoneConsultor%)
 
-Atenciosamente,
 %NomeCredor%</code></pre>
+                    </div>
                 </div>
-            </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
-                        <i class="fas fa-times mr-1"></i> Fechar
+                <div class="modal-footer py-2">
+                    <button type="button" class="btn btn-sm btn-secondary" data-bs-dismiss="modal">
+                        <i class="fas fa-times me-1"></i> Fechar
                     </button>
                 </div>
             </div>
