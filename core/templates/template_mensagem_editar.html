@@ -1,40 +1,88 @@
 {% extends 'base.html' %}
 
 {% block content %}
+<style>
+    .form-header {
+        background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        color: white;
+        padding: 1.5rem;
+        border-radius: 0.5rem 0.5rem 0 0;
+    }
+    .form-card {
+        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        border: none;
+        border-radius: 0.5rem;
+    }
+    .form-group label {
+        font-weight: 600;
+        color: #495057;
+        margin-bottom: 0.5rem;
+    }
+    .form-control:focus {
+        border-color: #f5576c;
+        box-shadow: 0 0 0 0.2rem rgba(245, 87, 108, 0.25);
+    }
+    .variavel-item {
+        transition: all 0.2s;
+    }
+    .variavel-item:hover {
+        transform: scale(1.1);
+        box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+    }
+</style>
+
 <div class="container-fluid">
     <div class="row">
-        <div class="col-12">
-            <div class="card">
-                <div class="card-header">
-                    <h3 class="card-title">
-                        <i class="fas fa-edit"></i>
+        <div class="col-12 col-lg-10 col-xl-8 mx-auto">
+            <div class="card form-card">
+                <div class="form-header">
+                    <h3 class="mb-0" style="font-weight: 600;">
+                        <i class="fas fa-edit mr-2"></i>
                         Editar Template de Mensagem WhatsApp
                     </h3>
+                    <p class="mb-0 mt-2" style="opacity: 0.9; font-size: 0.95rem;">
+                        Atualize as informações do template
+                    </p>
                 </div>
-                <div class="card-body">
+                <div class="card-body p-4">
                     <form method="post">
                         {% csrf_token %}
+                        
                         <div class="row">
                             <div class="col-md-6">
                                 <div class="form-group">
-                                    <label for="{{ form.template.id_for_label }}">Nome do Template <span class="text-danger">*</span></label>
+                                    <label for="{{ form.template.id_for_label }}">
+                                        <i class="fas fa-tag text-primary mr-1"></i>
+                                        Nome do Template <span class="text-danger">*</span>
+                                    </label>
                                     {{ form.template }}
                                     {% if form.template.errors %}
-                                        <div class="text-danger">{{ form.template.errors }}</div>
+                                        <div class="text-danger small mt-1">
+                                            <i class="fas fa-exclamation-circle mr-1"></i>
+                                            {{ form.template.errors }}
+                                        </div>
                                     {% endif %}
                                     <small class="form-text text-muted">
+                                        <i class="fas fa-info-circle mr-1"></i>
                                         Ex: padrao, vencendo_hoje, negociacao, etc.
                                     </small>
                                 </div>
                             </div>
                             <div class="col-md-6">
                                 <div class="form-group">
-                                    <label for="{{ form.empresa.id_for_label }}">Empresa</label>
+                                    <label for="{{ form.empresa.id_for_label }}">
+                                        <i class="fas fa-building text-primary mr-1"></i>
+                                        Empresa
+                                    </label>
                                     {{ form.empresa }}
                                     {% if form.empresa.errors %}
-                                        <div class="text-danger">{{ form.empresa.errors }}</div>
+                                        <div class="text-danger small mt-1">
+                                            <i class="fas fa-exclamation-circle mr-1"></i>
+                                            {{ form.empresa.errors }}
+                                        </div>
                                     {% endif %}
                                     <small class="form-text text-muted">
+                                        <i class="fas fa-info-circle mr-1"></i>
                                         Deixe em branco para template geral (todas as empresas)
                                     </small>
                                 </div>
@@ -42,36 +90,52 @@
                         </div>
                         
                         <div class="form-group">
-                            <label for="{{ form.mensagem.id_for_label }}">Mensagem <span class="text-danger">*</span></label>
+                            <label for="{{ form.mensagem.id_for_label }}">
+                                <i class="fas fa-comment-dots text-primary mr-1"></i>
+                                Mensagem <span class="text-danger">*</span>
+                            </label>
                             {{ form.mensagem }}
                             {% if form.mensagem.errors %}
-                                <div class="text-danger">{{ form.mensagem.errors }}</div>
+                                <div class="text-danger small mt-1">
+                                    <i class="fas fa-exclamation-circle mr-1"></i>
+                                    {{ form.mensagem.errors }}
+                                </div>
                             {% endif %}
-                            <small class="form-text text-muted">
-                                Use as variáveis disponíveis para personalizar a mensagem. 
-                                <a href="#" data-toggle="modal" data-target="#variaveisModal">
-                                    <i class="fas fa-info-circle"></i> Ver variáveis disponíveis
-                                </a>
-                            </small>
+                            <div class="d-flex justify-content-between align-items-center mt-2">
+                                <small class="form-text text-muted mb-0">
+                                    <i class="fas fa-info-circle mr-1"></i>
+                                    Use as variáveis disponíveis para personalizar a mensagem
+                                </small>
+                                <button type="button" class="btn btn-sm btn-outline-primary" data-toggle="modal" data-target="#variaveisModal">
+                                    <i class="fas fa-code mr-1"></i>
+                                    Ver Variáveis
+                                </button>
+                            </div>
                         </div>
                         
-                        <div class="alert alert-info">
-                            <small>
-                                <i class="fas fa-info-circle"></i>
-                                <strong>Última atualização:</strong> 
-                                {{ template.atualizado_em|date:"d/m/Y H:i" }}
-                                {% if template.atualizado_por %}
-                                    por {{ template.atualizado_por.get_full_name|default:template.atualizado_por.username }}
-                                {% endif %}
-                            </small>
+                        <div class="alert alert-info shadow-sm">
+                            <div class="d-flex align-items-center">
+                                <i class="fas fa-info-circle fa-2x mr-3"></i>
+                                <div>
+                                    <strong>Última atualização:</strong><br>
+                                    <small>
+                                        {{ template.atualizado_em|date:"d/m/Y" }} às {{ template.atualizado_em|date:"H:i" }}
+                                        {% if template.atualizado_por %}
+                                            por <strong>{{ template.atualizado_por.get_full_name|default:template.atualizado_por.username }}</strong>
+                                        {% endif %}
+                                    </small>
+                                </div>
+                            </div>
                         </div>
                         
-                        <div class="form-group mt-3">
-                            <button type="submit" class="btn btn-primary">
-                                <i class="fas fa-save"></i> Salvar Alterações
+                        <div class="form-group mt-4 pt-3 border-top">
+                            <button type="submit" class="btn btn-primary btn-lg shadow-sm">
+                                <i class="fas fa-save mr-2"></i>
+                                Salvar Alterações
                             </button>
-                            <a href="{% url 'listar_templates_mensagens' %}" class="btn btn-secondary">
-                                <i class="fas fa-arrow-left"></i> Voltar
+                            <a href="{% url 'listar_templates_mensagens' %}" class="btn btn-secondary btn-lg ml-2">
+                                <i class="fas fa-arrow-left mr-2"></i>
+                                Voltar
                             </a>
                         </div>
                     </form>
@@ -84,13 +148,13 @@
 <!-- Modal com variáveis disponíveis -->
 <div class="modal fade" id="variaveisModal" tabindex="-1" role="dialog">
     <div class="modal-dialog modal-lg" role="document">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">
-                    <i class="fas fa-code"></i> Variáveis Dinâmicas Disponíveis
+        <div class="modal-content shadow-lg">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title mb-0" style="font-weight: 600;">
+                    <i class="fas fa-code mr-2"></i> Variáveis Dinâmicas Disponíveis
                 </h5>
-                <button type="button" class="close" data-dismiss="modal">
-                    <span>&times;</span>
+                <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
                 </button>
             </div>
             <div class="modal-body">
