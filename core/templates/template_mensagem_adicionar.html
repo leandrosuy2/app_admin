@@ -117,7 +117,7 @@
                                     <i class="fas fa-info-circle mr-1"></i>
                                     Use as variáveis disponíveis para personalizar a mensagem
                                 </small>
-                                <button type="button" class="btn btn-sm btn-outline-primary" id="btnVerVariaveis" data-toggle="modal" data-target="#variaveisModal">
+                                <button type="button" class="btn btn-sm btn-outline-primary" id="btnVerVariaveis" data-bs-toggle="modal" data-bs-target="#variaveisModal">
                                     <i class="fas fa-code mr-1"></i>
                                     Ver Variáveis
                                 </button>
@@ -148,9 +148,7 @@
                     <h5 class="modal-title mb-0" style="font-weight: 600;" id="variaveisModalLabel">
                         <i class="fas fa-code mr-2"></i> Variáveis Dinâmicas Disponíveis
                     </h5>
-                    <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
-                        <span aria-hidden="true">&times;</span>
-                    </button>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
             <div class="modal-body">
                 <p class="text-muted">Clique em uma variável para inseri-la na mensagem.</p>
@@ -236,7 +234,7 @@ Atenciosamente,
                 </div>
             </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-dismiss="modal">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
                         <i class="fas fa-times mr-1"></i> Fechar
                     </button>
                 </div>
@@ -248,59 +246,81 @@ Atenciosamente,
 
 {% block extra_js %}
 <script>
-// Garantir que jQuery e Bootstrap estejam carregados
-if (typeof jQuery === 'undefined') {
-    console.error('jQuery não está carregado!');
-}
-
-$(document).ready(function() {
+document.addEventListener('DOMContentLoaded', function() {
     console.log('Script de variáveis carregado');
     
-    // Adicionar funcionalidade para inserir variáveis no textarea
-    $(document).on('click', '.variavel-item', function() {
-        var variavel = $(this).attr('data-variavel');
-        var textarea = $('#id_mensagem');
+    // Função para inserir variável no textarea
+    function inserirVariavel(variavel) {
+        var textarea = document.getElementById('id_mensagem');
         
-        console.log('Variável clicada:', variavel);
-        console.log('Textarea encontrado:', textarea.length);
-        
-        if (textarea.length) {
-            var cursorPos = textarea[0].selectionStart || textarea.val().length;
-            var textBefore = textarea.val().substring(0, cursorPos);
-            var textAfter = textarea.val().substring(cursorPos);
-            
-            textarea.val(textBefore + variavel + textAfter);
-            textarea.focus();
-            
-            // Reposicionar cursor após a variável inserida
-            var newPos = cursorPos + variavel.length;
-            textarea[0].setSelectionRange(newPos, newPos);
-            
-            // Fechar modal após inserir variável
-            $('#variaveisModal').modal('hide');
-        } else {
+        if (!textarea) {
             console.error('Textarea #id_mensagem não encontrado!');
+            return;
         }
+        
+        var cursorPos = textarea.selectionStart || textarea.value.length;
+        var textBefore = textarea.value.substring(0, cursorPos);
+        var textAfter = textarea.value.substring(cursorPos);
+        
+        textarea.value = textBefore + variavel + textAfter;
+        textarea.focus();
+        
+        // Reposicionar cursor após a variável inserida
+        var newPos = cursorPos + variavel.length;
+        textarea.setSelectionRange(newPos, newPos);
+        
+        // Fechar modal após inserir variável
+        var modalElement = document.getElementById('variaveisModal');
+        if (modalElement) {
+            var modal = bootstrap.Modal.getInstance(modalElement);
+            if (modal) {
+                modal.hide();
+            }
+        }
+    }
+    
+    // Adicionar funcionalidade para inserir variáveis no textarea
+    document.querySelectorAll('.variavel-item').forEach(function(item) {
+        item.addEventListener('click', function() {
+            var variavel = this.getAttribute('data-variavel');
+            console.log('Variável clicada:', variavel);
+            inserirVariavel(variavel);
+        });
     });
     
     // Garantir que o modal funcione quando aberto
-    $('#variaveisModal').on('shown.bs.modal', function() {
-        console.log('Modal de variáveis aberto');
-    });
+    var modalElement = document.getElementById('variaveisModal');
+    if (modalElement) {
+        modalElement.addEventListener('shown.bs.modal', function() {
+            console.log('Modal de variáveis aberto');
+        });
+    }
     
-    // Alternativa caso data-toggle não funcione
-    $('#btnVerVariaveis').on('click', function(e) {
-        e.preventDefault();
-        console.log('Botão Ver Variáveis clicado');
-        $('#variaveisModal').modal('show');
-    });
+    // Botão para abrir modal
+    var btnVerVariaveis = document.getElementById('btnVerVariaveis');
+    if (btnVerVariaveis) {
+        btnVerVariaveis.addEventListener('click', function(e) {
+            e.preventDefault();
+            console.log('Botão Ver Variáveis clicado');
+            if (modalElement) {
+                var modal = new bootstrap.Modal(modalElement);
+                modal.show();
+            }
+        });
+    }
     
-    // Também usar o evento padrão do Bootstrap
-    $('[data-toggle="modal"]').on('click', function() {
-        var target = $(this).data('target');
-        if (target) {
-            $(target).modal('show');
-        }
+    // Também usar o evento padrão do Bootstrap para data-bs-toggle
+    document.querySelectorAll('[data-bs-toggle="modal"]').forEach(function(button) {
+        button.addEventListener('click', function() {
+            var target = this.getAttribute('data-bs-target');
+            if (target) {
+                var targetElement = document.querySelector(target);
+                if (targetElement) {
+                    var modal = new bootstrap.Modal(targetElement);
+                    modal.show();
+                }
+            }
+        });
     });
 });
 </script>
