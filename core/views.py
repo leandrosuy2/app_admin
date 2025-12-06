@@ -882,7 +882,7 @@ def consult_api(request):
         data = json.loads(request.body)
         devedores_ids = data.get('devedores', [])
 
-        access_token = 'nG1dFp8huYPdgkhpWbAvg0TPYMRLx90B41eOLaoq'  # Replace with your actual access token
+        access_token = 'ihf97GeOfLQByLgY9YJT3viKoVuIdzhaC0nbjpQE'  # Replace with your actual access token
 
         for devedor_id in devedores_ids:
             devedor = get_object_or_404(Devedor, id=devedor_id)
