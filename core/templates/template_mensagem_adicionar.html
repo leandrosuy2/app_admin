@@ -2,6 +2,24 @@
 
 {% block content %}
 <style>
+    /* Remover todas as animações dos botões de variáveis */
+    .variavel-item {
+        transition: none !important;
+        -webkit-transition: none !important;
+        -moz-transition: none !important;
+        -o-transition: none !important;
+    }
+    .variavel-item:hover {
+        transition: none !important;
+    }
+    .variavel-item:active {
+        transition: none !important;
+    }
+    .variavel-item:focus {
+        transition: none !important;
+    }
+</style>
+<style>
     .form-header {
         background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
         color: white;
@@ -163,8 +181,8 @@
                                     <i class="fas fa-user me-1"></i> Devedor
                                 </small>
                                 <div class="d-flex flex-column gap-1">
-                                    <button type="button" class="variavel-item btn btn-sm btn-outline-primary text-start" data-variavel="%Nome%" style="font-size: 0.8rem;">%Nome%</button>
-                                    <button type="button" class="variavel-item btn btn-sm btn-outline-primary text-start" data-variavel="%CpfCnpjMascarado%" style="font-size: 0.8rem;">%CpfCnpjMascarado%</button>
+                                    <button type="button" class="variavel-item btn btn-sm btn-outline-primary text-start" data-variavel="%Nome%" style="font-size: 0.8rem; transition: none !important;">%Nome%</button>
+                                    <button type="button" class="variavel-item btn btn-sm btn-outline-primary text-start" data-variavel="%CpfCnpjMascarado%" style="font-size: 0.8rem; transition: none !important;">%CpfCnpjMascarado%</button>
                                 </div>
                             </div>
                         </div>
@@ -176,7 +194,7 @@
                                     <i class="fas fa-building me-1"></i> Credor
                                 </small>
                                 <div class="d-flex flex-column gap-1">
-                                    <button type="button" class="variavel-item btn btn-sm btn-outline-success text-start" data-variavel="%NomeCredor%" style="font-size: 0.8rem;">%NomeCredor%</button>
+                                    <button type="button" class="variavel-item btn btn-sm btn-outline-success text-start" data-variavel="%NomeCredor%" style="font-size: 0.8rem; transition: none !important;">%NomeCredor%</button>
                                 </div>
                             </div>
                         </div>
@@ -188,8 +206,8 @@
                                     <i class="fas fa-user-tie me-1"></i> Consultor
                                 </small>
                                 <div class="d-flex flex-column gap-1">
-                                    <button type="button" class="variavel-item btn btn-sm btn-outline-info text-start" data-variavel="%NomeConsultor%" style="font-size: 0.8rem;">%NomeConsultor%</button>
-                                    <button type="button" class="variavel-item btn btn-sm btn-outline-info text-start" data-variavel="%TelefoneConsultor%" style="font-size: 0.8rem;">%TelefoneConsultor%</button>
+                                    <button type="button" class="variavel-item btn btn-sm btn-outline-info text-start" data-variavel="%NomeConsultor%" style="font-size: 0.8rem; transition: none !important;">%NomeConsultor%</button>
+                                    <button type="button" class="variavel-item btn btn-sm btn-outline-info text-start" data-variavel="%TelefoneConsultor%" style="font-size: 0.8rem; transition: none !important;">%TelefoneConsultor%</button>
                                 </div>
                             </div>
                         </div>
@@ -201,8 +219,8 @@
                                     <i class="fas fa-dollar-sign me-1"></i> Financeiro
                                 </small>
                                 <div class="d-flex flex-column gap-1">
-                                    <button type="button" class="variavel-item btn btn-sm btn-outline-warning text-start" data-variavel="%ValorDebitoCorrigido%" style="font-size: 0.8rem;">%ValorDebitoCorrigido%</button>
-                                    <button type="button" class="variavel-item btn btn-sm btn-outline-warning text-start" data-variavel="%DataVencimentoOrigem%" style="font-size: 0.8rem;">%DataVencimentoOrigem%</button>
+                                    <button type="button" class="variavel-item btn btn-sm btn-outline-warning text-start" data-variavel="%ValorDebitoCorrigido%" style="font-size: 0.8rem; transition: none !important;">%ValorDebitoCorrigido%</button>
+                                    <button type="button" class="variavel-item btn btn-sm btn-outline-warning text-start" data-variavel="%DataVencimentoOrigem%" style="font-size: 0.8rem; transition: none !important;">%DataVencimentoOrigem%</button>
                                 </div>
                             </div>
                         </div>
@@ -214,7 +232,7 @@
                                     <i class="fas fa-briefcase me-1"></i> Empresa
                                 </small>
                                 <div class="d-flex flex-column gap-1">
-                                    <button type="button" class="variavel-item btn btn-sm btn-outline-secondary text-start" data-variavel="%Empresa%" style="font-size: 0.8rem;">%Empresa%</button>
+                                    <button type="button" class="variavel-item btn btn-sm btn-outline-secondary text-start" data-variavel="%Empresa%" style="font-size: 0.8rem; transition: none !important;">%Empresa%</button>
                                 </div>
                             </div>
                         </div>
@@ -270,12 +288,58 @@ document.addEventListener('DOMContentLoaded', function() {
         var newPos = cursorPos + variavel.length;
         textarea.setSelectionRange(newPos, newPos);
         
-        // Fechar modal após inserir variável
+        // Fechar modal após inserir variável e remover backdrop
         var modalElement = document.getElementById('variaveisModal');
         if (modalElement) {
             var modal = bootstrap.Modal.getInstance(modalElement);
             if (modal) {
                 modal.hide();
+                // Aguardar animação de fechamento e remover backdrop manualmente se necessário
+                modalElement.addEventListener('hidden.bs.modal', function() {
+                    var backdrop = document.querySelector('.modal-backdrop');
+                    if (backdrop) {
+                        backdrop.remove();
+                    }
+                    // Remover classe modal-open do body
+                    document.body.classList.remove('modal-open');
+                    document.body.style.overflow = '';
+                    document.body.style.paddingRight = '';
+                }, { once: true });
+                
+                // Fallback caso o evento não dispare
+                setTimeout(function() {
+                    var backdrop = document.querySelector('.modal-backdrop');
+                    if (backdrop) {
+                        backdrop.remove();
+                    }
+                    document.body.classList.remove('modal-open');
+                    document.body.style.overflow = '';
+                    document.body.style.paddingRight = '';
+                }, 500);
+            } else {
+                // Se não houver instância, criar e fechar
+                var newModal = new bootstrap.Modal(modalElement);
+                newModal.hide();
+                modalElement.addEventListener('hidden.bs.modal', function() {
+                    var backdrop = document.querySelector('.modal-backdrop');
+                    if (backdrop) {
+                        backdrop.remove();
+                    }
+                    document.body.classList.remove('modal-open');
+                    document.body.style.overflow = '';
+                    document.body.style.paddingRight = '';
+                }, { once: true });
+                
+                // Fallback caso o evento não dispare
+                setTimeout(function() {
+                    var backdrop = document.querySelector('.modal-backdrop');
+                    if (backdrop) {
+                        backdrop.remove();
+                    }
+                    document.body.classList.remove('modal-open');
+                    document.body.style.overflow = '';
+                    document.body.style.paddingRight = '';
+                }, 500);
             }
         }
     }
